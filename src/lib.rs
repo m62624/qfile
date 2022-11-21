@@ -33,7 +33,7 @@ mod core {
         // use crate::;
 
         use crate::dpds_path::io::{self, Write};
-        use crate::dpds_path::File;
+        use crate::dpds_path::{File, OpenOptions};
 
         use super::get_file;
 
@@ -50,10 +50,22 @@ mod core {
                     Err(_) => return file_write(path, text, Flag::New),
                 },
                 Flag::New => match File::create(path) {
-                    Ok(_) => get_file(path).unwrap().by_ref().write_all(text.as_bytes()),
+                    Ok(_) => OpenOptions::new()
+                        .write(true)
+                        .create(true)
+                        .truncate(true)
+                        .open(path)
+                        .unwrap()
+                        .write_all(text.as_bytes()),
                     Err(err) => return Err(err.kind().into()),
                 },
-                Flag::Old => get_file(path).unwrap().by_ref().write_all(text.as_bytes()),
+                Flag::Old => OpenOptions::new()
+                    .write(true)
+                    .create(false)
+                    .truncate(false)
+                    .open(path)
+                    .unwrap()
+                    .write_all(text.as_bytes()),
             }
         }
     }
