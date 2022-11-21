@@ -1,51 +1,60 @@
 mod dpds_path;
-pub use crate::read::file_read;
-mod read {
-
-    use super::dpds_path::io::{self, ErrorKind, Read};
-    use super::dpds_path::File;
-
-    pub fn file_read(path: &str) -> Result<String, io::Error> {
-        let mut text = String::new();
-        if let Err(err) = (match File::open(path) {
-            Ok(file) => file,
+pub use crate::core::read::file_read;
+pub use crate::core::write::{file_write, Flag};
+mod core {
+    use crate::dpds_path::io::{self, ErrorKind};
+    use crate::dpds_path::File;
+    fn get_file(path: &str) -> Result<File, io::Error> {
+        match File::open(path) {
+            Ok(file) => Ok(file),
             Err(err) => match err.kind() {
                 ErrorKind::NotFound => return Err(err.kind().into()),
                 ErrorKind::PermissionDenied => return Err(err.kind().into()),
-                _ => return Err(err.into()),
+                _ => panic!("::other error::"),
             },
-        })
-        .read_to_string(&mut text)
-        {
-            return Err(err.into());
         }
-        Ok(text)
     }
-}
+    pub mod read {
 
-mod write {
-    use crate::file_read;
+        use crate::dpds_path::io::{self, Read};
 
-    use super::dpds_path::io::{self, ErrorKind, Write};
-    use super::dpds_path::File;
+        use super::get_file;
 
-    enum Flag {
-        New,
-        Auto,
-        Old,
+        pub fn file_read(path: &str) -> Result<String, io::Error> {
+            let mut text = String::new();
+            if let Err(err) = get_file(path).unwrap().read_to_string(&mut text) {
+                return Err(err.into());
+            }
+            Ok(text)
+        }
     }
-    // fn file_write(path: &str,text:&str, flag: Flag)->Result<(),io::Error>{
-    //     match flag{
-    //         Flag::New=> match File::create(path) {
-    //             Ok(file)=>file,
-    //             Err(err)=>return  Err(err.kind().into()),
-                
-    //         }.write_all(text.as_bytes()),
-    //         Flag::Auto=>match file_read(path).unwrap(){
-    //             Ok(x)=>x.
-    //         }
-    //         },
-    //         Flag::Old=>,
-    //     }
-    // }
+
+    pub mod write {
+        // use crate::;
+
+        use crate::dpds_path::io::{self, Write};
+        use crate::dpds_path::File;
+
+        use super::get_file;
+
+        pub enum Flag {
+            New,
+            Auto,
+            Old,
+        }
+
+        pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
+            match flag {
+                Flag::Auto => match get_file(path) {
+                    Ok(_) => return file_write(path, text, Flag::Old),
+                    Err(_) => return file_write(path, text, Flag::New),
+                },
+                Flag::New => match File::create(path) {
+                    Ok(_) => get_file(path).unwrap().by_ref().write_all(text.as_bytes()),
+                    Err(err) => return Err(err.kind().into()),
+                },
+                Flag::Old => get_file(path).unwrap().by_ref().write_all(text.as_bytes()),
+            }
+        }
+    }
 }
