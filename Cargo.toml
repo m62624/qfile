@@ -1,5 +1,5 @@
 [package]
-name = "quick_template_file"
+name = "qfile"
 version = "0.1.0"
 edition = "2021"
 
