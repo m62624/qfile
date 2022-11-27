@@ -1,4 +1,5 @@
 use crate::dpds_path::fs;
+use crate::dpds_path::Path;
 use crate::dpds_path::{io, Regex};
 use crate::file_read;
 
@@ -37,7 +38,7 @@ fn correct_path_check() {
 }
 #[test]
 fn collect_folder_check() {
-    println!("{:#?}", collect_folder("/Files/access/ROOT.txt"));
+    println!("{:#?}", collect_folder("/Files/ToolChain/new.file"));
 }
 pub fn correct_path(path: &str) -> Result<String, io::Error> {
     let mut user_paths = collect_folder(path);
@@ -49,7 +50,12 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
             user_paths[i], really_paths
         );
         for j in 0..really_paths.len() {
-            if user_paths[i + 1].to_lowercase() == really_paths[j].to_lowercase() {
+            if user_paths
+                .get(i + 1)
+                .unwrap_or(&user_paths.get(i).unwrap())
+                .to_lowercase()
+                == really_paths[j].to_lowercase()
+            {
                 // println!(
                 //     "Совпадение: {} {}",
                 //     user_paths[i + 1].to_lowercase(),
@@ -76,6 +82,11 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
     // return Ok(user_paths.pop().unwrap());
     match file_read(&user_paths[user_paths.len() - 1]) {
         Ok(_) => Ok(user_paths.pop().unwrap()),
-        Err(err) => Err(err),
+        Err(err) => {
+            if let true = Path::new(&user_paths[user_paths.len() - 1]).is_dir() {
+                return Ok(user_paths.pop().unwrap());
+            }
+            Err(err.kind().into())
+        }
     }
 }
