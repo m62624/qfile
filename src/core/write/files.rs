@@ -1,5 +1,6 @@
 use crate::dpds_path::fs;
 use crate::dpds_path::{io, Regex};
+use crate::file_read;
 
 fn collect_folder(path: &str) -> Vec<String> {
     let mut folders: Vec<String> = Vec::new();
@@ -28,13 +29,13 @@ fn files(path: &str) -> Vec<String> {
 }
 #[test]
 fn correct_path_check() {
-    println!("{:#?}", correct_path("./none/none/null"));
+    println!("{:#?}", correct_path("./FileS/ToolChain/temp.TXT_old"));
 }
 #[test]
 fn collect_folder_check() {
     println!("{:#?}", collect_folder("/Files/access/ROOT.txt"));
 }
-pub fn correct_path(path: &str) -> Result<String, ()> {
+pub fn correct_path(path: &str) -> Result<String, io::Error> {
     let mut user_paths = collect_folder(path);
 
     for i in 0..user_paths.len() {
@@ -44,9 +45,6 @@ pub fn correct_path(path: &str) -> Result<String, ()> {
             user_paths[i], really_paths
         );
         for j in 0..really_paths.len() {
-            if user_paths[user_paths.len() - 1].to_lowercase() == really_paths[j].to_lowercase() {
-                return Ok(user_paths.pop().unwrap());
-            }
             if user_paths[i + 1].to_lowercase() == really_paths[j].to_lowercase() {
                 // println!(
                 //     "Совпадение: {} {}",
@@ -60,9 +58,11 @@ pub fn correct_path(path: &str) -> Result<String, ()> {
                 //     user_paths.join("")
                 // );
                 break;
-                // return correct_path(&user_paths.join(""));
             }
         }
     }
-    return Err(());
+    if let Err(e) = file_read(&user_paths[user_paths.len() - 1]) {
+        return Err(e);
+    }
+    return Ok(user_paths.pop().unwrap());
 }
