@@ -2,7 +2,7 @@ use crate::dpds_path::fs;
 use crate::dpds_path::{io, Regex};
 use crate::file_read;
 
-fn collect_folder(path: &str) -> Vec<String> {
+pub fn collect_folder(path: &str) -> Vec<String> {
     let mut folders: Vec<String> = Vec::new();
     let mut i = 1;
     let linux = Regex::new(r"^(?:\.\./|\./|[\./]?)|(?:(?:\.\./|\./|[\./])?[^/]*)").unwrap();
@@ -29,7 +29,11 @@ fn files(path: &str) -> Vec<String> {
 }
 #[test]
 fn correct_path_check() {
-    println!("{:#?}", correct_path("./FileS/ToolChain/temp.TXT_old"));
+    // println!("{:#?}", correct_path("./FileS/ToolChain/temp.TXT_old"));
+    println!(
+        "result: {:#?}",
+        file_read(&correct_path("./FileS/ToolChain/temp.TXT_wold").unwrap())
+    );
 }
 #[test]
 fn collect_folder_check() {
@@ -61,8 +65,17 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
             }
         }
     }
-    if let Err(e) = file_read(&user_paths[user_paths.len() - 1]) {
-        return Err(e);
+    println!(
+        "&user_paths[user_paths.len() - 1]: {}",
+        &user_paths[user_paths.len() - 1]
+    );
+    // if let Err(err) = file_read(&user_paths[user_paths.len() - 1]) {
+    //     println!("ERROR ERROR ERROR");
+    //     return Err(err.kind().into());
+    // }
+    // return Ok(user_paths.pop().unwrap());
+    match file_read(&user_paths[user_paths.len() - 1]) {
+        Ok(_) => Ok(user_paths.pop().unwrap()),
+        Err(err) => Err(err),
     }
-    return Ok(user_paths.pop().unwrap());
 }
