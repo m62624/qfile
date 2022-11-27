@@ -1,8 +1,6 @@
 pub mod files;
 use std::fmt::format;
 
-use regex::Regex;
-
 use self::files::{collect_folder, correct_path};
 use super::get_file;
 use crate::dpds_path::io::{self, ErrorKind, Write};
@@ -44,6 +42,9 @@ pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
                     ErrorKind::NotFound => Ok({
                         let mut temp = collect_folder(path);
                         let name = temp.pop().unwrap();
+                        let mut xl = collect_folder(&name);
+                        let name = xl.pop().unwrap();
+                        let name = name.replace(&xl.pop().unwrap(), "");
                         // println!("mb name {}", name);
                         let temp = temp.pop().unwrap();
                         // let temp = temp.remove(temp.len() - 2);
@@ -55,7 +56,7 @@ pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
                             // panic!("last folder problem,{}", err);
                         } else {
                             // println!("та же самая папка: {}", &correct_path(&temp).unwrap());
-                            let result = format!("{}/{}", correct_path(&temp).unwrap(), "new.file");
+                            let result = format!("{}{}", correct_path(&temp).unwrap(), name);
                             file_write(&result, text, Flag::New).unwrap();
                         }
                     }),
