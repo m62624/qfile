@@ -1,4 +1,4 @@
-use qfile::{file_write, Flag};
+use qfile::{file_read, file_write, Flag};
 
 #[test]
 #[ignore]
@@ -7,7 +7,22 @@ fn file_write_test_new_path() {
     file_write(path, "ok", Flag::Auto).unwrap();
 }
 #[test]
-fn file_write_test_new_file_in_old_folder(){
+fn file_write_test_new_file_in_old_folder() {
     let path = "./Polygon/oldFolder1/file_new.txt";
     file_write(path, "ok", Flag::Auto).unwrap();
+}
+#[test]
+fn file_write_test_new_folder_in_old_folder_with_register() {
+    let path = "./Polygon/OldFolder1/new_folder_with_register/new.txt";
+    file_write(path, "ok", Flag::Auto).unwrap();
+}
+#[test]
+fn file_write_test_new_folder_in_old_folder_without_register() {
+    let path = "./Polygon/oldfolder1/x1/x2/new_folder_without_register/new.txt";
+    file_write(path, "ok", Flag::Auto).unwrap();
+}
+#[test]
+fn file_read_test() {
+    let x = file_read("./Polygon/oldFolder1/file_new.txt").unwrap();
+    println!("{}", x);
 }
