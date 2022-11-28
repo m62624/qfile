@@ -8,7 +8,7 @@ fn get_file(path: &str) -> Result<File, io::Error> {
         Err(err) => match err.kind() {
             ErrorKind::NotFound => Err(err),
             ErrorKind::PermissionDenied => Err(err),
-            _ => panic!("::other error::"),
+            _ => panic!(":: other errors ::"),
         },
     }
 }

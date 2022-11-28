@@ -25,7 +25,6 @@ pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
                         let temp = temp.pop().unwrap();
                         println!("====================");
                         let result = format!("{}{}", temp, name);
-                        println!("FINAL:{}", result);
                         if let Err(_) = correct_path(&temp) {
                             DirBuilder::new().recursive(true).create(&temp).unwrap();
                             return file_write(&result, text, Flag::New);

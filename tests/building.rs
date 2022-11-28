@@ -22,7 +22,8 @@ fn file_write_test_new_folder_in_old_folder_without_register() {
     file_write(path, "ok", Flag::Auto).unwrap();
 }
 #[test]
+
 fn file_read_test() {
     let x = file_read("./Polygon/oldFolder1/file_new.txt").unwrap();
-    println!("{}", x);
+    dbg!("{}", x);
 }
