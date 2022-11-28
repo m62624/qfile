@@ -1,10 +1,30 @@
-![image](https://github.com/m62624/images-for-projects/blob/599767502c534264618c591325e97ac09ba178fc/images/packtostringrand/repository-open-graph-template.png)
----
 # Qfile
 
 The crate for working with files without taking into account the case of the path.
 Automatic detection, create a path with a new file or open an existing file.
 
+ # Usage
+ Add this to your Cargo.toml:
+```toml
+[dependencies]
+qfile="0.1.0"
+```
+ # Example
+ ```
+ use qfile::{file_read, file_write, Flag};
+fn main() {
+    file_write(
+        "./Folder1/NewFolder1/file_new.txt",
+        "TEXT TEXT TEXT",
+        Flag::Auto,
+    )
+    .unwrap();
+    println!("{}",file_read("./Folder1/NewFolder1/file_new.txt").unwrap());
+}
+ ```
+ more information in the documentation 
+ > cargo doc --open
+ **more information** in the [FLAG](enum.Flag.html)
  # License
  [MIT](https://choosealicense.com/licenses/mit/)
 
