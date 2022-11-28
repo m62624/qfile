@@ -4,11 +4,50 @@ use super::get_file;
 use crate::dpds_path::io::{self, ErrorKind, Write};
 use crate::dpds_path::{DirBuilder, File, OpenOptions};
 
+/// File/path option, preferred mode **auto**
 pub enum Flag {
+    ///Creates a new path with file. Writes new data to an empty file
+    /// # Examples
+    /// ```
+    ///   let path = "./Folder1/NewFolder1/file_new.txt";
+    ///   
+    ///   assert_eq!(file_write(path, "ok", Flag::New).unwrap(), file_read(path).unwrap());
+    /// ```
     New,
+    /// Auto option
+    ///- If the path exists, regardless of the case, we work with the file `(Flag::Old)`
+    ///
+    ///> **The path we specified**: `"/Folder1/folDER2/file.TXT"`\
+    /// **real path** : `"/Folder1/Folder2/file.txt"`\
+    /// **Result** : `"/Folder1/Folder2/file.txt"`\
+    /// - If the file/path is not found, creates a new path with the file (*if initial path exists*) `(Flag::New)`
+    ///
+    ///> **The path we specified**: `"/Folder1/newFolder/file.TXT"`\
+    /// **real path** : `"/Folder1/newFolder/file.txt"`\
+    /// **Result** : `"/Folder1/newFolder/file.txt"`\  
+    ///
+    /// but if the initial path is case different, then a *new path with the file* is created `(Flag::New)`
+    ///
+    ///> **The path we specified**: `"/folder1/newFolder/file.TXT"`\
+    /// **real path** : `"/folder1/newFolder/file.txt"`\
+    /// **Result** : `"/folder1/newFolder/file.txt"`\  
+    /// # Examples
+    /// ```
+    ///   let path = "./Folder1/not_existing_folder/file_new.txt";
+    ///   
+    ///   assert_eq!(file_write(path, "ok", Flag::Auto).unwrap(), file_read(path).unwrap());
+    /// ```
     Auto,
+    ///Finds an already existing file. Appends new data to an existing file
+    ///  # Examples
+    /// ```
+    ///   let path = "./Folder1/NewFolder1/file_new.txt";
+    ///   
+    ///   assert_eq!(file_write(path, "ok", Flag::Old).unwrap(), file_read(path).unwrap());
+    /// ```
     Old,
 }
+/// Function for reading a file with operating modes **`Flag`**
 pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
     match flag {
         Flag::Auto => match get_file(path) {

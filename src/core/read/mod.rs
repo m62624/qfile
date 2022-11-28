@@ -18,13 +18,21 @@ pub mod only_for_crate {
         }
     }
 }
+// Function for reading a file
+/// searches for a file in a path, *case insensitive*
+/// # Examples
+/// ```
+/// use crate::core::read::file_read;
+/// use crate::core::write::file_write;
+/// //Creating a new file to read
+/// file_write("./Files/new.txt","text text text",Flag::Auto).unwrap();
+///  assert_eq!(file_read(""./files/new.txt""),"text text text");
+///
+/// ```
 pub fn file_read(path: &str) -> Result<String, io::Error> {
     let temp = &correct_path(path).unwrap();
     match only_for_crate::file_read(temp) {
         Ok(result) => Ok(result),
         Err(err) => return Err(err.kind().into()),
     }
-}
-#[test]
-fn test_read_check() {
 }
