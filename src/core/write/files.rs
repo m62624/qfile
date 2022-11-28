@@ -28,27 +28,11 @@ fn files(path: &str) -> Vec<String> {
     }
     return files;
 }
-#[test]
-fn correct_path_check() {
-    // println!("{:#?}", correct_path("./FileS/ToolChain/temp.TXT_old"));
-    println!(
-        "result: {:#?}",
-        file_read(&correct_path("./FileS/ToolChain/temp.TXT_wold").unwrap())
-    );
-}
-#[test]
-fn collect_folder_check() {
-    println!("{:#?}", collect_folder("/Files/ToolChain/new.file"));
-}
+
 pub fn correct_path(path: &str) -> Result<String, io::Error> {
     let mut user_paths = collect_folder(path);
-
     for i in 0..user_paths.len() {
         let mut really_paths = files(&user_paths[i]);
-        println!(
-            "user path: {:#?}\nreally_paths: {:#?}",
-            user_paths[i], really_paths
-        );
         for j in 0..really_paths.len() {
             if user_paths
                 .get(i + 1)
@@ -56,30 +40,11 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
                 .to_lowercase()
                 == really_paths[j].to_lowercase()
             {
-                // println!(
-                //     "Совпадение: {} {}",
-                //     user_paths[i + 1].to_lowercase(),
-                //     really_paths[j].to_lowercase()
-                // );
                 user_paths[i + 1] = really_paths.remove(j);
-                // println!(
-                //     "result: {:#?},joined: {:#?}",
-                //     user_paths,
-                //     user_paths.join("")
-                // );
                 break;
             }
         }
     }
-    println!(
-        "&user_paths[user_paths.len() - 1]: {}",
-        &user_paths[user_paths.len() - 1]
-    );
-    // if let Err(err) = file_read(&user_paths[user_paths.len() - 1]) {
-    //     println!("ERROR ERROR ERROR");
-    //     return Err(err.kind().into());
-    // }
-    // return Ok(user_paths.pop().unwrap());
     match file_read(&user_paths[user_paths.len() - 1]) {
         Ok(_) => Ok(user_paths.pop().unwrap()),
         Err(err) => {
@@ -89,4 +54,12 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
             Err(err.kind().into())
         }
     }
+}
+
+#[test]
+fn correct_path_check() {
+    println!(
+        "result: {:#?}",
+        file_read(&correct_path("./FileS/ToolChain/temp.TXT_wold").unwrap())
+    );
 }
