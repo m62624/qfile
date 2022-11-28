@@ -24,12 +24,14 @@ pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
                         let name = name.replace(&xl.pop().unwrap(), "");
                         let temp = temp.pop().unwrap();
                         println!("====================");
-                        let result = format!("{}{}", correct_path(&temp).unwrap(), name);
+                        let result = format!("{}{}", temp, name);
                         println!("FINAL:{}", result);
                         if let Err(_) = correct_path(&temp) {
                             DirBuilder::new().recursive(true).create(&temp).unwrap();
                             return file_write(&result, text, Flag::New);
                         } else {
+                            let temp = correct_path(&temp).unwrap();
+                            let result = format!("{}{}", temp, name);
                             file_write(&result, text, Flag::New).unwrap();
                         }
                     }),
