@@ -1,13 +1,13 @@
+use crate::core::os_check;
 use crate::core::read::only_for_crate;
 use crate::dpds_path::fs;
 use crate::dpds_path::Path;
 use crate::dpds_path::{io, Regex};
-use std::env;
 pub fn collect_folder(path: &str) -> Vec<String> {
-    let os_v: Regex;
-    os_v = if env::consts::OS == "linux" || env::consts::OS == "macos" {
+    let os_v = os_check();
+    let os_v = if os_v == "linux" || os_v == "macos" {
         Regex::new(r"^(?:\.\./|\./|[\./]?)|(?:(?:\.\./|\./|[\./])?[^/]*)").unwrap()
-    } else if env::consts::OS == "windows" {
+    } else if os_v == "windows" {
         Regex::new(r"^(?:\.\.\\|\.\\|[\.\\]?)|(?:(?:\.\.\\|\.\\|[\.\\])?[^\\]*)").unwrap()
     } else {
         panic!("OS not defined");
@@ -62,7 +62,11 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
                 return Ok(user_paths.pop().unwrap());
             } else {
                 let mut with_slash = value_2.to_lowercase();
-                with_slash.push('/');
+                if os_check() == "linux" || os_check() == "macos" {
+                    with_slash.push('/');
+                } else if os_check() == "windows" {
+                    with_slash.push('\\');
+                }
                 if value_1.to_lowercase() == with_slash {
                     return Ok(value_2.to_string());
                 }
@@ -115,5 +119,5 @@ fn correct_path_without_file_test_panic() {
 }
 #[test]
 fn check_system() {
-    dbg!("{}", env::consts::OS);
+    dbg!("{}", os_check());
 }
