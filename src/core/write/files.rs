@@ -50,6 +50,12 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
         Err(err) => {
             if let true = Path::new(&user_paths[user_paths.len() - 1]).is_dir() {
                 return Ok(user_paths.pop().unwrap());
+            } else {
+                let mut with_slash = user_paths[user_paths.len() - 2].to_lowercase();
+                with_slash.push('/');
+                if user_paths[user_paths.len() - 1].to_lowercase() == with_slash {
+                    return Ok(user_paths.remove(user_paths.len() - 2));
+                }
             }
             Err(err.kind().into())
         }
@@ -57,9 +63,37 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
 }
 
 #[test]
-fn correct_path_check() {
-    println!(
-        "result: {:#?}",
-        file_read(&correct_path("./FileS/ToolChain/temp.TXT_wold").unwrap())
+fn correct_path_with_file_test() {
+    assert_eq!(
+        correct_path("./Polygon/correctPath1/FILE1.txt")
+            .unwrap()
+            .as_str(),
+        "./Polygon/CorrectPath1/file1.txt"
+    );
+}
+#[test]
+#[should_panic]
+fn correct_path_with_file_test_panic() {
+    assert_eq!(
+        correct_path("./Polygon/correctPath1/unknown.txt")
+            .unwrap()
+            .as_str(),
+        "./Polygon/correctPath1/unknown.txt"
+    );
+}
+
+#[test]
+fn correct_path_without_file_test() {
+    assert_eq!(
+        correct_path("./Polygon/correctPath2/").unwrap().as_str(),
+        "./Polygon/CorrectPath2"
+    );
+}
+#[test]
+#[should_panic]
+fn correct_path_without_file_test_panic() {
+    assert_eq!(
+        correct_path("./Polygon/correct2").unwrap().as_str(),
+        "./Polygon/correct2"
     );
 }
