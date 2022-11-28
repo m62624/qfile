@@ -57,7 +57,7 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
                     return Ok(user_paths.remove(user_paths.len() - 2));
                 }
             }
-            Err(err.kind().into())
+            return Err(err);
         }
     }
 }
@@ -73,6 +73,7 @@ fn correct_path_with_file_test() {
 }
 #[test]
 #[should_panic]
+// #[ignore]
 fn correct_path_with_file_test_panic() {
     assert_eq!(
         correct_path("./Polygon/correctPath1/unknown.txt")
@@ -81,7 +82,6 @@ fn correct_path_with_file_test_panic() {
         "./Polygon/correctPath1/unknown.txt"
     );
 }
-
 #[test]
 fn correct_path_without_file_test() {
     assert_eq!(
@@ -90,7 +90,13 @@ fn correct_path_without_file_test() {
     );
 }
 #[test]
+fn correct_path_with_slash_test() {
+    println!("with slash : {}", correct_path("./Polygon/").unwrap());
+    assert_eq!(correct_path("./Polygon/").unwrap().as_str(), "./Polygon/");
+}
+#[test]
 #[should_panic]
+// #[ignore]
 fn correct_path_without_file_test_panic() {
     assert_eq!(
         correct_path("./Polygon/correct2").unwrap().as_str(),

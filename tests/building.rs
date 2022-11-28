@@ -1,18 +1,13 @@
-use qfile::{file_read, file_write, Flag};
-// #[test]
-// fn check_file_read() {
-//     assert_eq!(file_read("./files/read.txt").unwrap(), "Very well :D");
-// }
+use qfile::{file_write, Flag};
 
 #[test]
-fn check_file_write() {
-    let path = "./FiLes/x/check.txt";
-    let text = "CHEBUBELE";
-    file_write(path, text, Flag::Auto).unwrap();
-    // assert_eq!(file_read("./Files/write.txt").unwrap(), "CHEBUBELE");
+#[ignore]
+fn file_write_test_new_path() {
+    let path = "./Polygon/NewPath1/file_new.txt";
+    file_write(path, "ok", Flag::Auto).unwrap();
 }
-// #[test]
-// fn check_auto() {
-//     file_write(".", "test", Flag::Old);
-
-// }
+#[test]
+fn file_write_test_new_file_in_old_folder(){
+    let path = "./Polygon/oldFolder1/file_new.txt";
+    file_write(path, "ok", Flag::Auto).unwrap();
+}
