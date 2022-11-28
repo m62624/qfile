@@ -1,24 +1,30 @@
-use super::write::files::correct_path;
-use crate::core::get_file;
-use crate::dpds_path::io::{self, Read};
-pub fn file_read(path: &str) -> Result<String, io::Error> {
-    let mut text = String::new();
-    match get_file(&path) {
-        Ok(mut access) => match access.read_to_string(&mut text) {
-            Ok(_) => return Ok(text),
+use crate::core::write::files::correct_path;
+use crate::dpds_path::io;
+pub mod only_for_crate {
+    use super::io::{self, Read};
+    use crate::core::get_file;
+    pub fn file_read(path: &str) -> Result<String, io::Error> {
+        let mut text = String::new();
+        match get_file(&path) {
+            Ok(mut access) => match access.read_to_string(&mut text) {
+                Ok(_) => return Ok(text),
+                Err(err) => {
+                    return Err(err.kind().into());
+                }
+            },
             Err(err) => {
-                // println!("error 2 level: {}", err);
                 return Err(err);
             }
-        },
-        Err(err) => {
-            // println!("error 1 level: {}", err);
-            return Err(err);
         }
+    }
+}
+pub fn file_read(path: &str) -> Result<String, io::Error> {
+    let temp = &correct_path(path).unwrap();
+    match only_for_crate::file_read(temp) {
+        Ok(result) => Ok(result),
+        Err(err) => return Err(err.kind().into()),
     }
 }
 #[test]
 fn test_read_check() {
-    let temp = &correct_path("./Polygon/correctpath2/new.txt").unwrap();
-    println!("{}", file_read(temp).unwrap());
 }

@@ -1,13 +1,19 @@
+use crate::core::read::only_for_crate;
 use crate::dpds_path::fs;
 use crate::dpds_path::Path;
 use crate::dpds_path::{io, Regex};
-use crate::file_read;
-
+use std::env;
 pub fn collect_folder(path: &str) -> Vec<String> {
-    let mut folders: Vec<String> = Vec::new();
-    let mut i = 1;
-    let linux = Regex::new(r"^(?:\.\./|\./|[\./]?)|(?:(?:\.\./|\./|[\./])?[^/]*)").unwrap();
-    let rgx = linux;
+    let os_v: Regex;
+    os_v = if env::consts::OS == "linux" || env::consts::OS == "macos" {
+        Regex::new(r"^(?:\.\./|\./|[\./]?)|(?:(?:\.\./|\./|[\./])?[^/]*)").unwrap()
+    } else if env::consts::OS == "windows" {
+        Regex::new(r"^(?:\.\.\\|\.\\|[\.\\]?)|(?:(?:\.\.\\|\.\\|[\.\\])?[^\\]*)").unwrap()
+    } else {
+        panic!("OS not defined");
+    };
+
+    let (mut folders, mut i, rgx) = (Vec::new(), 1, os_v);
     let mut captures = rgx.captures_iter(path);
     folders.push(captures.next().unwrap()[0].to_string());
     for element in captures {
@@ -45,16 +51,20 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
             }
         }
     }
-    match file_read(&user_paths[user_paths.len() - 1]) {
+    let (value_1, value_2) = (
+        &user_paths[user_paths.len() - 1],
+        &user_paths[user_paths.len() - 2],
+    );
+    match only_for_crate::file_read(&value_1) {
         Ok(_) => Ok(user_paths.pop().unwrap()),
         Err(err) => {
-            if let true = Path::new(&user_paths[user_paths.len() - 1]).is_dir() {
+            if let true = Path::new(&value_1).is_dir() {
                 return Ok(user_paths.pop().unwrap());
             } else {
-                let mut with_slash = user_paths[user_paths.len() - 2].to_lowercase();
+                let mut with_slash = value_2.to_lowercase();
                 with_slash.push('/');
-                if user_paths[user_paths.len() - 1].to_lowercase() == with_slash {
-                    return Ok(user_paths.remove(user_paths.len() - 2));
+                if value_1.to_lowercase() == with_slash {
+                    return Ok(value_2.to_string());
                 }
             }
             return Err(err);
@@ -91,7 +101,7 @@ fn correct_path_without_file_test() {
 }
 #[test]
 fn correct_path_with_slash_test() {
-    println!("with slash : {}", correct_path("./Polygon/").unwrap());
+    dbg!("with slash : {}", correct_path("./Polygon/").unwrap());
     assert_eq!(correct_path("./Polygon/").unwrap().as_str(), "./Polygon/");
 }
 #[test]
@@ -102,4 +112,8 @@ fn correct_path_without_file_test_panic() {
         correct_path("./Polygon/correct2").unwrap().as_str(),
         "./Polygon/correct2"
     );
+}
+#[test]
+fn check_system() {
+    dbg!("{}", env::consts::OS);
 }
