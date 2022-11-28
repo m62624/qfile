@@ -48,6 +48,7 @@ pub enum Flag {
     Old,
 }
 /// Function for reading a file with operating modes **`Flag`**
+/// Writes data (look at the flag mode in [Flag](enum.Flag.html))
 pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
     match flag {
         Flag::Auto => match get_file(path) {
