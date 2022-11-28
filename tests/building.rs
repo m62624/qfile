@@ -22,8 +22,13 @@ fn file_write_test_new_folder_in_old_folder_without_register() {
     file_write(path, "ok", Flag::Auto).unwrap();
 }
 #[test]
-
 fn file_read_test() {
     let x = file_read("./Polygon/oldFolder1/file_new.txt").unwrap();
+    dbg!("{}", x);
+}
+
+#[test]
+fn file_windows_check(){
+    let x = file_write("..\\oldFolder1\\file_new.txt","ok",Flag::Auto).unwrap();
     dbg!("{}", x);
 }
