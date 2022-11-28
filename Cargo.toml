@@ -2,7 +2,8 @@
 name = "qfile"
 version = "0.1.0"
 edition = "2021"
-
+description = "The crate for working with files without taking into account the case of the path. Automatic detection, create a path with a new file or open an existing file"
+license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
