@@ -5,6 +5,16 @@ use crate::dpds_path::io::{self, ErrorKind, Write};
 use crate::dpds_path::{DirBuilder, File, OpenOptions};
 
 /// File/path option, preferred mode **auto**
+<<<<<<< HEAD
+=======
+///  # Paths syntax
+///  - Windows 
+///  > `".\\folder\\\folder\\file.txt"`
+///  - linux
+/// > `"./folder/folder/file.txt"`
+///  - macos   (**doesn't work** with files with '/', "x/y/z.txt" in the name on macos)
+/// > `"./folder/folder/file.txt"`
+>>>>>>> origin/main
 pub enum Flag {
     ///Creates a new path with file. Writes new data to an empty file
     /// # Examples
@@ -19,18 +29,30 @@ pub enum Flag {
     ///
     ///> **The path we specified**: `"/Folder1/folDER2/file.TXT"`\
     /// **real path** : `"/Folder1/Folder2/file.txt"`\
+<<<<<<< HEAD
     /// **Result** : `"/Folder1/Folder2/file.txt"`\
+=======
+    /// **Result** : `"/Folder1/Folder2/file.txt"`
+>>>>>>> origin/main
     /// - If the file/path is not found, creates a new path with the file (*if initial path exists*) `(Flag::New)`
     ///
     ///> **The path we specified**: `"/Folder1/newFolder/file.TXT"`\
     /// **real path** : `"/Folder1/newFolder/file.txt"`\
+<<<<<<< HEAD
     /// **Result** : `"/Folder1/newFolder/file.txt"`\  
+=======
+    /// **Result** : `"/Folder1/newFolder/file.txt"`
+>>>>>>> origin/main
     ///
     /// but if the initial path is case different, then a *new path with the file* is created `(Flag::New)`
     ///
     ///> **The path we specified**: `"/folder1/newFolder/file.TXT"`\
     /// **real path** : `"/folder1/newFolder/file.txt"`\
+<<<<<<< HEAD
     /// **Result** : `"/folder1/newFolder/file.txt"`\  
+=======
+    /// **Result** : `"/folder1/newFolder/file.txt"`
+>>>>>>> origin/main
     /// # Examples
     /// ```
     ///   let path = "./Folder1/not_existing_folder/file_new.txt";
@@ -47,8 +69,24 @@ pub enum Flag {
     /// ```
     Old,
 }
+<<<<<<< HEAD
 /// Function for reading a file with operating modes **`Flag`**
 /// Writes data (look at the flag mode in [Flag](enum.Flag.html))
+=======
+/// The function to create paths/files and write data to files with modes  (look at the flag mode in [Flag](enum.Flag.html))
+/// # Examples
+/// ```
+///  //linux
+ ///   let path = "./Folder1/NewFolder1/file_new.txt";
+///   assert_eq!(file_write(path, "ok", Flag::Auto).unwrap(), file_read(path).unwrap());
+///  //macos
+ ///   let path = "./Folder1/NewFolder1/file_new.txt";
+///   assert_eq!(file_write(path, "ok", Flag::Auto).unwrap(), file_read(path).unwrap());
+///  //windows
+ ///   let path = "..\\Folder1\\NewFolder1\\file_new.txt";
+///   assert_eq!(file_write(path, "ok", Flag::Auto).unwrap(), file_read(path).unwrap());
+/// ```
+>>>>>>> origin/main
 pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
     match flag {
         Flag::Auto => match get_file(path) {

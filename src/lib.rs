@@ -8,7 +8,21 @@
 //![dependencies]
 //!qfile="0.1.0"
 //!```
-//! To get started using Rand, see [The Book](https://rust-random.github.io/book).
+//! # Example
+//! ```
+//! use qfile::{file_read, file_write, Flag};
+//!fn main() {
+//!    file_write(
+//!        "./Folder1/NewFolder1/file_new.txt",
+//!        "TEXT TEXT TEXT",
+//!        Flag::Auto,
+//!    )
+//!    .unwrap();
+//!    println!("{}",file_read("./Folder1/NewFolder1/file_new.txt").unwrap());
+//!}
+//! ```
+//! **more information** in the [FLAG](enum.Flag.html)
+//! 
 //! # License
 //! [MIT](https://choosealicense.com/licenses/mit/)
 

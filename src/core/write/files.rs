@@ -8,7 +8,7 @@ pub fn collect_folder(path: &str) -> Vec<String> {
     let os_v = if os_v == "linux" || os_v == "macos" {
         Regex::new(r"^(?:\.\./|\./|[\./]?)|(?:(?:\.\./|\./|[\./])?[^/]*)").unwrap()
     } else if os_v == "windows" {
-        Regex::new(r"^(?:\.\.\\|\.\\|[\.\\]?)|(?:(?:\.\.\\|\.\\|[\.\\])?[^\\]*)").unwrap()
+        Regex::new(r"^(?:.?:\\|\.\.\\|\.\\|[\.\\]?)|(?:(?:\.\.\\|\.\\|[\.\\])?[^\\]*)").unwrap()
     } else {
         panic!("OS not defined");
     };
