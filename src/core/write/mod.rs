@@ -6,7 +6,7 @@ use crate::dpds_path::{DirBuilder, File, OpenOptions};
 
 /// File/path option, preferred mode **auto**
 ///  # Paths syntax
-///  - Windows 
+///  - Windows
 ///  > `".\\folder\\\folder\\file.txt"`
 ///  - linux
 /// > `"./folder/folder/file.txt"`
@@ -58,13 +58,13 @@ pub enum Flag {
 /// # Examples
 /// ```
 ///  //linux
- ///   let path = "./Folder1/NewFolder1/file_new.txt";
+///   let path = "./Folder1/NewFolder1/file_new.txt";
 ///   assert_eq!(file_write(path, "ok", Flag::Auto).unwrap(), file_read(path).unwrap());
 ///  //macos
- ///   let path = "./Folder1/NewFolder1/file_new.txt";
+///   let path = "./Folder1/NewFolder1/file_new.txt";
 ///   assert_eq!(file_write(path, "ok", Flag::Auto).unwrap(), file_read(path).unwrap());
 ///  //windows
- ///   let path = "..\\Folder1\\NewFolder1\\file_new.txt";
+///   let path = "..\\Folder1\\NewFolder1\\file_new.txt";
 ///   assert_eq!(file_write(path, "ok", Flag::Auto).unwrap(), file_read(path).unwrap());
 /// ```
 pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
@@ -81,7 +81,6 @@ pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
                         let name = xl.pop().unwrap();
                         let name = name.replace(&xl.pop().unwrap(), "");
                         let temp = temp.pop().unwrap();
-                        println!("====================");
                         let result = format!("{}{}", temp, name);
                         if let Err(_) = correct_path(&temp) {
                             DirBuilder::new().recursive(true).create(&temp).unwrap();
@@ -100,16 +99,13 @@ pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
             },
         },
         Flag::New => match File::create(path) {
-            Ok(_) => {
-                println!("path new :{}", path);
-                OpenOptions::new()
-                    .write(true)
-                    .create(true)
-                    .open(path)
-                    .unwrap()
-                    .write_all(text.as_bytes())
-            }
-            Err(err) => return Err(err.kind().into()),
+            Ok(_) => OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(path)
+                .unwrap()
+                .write_all(text.as_bytes()),
+            Err(err) => return Err(err),
         },
         Flag::Old => OpenOptions::new()
             // .write(true)

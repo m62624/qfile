@@ -10,7 +10,7 @@ Automatic detection, create a path with a new file or open an existing file.
  Add this to your Cargo.toml:
 ```toml
 [dependencies]
-qfile="0.1.2"
+qfile="0.1.3"
 ```
  # Example
  ```
