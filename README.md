@@ -28,7 +28,7 @@ fn main() {
 
   # Paths syntax
   - Windows 
-  > `".\\folder\\\folder\\file.txt"`
+  > `".\\folder\\folder\\file.txt"`
   - linux
  > `"./folder/folder/file.txt"`
   - macos   (**doesn't work** with files with '/', "x/y/z.txt" in the name on macos)
