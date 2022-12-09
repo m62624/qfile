@@ -1,7 +1,7 @@
 
 ---
 [![Crate](https://img.shields.io/crates/v/qfile?color=green)](https://crates.io/crates/qfile)
-[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/0.1.3/qfile/)
+[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/0.1.4/qfile/)
 
 The crate for working with files without taking into account the case of the path.
 Automatic detection, create a path with a new file or open an existing file.
@@ -10,7 +10,7 @@ Automatic detection, create a path with a new file or open an existing file.
  Add this to your Cargo.toml:
 ```toml
 [dependencies]
-qfile="0.1.3"
+qfile="0.1.4"
 ```
  # Example
  ```
