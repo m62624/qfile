@@ -24,10 +24,18 @@ fn file_write_test_new_folder_in_old_folder_without_register() {
 #[test]
 fn file_read_test() {
     let x = file_read("./Polygon/oldFolder1/file_new.txt").unwrap();
-    dbg!( x);
+    dbg!(x);
 }
 
 #[test]
-fn file_windows_check(){
-    file_write(".\\oldFolder1\\file_new.txt","ok",Flag::Auto).unwrap();
+fn file_windows_check() {
+    file_write(".\\oldFolder1\\file_new.txt", "ok", Flag::Auto).unwrap();
+}
+#[test]
+fn just_file_test_without_slash() {
+    file_write("new.txt", "test new file", Flag::Auto).unwrap();
+}
+#[test]
+fn just_file_test_with_slash() {
+    file_write("/new.txt", "test new file", Flag::Auto).unwrap();
 }
