@@ -8,7 +8,7 @@ use crate::dpds_path::{DirBuilder, File, OpenOptions};
 /// File/path option, preferred mode **auto**
 ///  # Paths syntax
 ///  - Windows
-///  > `".\\folder\\\folder\\file.txt"`
+///  > `".\\folder\\folder\\file.txt"`
 ///  - linux
 /// > `"./folder/folder/file.txt"`
 ///  - macos   (**doesn't work** with files with '/', "x/y/z.txt" in the name on macos)
@@ -25,20 +25,20 @@ pub enum Flag {
     /// Auto option
     ///- If the path exists, regardless of the case, we work with the file `(Flag::Old)`
     ///
-    ///> **The path we specified**: `"/Folder1/folDER2/file.TXT"`\
-    /// **real path** : `"/Folder1/Folder2/file.txt"`\
-    /// **Result** : `"/Folder1/Folder2/file.txt"`
+    ///> **The path we specified**: `"./Folder1/folDER2/file.TXT"`\
+    /// **real path** : `"./Folder1/Folder2/file.txt"`\
+    /// **Result** : `"./Folder1/Folder2/file.txt"`
     /// - If the file/path is not found, creates a new path with the file (*if initial path exists*) `(Flag::New)`
     ///
-    ///> **The path we specified**: `"/Folder1/newFolder/file.TXT"`\
-    /// **real path** : `"/Folder1/newFolder/file.txt"`\
-    /// **Result** : `"/Folder1/newFolder/file.txt"`
+    ///> **The path we specified**: `"./Folder1/newFolder/file.TXT"`\
+    /// **real path** : `"./Folder1/newFolder/file.txt"`\
+    /// **Result** : `"./Folder1/newFolder/file.txt"`
     ///
     /// but if the initial path is case different, then a *new path with the file* is created `(Flag::New)`
     ///
-    ///> **The path we specified**: `"/folder1/newFolder/file.TXT"`\
-    /// **real path** : `"/folder1/newFolder/file.txt"`\
-    /// **Result** : `"/folder1/newFolder/file.txt"`
+    ///> **The path we specified**: `"./folder1/newFolder/file.TXT"`\
+    /// **real path** : `"./folder1/newFolder/file.txt"`\
+    /// **Result** : `"./folder1/newFolder/file.txt"`
     /// # Examples
     /// ```
     ///   let path = "./Folder1/not_existing_folder/file_new.txt";
