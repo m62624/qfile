@@ -1,17 +1,10 @@
 
----
 [![Crate](https://img.shields.io/crates/v/qfile?color=green)](https://crates.io/crates/qfile)
-[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/0.1.5/qfile/)
+[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/0.1.6/qfile/)
 
 The crate for working with files without taking into account the case of the path.
 Automatic detection, create a path with a new file or open an existing file.
 
- # Usage
- Add this to your Cargo.toml:
-```toml
-[dependencies]
-qfile="0.1.5"
-```
  # Example
  ```
  use qfile::{file_read, file_write, Flag};
@@ -28,9 +21,12 @@ fn main() {
 
   # Paths syntax
   - Windows 
-  > `".\\folder\\folder\\file.txt"`
+  > `".\\folder\\folder\\file.txt"`\
+  > `"folder\\folder\\file.txt"`\
+  > `D:\\"folder\\folder\\file.txt"`
   - linux
- > `"./folder/folder/file.txt"`
+ > `"./folder/folder/file.txt"`\
+ > `"folder/folder/file.txt"`
   - macos   (**doesn't work** with files with '/', "x/y/z.txt" in the name on macos)
  > `"./folder/folder/file.txt"`
 
@@ -78,4 +74,3 @@ Creates a new path with file. Writes new data to an empty file
      ```
  # License
  [MIT](https://choosealicense.com/licenses/mit/)
-

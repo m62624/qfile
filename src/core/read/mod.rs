@@ -29,15 +29,20 @@ pub mod only_for_crate {
 /// //windows
 ///file_write(".\\Files\\new.txt","text text text",Flag::Auto).unwrap();
 ///assert_eq!(file_read("".\\files\\new.txt""),"text text text");
-/// 
+///
 /// //macos (**doesn't work** with files with '/', "x/y/z.txt" in the name on macos)
 ///file_write("./Files/new.txt","text text text",Flag::Auto).unwrap();
 ///assert_eq!(file_read(""./files/new.txt""),"text text text");
 /// ```
 pub fn file_read(path: &str) -> Result<String, io::Error> {
-    let temp = &correct_path(path).unwrap();
-    match only_for_crate::file_read(temp) {
+    match only_for_crate::file_read(path) {
         Ok(result) => Ok(result),
-        Err(err) => return Err(err.kind().into()),
+        Err(err) => {
+            let temp = &correct_path(path).unwrap();
+            if let Ok(rsl) = only_for_crate::file_read(&temp) {
+                return Ok(rsl);
+            }
+            return Err(err);
+        }
     }
 }

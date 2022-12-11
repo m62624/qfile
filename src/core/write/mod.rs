@@ -1,6 +1,7 @@
 pub mod files;
 use self::files::{collect_folder, correct_path};
 use super::get_file;
+use crate::core::os_check;
 use crate::dpds_path::io::{self, ErrorKind, Write};
 use crate::dpds_path::Regex;
 use crate::dpds_path::{DirBuilder, File, OpenOptions};
@@ -77,24 +78,27 @@ pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
                 Err(err) => match err.kind() {
                     ErrorKind::NotFound => Ok({
                         //r"^[^/|\\|\./]+"
-                        if (Regex::new(r"^[^/]+|^[\\]+|^[\./]+").unwrap()).is_match(path) {
+                        if (Regex::new(r"^[^/\\/]+[^/\\]+$").unwrap()).is_match(path) {
                             return file_write(path, text, Flag::New);
                         }
                         let mut temp = collect_folder(path);
                         let name = temp.pop().unwrap();
                         let mut xl = collect_folder(&name);
+                        if xl.len() == 1 {
+                            if os_check() == "linux" || os_check() == "macos" {
+                                xl.insert(0, "/".to_string());
+                                temp.insert(0, "/".to_string());
+                            } else if os_check() == "windows" {
+                                xl.insert(0, "\\".to_string());
+                                temp.insert(0, "\\".to_string());
+                            }
+                        }
                         let name = xl.pop().unwrap();
                         let name = name.replace(&xl.pop().unwrap(), "");
                         let temp = temp.pop().unwrap();
                         let result = format!("{}{}", temp, name);
                         if let Err(_) = correct_path(&temp) {
                             DirBuilder::new().recursive(true).create(&temp).unwrap();
-                            // if let Err(err) = DirBuilder::new().recursive(true).create(&temp) {
-                            //     match err.kind() {
-                            //         ErrorKind::PermissionDenied => panic!("Permission Denied"),
-                            //         _ => return Err(err),
-                            //     }
-                            // }
                             return file_write(&result, text, Flag::New);
                         } else {
                             let temp = correct_path(&temp).unwrap();
