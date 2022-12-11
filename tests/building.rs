@@ -1,41 +1,57 @@
 use qfile::{file_read, file_write, Flag};
+use std::fs::{self};
+struct Basic {
+    outside: String,
+    inside: String,
+}
+impl Basic {
+    fn paths(&self, element: usize) -> String {
+        let paths = vec![
+            format!("{}{}", self.inside, "/temp1/file.txt"),
+            format!("{}{}{}", "./", self.inside, "/temp2/file.txt"),
+            format!("{}{}", self.outside, "/file.txt"),
+            format!("{}{}", self.outside, "/qfile_temp_temp.txt/file.txt"),
+        ];
+        return paths.get(element).unwrap().clone();
+    }
+    fn new() -> Self {
+        Basic {
+            outside: "../qfile_temp_00_00".to_string(),
+            inside: "Polygon".to_string(),
+        }
+    }
+}
 
 #[test]
+fn test_0_auto() {
+    file_write(&Basic::new().paths(0)[..], "ok", Flag::Auto).unwrap();
+    assert_eq!(file_read(&Basic::new().paths(0)[..]).unwrap(), "ok");
+}
+#[test]
+fn test_1_auto() {
+    file_write(&Basic::new().paths(1)[..], "ok", Flag::Auto).unwrap();
+    assert_eq!(file_read(&Basic::new().paths(1)[..]).unwrap(), "ok");
+}
+#[test]
+fn test_2_auto() {
+    if !file_read(&Basic::new().paths(2)[..]).unwrap().is_empty() {
+        fs::remove_file(&Basic::new().paths(2)[..]).unwrap();
+    }
+    file_write(&Basic::new().paths(2)[..], "ok", Flag::Auto).unwrap();
+    file_write(&Basic::new().paths(2)[..], "ok", Flag::Auto).unwrap();
+    assert_eq!(file_read(&Basic::new().paths(2)[..]).unwrap(), "okok");
+}
+#[test]
+fn test_3_auto() {
+    file_write(&Basic::new().paths(3)[..], "ok", Flag::Auto).unwrap();
+    assert_eq!(file_read(&Basic::new().paths(3)[..]).unwrap(), "ok");
+}
+
+#[test]
+#[should_panic]
 #[ignore]
-fn file_write_test_new_path() {
-    let path = "./Polygon/NewPath1/file_new.txt";
-    file_write(path, "ok", Flag::Auto).unwrap();
-}
-#[test]
-fn file_write_test_new_file_in_old_folder() {
-    let path = "./Polygon/oldFolder1/file_new.txt";
-    file_write(path, "ok", Flag::Auto).unwrap();
-}
-#[test]
-fn file_write_test_new_folder_in_old_folder_with_register() {
-    let path = "./Polygon/OldFolder1/new_folder_with_register/new.txt";
-    file_write(path, "ok", Flag::Auto).unwrap();
-}
-#[test]
-fn file_write_test_new_folder_in_old_folder_without_register() {
-    let path = "./Polygon/oldfolder1/x1/x2/new_folder_without_register/new.txt";
-    file_write(path, "ok", Flag::Auto).unwrap();
-}
-#[test]
-fn file_read_test() {
-    let x = file_read("./Polygon/oldFolder1/file_new.txt").unwrap();
-    dbg!(x);
-}
-
-#[test]
-fn file_windows_check() {
-    file_write(".\\oldFolder1\\file_new.txt", "ok", Flag::Auto).unwrap();
-}
-#[test]
-fn just_file_test_without_slash() {
-    file_write("new.txt", "test new file", Flag::Auto).unwrap();
-}
-#[test]
-fn just_file_test_with_slash() {
-    file_write("/new.txt", "test new file", Flag::Auto).unwrap();
+fn removeall() {
+    let bsc = Basic::new();
+    fs::remove_dir_all(bsc.inside).unwrap();
+    fs::remove_dir_all(bsc.outside).unwrap()
 }

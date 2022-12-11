@@ -6,9 +6,12 @@ use crate::dpds_path::{io, Regex};
 pub fn collect_folder(path: &str) -> Vec<String> {
     let os_v = os_check();
     let os_v = if os_v == "linux" || os_v == "macos" {
-        Regex::new(r"^(?:\.\./|\./|[\./]?)|(?:(?:\.\./|\./|[\./])?[^/]*)").unwrap()
+        //r"^(?:[\./]|\.\./|\./|[\./]?)|(?:(?:\.\./|\./|[\./])?[^/]*)"
+        //^(?:\.+[^\/]+|\.\.|(?:\.\/)|\/)|[^\/]+|\/
+        Regex::new(r"(?:\./|\.\.|(?:\.\./|\./|[\./])?[^/]*)").unwrap()
     } else if os_v == "windows" {
-        Regex::new(r"^(?:.?:\\|\.\.\\|\.\\|[\.\\]?)|(?:(?:\.\.\\|\.\\|[\.\\])?[^\\]*)").unwrap()
+        //r"^(?:.:\\|\.\.\\|\.\\|[\.\\]?)|(?:(?:\.\.\\|\.\\|[\.\\])?[^\\]*)"
+        Regex::new(r"^(?:[^\.\\]+|.:\\|\.\.\\|\.\\|[\.\\]?)|(?:(?:\.\.\\|\.\\|[\.\\])?[^\\]*)").unwrap()
     } else {
         panic!("OS not defined");
     };
@@ -75,7 +78,13 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
         }
     }
 }
-
+#[test]
+fn correct_path_without_slash() {
+    assert_eq!(
+        correct_path("Polygon/correct2").unwrap().as_str(),
+        "./Polygon/correct2"
+    );
+}
 #[test]
 fn correct_path_with_file_test() {
     assert_eq!(
@@ -90,7 +99,7 @@ fn correct_path_with_file_test() {
 // #[ignore]
 fn correct_path_with_file_test_panic() {
     assert_eq!(
-        correct_path("./Polygon/correctPath1/unknown.txt")
+        correct_path(".Polygon/correctPath1/unknown.txt")
             .unwrap()
             .as_str(),
         "./Polygon/correctPath1/unknown.txt"

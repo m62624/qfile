@@ -76,7 +76,8 @@ pub fn file_write(path: &str, text: &str, flag: Flag) -> Result<(), io::Error> {
                 Ok(new_path) => file_write(&new_path, text, Flag::Old),
                 Err(err) => match err.kind() {
                     ErrorKind::NotFound => Ok({
-                        if (Regex::new(r"^[^/|\\|./]+").unwrap()).is_match(path) {
+                        //r"^[^/|\\|\./]+"
+                        if (Regex::new(r"^[^/]+|^[\\]+|^[\./]+").unwrap()).is_match(path) {
                             return file_write(path, text, Flag::New);
                         }
                         let mut temp = collect_folder(path);
