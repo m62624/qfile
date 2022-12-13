@@ -1,3 +1,4 @@
+pub use lazy_static::lazy_static;
 pub use regex::Regex;
 pub use std::fs::{self, DirBuilder, File, OpenOptions};
 pub use std::io::{self, ErrorKind, Read};
