@@ -3,13 +3,23 @@ mod write;
 use crate::dpds_path::{fs, io, lazy_static, ErrorKind, File, Path, Regex, __Deref};
 use std::env;
 #[derive(Debug)]
+pub enum Flag {
+    New,
+    Auto,
+    Old,
+}
+#[derive(Debug)]
 pub struct QFilePack<'a> {
     request_items: Vec<String>,
     //================
     user_path: &'a str,
+    file_name: &'a str,
     correct_path: String,
     //================
     os: &'a str,
+    flag: Flag,
+    update_path: bool,
+    
 }
 
 //======================================================
@@ -18,8 +28,11 @@ impl<'a> QFilePack<'a> {
         QFilePack {
             request_items: Default::default(),
             user_path: path,
+            file_name: Default::default(),
             correct_path: Default::default(),
             os: env::consts::OS,
+            flag: Flag::Auto,
+            update_path: false,
         }
     }
 
@@ -76,6 +89,16 @@ impl<'a> QFilePack<'a> {
         let result = request_items.last();
         if Path::new(result.unwrap()).exists() {
             self.correct_path = result.unwrap().to_string();
+        }
+    }
+    fn cache_path(&mut self) -> &str {
+        if Path::new(self.user_path).exists() {
+            self.user_path
+        } else if self.correct_path.is_empty() {
+            self.correct_path();
+            self.correct_path.as_str()
+        } else {
+            self.correct_path.as_str()
         }
     }
 }
