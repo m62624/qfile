@@ -1,48 +1,29 @@
-use crate::core::write::files::correct_path;
-use crate::dpds_path::io;
-pub mod only_for_crate {
-    use super::io::{self, Read};
-    use crate::core::get_file;
-    pub fn file_read(path: &str) -> Result<String, io::Error> {
+use crate::core::Pack;
+use crate::dpds_path::{io, ErrorKind, File, Read};
+// Получить файл
+fn get_file(path: &str) -> Result<File, io::Error> {
+    match File::open(path) {
+        Ok(file) => Ok(file),
+        Err(err) => match err.kind() {
+            ErrorKind::NotFound => Err(err),
+            ErrorKind::PermissionDenied => Err(err),
+            _ => panic!(":: other errors ::"),
+        },
+    }
+}
+impl<'a> Pack<'a> {
+    pub fn file_read(self) -> Result<String, io::Error> {
         let mut text = String::new();
-        match get_file(&path) {
+        match get_file(self.user_path) {
             Ok(mut access) => match access.read_to_string(&mut text) {
                 Ok(_) => return Ok(text),
                 Err(err) => {
-                    return Err(err.kind().into());
+                    return Err(err);
                 }
             },
             Err(err) => {
                 return Err(err);
             }
-        }
-    }
-}
-/// The function for reading a file searches for a file in a path, *case insensitive*
-/// # Examples
-/// ```
-/// //Creating a new file to read
-/// //linux
-///file_write("./Files/new.txt","text text text",Flag::Auto).unwrap();
-///assert_eq!(file_read(""./files/new.txt""),"text text text");
-///
-/// //windows
-///file_write(".\\Files\\new.txt","text text text",Flag::Auto).unwrap();
-///assert_eq!(file_read("".\\files\\new.txt""),"text text text");
-///
-/// //macos (**doesn't work** with files with '/', "x/y/z.txt" in the name on macos)
-///file_write("./Files/new.txt","text text text",Flag::Auto).unwrap();
-///assert_eq!(file_read(""./files/new.txt""),"text text text");
-/// ```
-pub fn file_read(path: &str) -> Result<String, io::Error> {
-    match only_for_crate::file_read(path) {
-        Ok(result) => Ok(result),
-        Err(err) => {
-            let temp = &correct_path(path).unwrap();
-            if let Ok(rsl) = only_for_crate::file_read(&temp) {
-                return Ok(rsl);
-            }
-            return Err(err);
         }
     }
 }

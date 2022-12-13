@@ -1,17 +1,17 @@
-pub mod read;
-pub mod write;
+mod read;
 use crate::dpds_path::io::{self, ErrorKind};
 use crate::dpds_path::File;
 use std::env;
-fn get_file(path: &str) -> Result<File, io::Error> {
-    match File::open(path) {
-        Ok(file) => Ok(file),
-        Err(err) => match err.kind() {
-            ErrorKind::NotFound => Err(err),
-            ErrorKind::PermissionDenied => Err(err),
-            _ => panic!(":: other errors ::"),
-        },
-    }
+
+pub struct Pack<'a> {
+    possible_directories: String,
+    user_path: &'a str,
+    os: &'a str,
+}
+
+//======================================================
+impl<'a> Pack<'a> {
+    
 }
 fn os_check<'a>() -> &'a str {
     env::consts::OS
