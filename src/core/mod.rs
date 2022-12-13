@@ -25,20 +25,6 @@ impl<'a> QFilePack<'a> {
             os: env::consts::OS,
         }
     }
-    fn directory_contents(&mut self) {
-        let mut files: Vec<String> = Vec::new();
-        if let Ok(paths) = fs::read_dir(self.user_path) {
-            for items in paths {
-                if let Ok(items) = items {
-                    files.push(items.path().display().to_string());
-                }
-            }
-        }
-        self.possible_directories = files;
-    }
-    fn correct_path(&mut self) {
-        dbg!(self.way_step_by_step());
-    }
 
     fn way_step_by_step(&mut self) {
         let mut items = |rgx: &Regex, path: &str| {
@@ -71,7 +57,17 @@ impl<'a> QFilePack<'a> {
             }
         };
     }
+
+    fn correct_path(&mut self) {
+        self.way_step_by_step();
+        let request_directories = &self.request_directories;
+        for user_i in 0..request_directories.len() {
+            // println!("{}", request_directories[user_i]);
+            
+        }
+    }
 }
+
 fn get_file(path: &str) -> Result<File, io::Error> {
     match File::open(path) {
         Ok(file) => Ok(file),
@@ -82,6 +78,18 @@ fn get_file(path: &str) -> Result<File, io::Error> {
             _ => panic!(":: other errors ::"),
         },
     }
+}
+fn directory_contents(path: &str) -> Vec<String> {
+    let mut files: Vec<String> = Vec::new();
+    if let Ok(paths) = fs::read_dir(path) {
+        for items in paths {
+            if let Ok(items) = items {
+                files.push(items.path().display().to_string());
+            }
+        }
+    }
+    // self.possible_directories = files;
+    return files;
 }
 
 //=====================================(tests)=====================================
@@ -103,10 +111,9 @@ fn test_way_step_by_step() {
 #[cfg(target_family = "unix")]
 #[test]
 fn test_path_content() {
-    let mut temp = QFilePack::add_path("./Polygon/Don't delete");
-    temp.directory_contents();
+    dbg!(directory_contents("./Polygon/Don't delete"));
     assert_eq!(
-        temp.possible_directories,
+        directory_contents("./Polygon/Don't delete"),
         vec![
             "./Polygon/Don't delete/test-1.txt",
             "./Polygon/Don't delete/temp3.txt",
@@ -117,9 +124,8 @@ fn test_path_content() {
     )
 }
 #[test]
-fn test_dcorrect_path() {
+fn test_correct_path() {
     let mut temp = QFilePack::add_path("./polygon/Read/test-1.txt");
     temp.correct_path();
-    dbg!(temp);
     assert_eq!(true, true);
 }
