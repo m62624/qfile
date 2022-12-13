@@ -1,15 +1,13 @@
 mod read;
 mod write;
-use crate::dpds_path::{fs, io, lazy_static, ErrorKind, File, Regex, __Deref};
+use crate::dpds_path::{fs, io, lazy_static, ErrorKind, File, Path, Regex, __Deref};
 use std::env;
 #[derive(Debug)]
 pub struct QFilePack<'a> {
-    //================
-    possible_directories: Vec<String>,
-    request_directories: Vec<String>,
+    request_items: Vec<String>,
     //================
     user_path: &'a str,
-    correct_path: &'a str,
+    correct_path: String,
     //================
     os: &'a str,
 }
@@ -18,8 +16,7 @@ pub struct QFilePack<'a> {
 impl<'a> QFilePack<'a> {
     pub fn add_path(path: &'a str) -> Self {
         QFilePack {
-            possible_directories: Default::default(),
-            request_directories: Default::default(),
+            request_items: Default::default(),
             user_path: path,
             correct_path: Default::default(),
             os: env::consts::OS,
@@ -35,7 +32,7 @@ impl<'a> QFilePack<'a> {
                 folders.push(format!("{}{}", folders[i - 1], &element[0]));
                 i += 1;
             }
-            self.request_directories = folders;
+            self.request_items = folders;
         };
         match self.os {
             "linux" | "macos" => {
@@ -60,10 +57,27 @@ impl<'a> QFilePack<'a> {
 
     fn correct_path(&mut self) {
         self.way_step_by_step();
-        let request_directories = &self.request_directories;
-        for user_i in 0..request_directories.len() {
-            // println!("{}", request_directories[user_i]);
-            
+        let request_items = &mut self.request_items;
+        for user_i in 0..request_items.len() {
+            // println!("{}", request_items[user_i]);
+            let mut possible_directories = directory_contents(request_items[user_i].as_str());
+            for pos_j in 0..possible_directories.len() {
+                if request_items
+                    .get(user_i + 1)
+                    .unwrap_or(&request_items.get(user_i).unwrap().to_lowercase())
+                    .to_lowercase()
+                    == possible_directories[pos_j].to_lowercase()
+                {
+                    request_items[user_i + 1] = possible_directories.remove(pos_j);
+                    break;
+                }
+            }
+        }
+        let result = request_items.last();
+        if Path::new(result.unwrap()).exists()
+            && self.user_path.to_lowercase() == result.unwrap().to_lowercase()
+        {
+            self.correct_path = result.unwrap().to_string();
         }
     }
 }
@@ -99,7 +113,7 @@ fn test_way_step_by_step() {
     let mut temp = QFilePack::add_path("./Polygon/Don't delete/test-1.txt");
     temp.way_step_by_step();
     assert_eq!(
-        temp.request_directories,
+        temp.request_items,
         vec![
             "./",
             "./Polygon",
@@ -124,8 +138,15 @@ fn test_path_content() {
     )
 }
 #[test]
-fn test_correct_path() {
+fn test_correct_path_1() {
     let mut temp = QFilePack::add_path("./polygon/Read/test-1.txt");
     temp.correct_path();
+    dbg!(temp);
     assert_eq!(true, true);
+}
+#[test]
+fn test_correct_path_2() {
+    let mut temp = QFilePack::add_path("./polygon/READ/TEst-2.txt");
+    temp.correct_path();
+    assert_eq!(temp.correct_path, "./Polygon/Read/TESt-2.txt");
 }
