@@ -3,9 +3,15 @@ use crate::core::QFilePack;
 use crate::dpds_path::{io, Read};
 
 impl<'a> QFilePack<'a> {
-    pub fn read(&self) -> Result<String, io::Error> {
+    pub fn read(&mut self) -> Result<String, io::Error> {
         let mut text = String::new();
-        match get_file(self.user_path) {
+        let temp_path = if self.correct_path.is_empty() {
+            self.correct_path();
+            self.correct_path.as_str()
+        } else {
+            self.correct_path.as_str()
+        };
+        match get_file(temp_path) {
             Ok(mut access) => match access.read_to_string(&mut text) {
                 Ok(_) => return Ok(text),
                 Err(err) => {
@@ -22,7 +28,16 @@ impl<'a> QFilePack<'a> {
 #[cfg(target_family = "unix")]
 #[test]
 fn test_read_1() {
-    let file = QFilePack::add_path("./Polygon/Read/test-1.txt");
-    let file = file.read().unwrap();
-    assert_eq!(file, "ok");
+    let mut file = QFilePack::add_path("./Polygon/READ/Test-1.txt");
+    let data = file.read().unwrap();
+    let data2 = file.read().unwrap();
+    assert_eq!(data, "ok");
+    assert_eq!(data2, "ok");
+}
+#[test]
+#[should_panic]
+fn test_read_2() {
+    let mut file = QFilePack::add_path("");
+    let file1 = file.read().unwrap();
+    let file2 = file.read().unwrap();
 }

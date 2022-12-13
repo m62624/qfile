@@ -74,9 +74,7 @@ impl<'a> QFilePack<'a> {
             }
         }
         let result = request_items.last();
-        if Path::new(result.unwrap()).exists()
-            && self.user_path.to_lowercase() == result.unwrap().to_lowercase()
-        {
+        if Path::new(result.unwrap()).exists() {
             self.correct_path = result.unwrap().to_string();
         }
     }
@@ -149,4 +147,10 @@ fn test_correct_path_2() {
     let mut temp = QFilePack::add_path("./polygon/READ/TEst-2.txt");
     temp.correct_path();
     assert_eq!(temp.correct_path, "./Polygon/Read/TESt-2.txt");
+}
+#[test]
+fn test_correct_path_3() {
+    let mut temp = QFilePack::add_path("./polygon/does_not_exist.txt");
+    temp.correct_path();
+    assert_eq!(temp.correct_path, "");
 }
