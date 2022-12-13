@@ -1,8 +1,10 @@
-use qfile::QPack;
-#[cfg(target_family = "unix")]
+use qfile::QFilePack;
 #[test]
-fn test_read_1() {
-    let file = QPack::add_path("./Polygon/test-1.txt");
-    let file = file.read().unwrap();
-    assert_eq!(file, "ok");
+#[should_panic]
+fn test_qfile_api() {
+    let file = QFilePack::add_path("");
+    {
+        let file1 = file.read().unwrap();
+    }
+    let file2 = file.read().unwrap();
 }

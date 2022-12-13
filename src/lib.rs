@@ -23,4 +23,4 @@
 
 mod core;
 mod dpds_path;
-pub use crate::core::QPack;
+pub use crate::core::QFilePack;
