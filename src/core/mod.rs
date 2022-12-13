@@ -1,18 +1,21 @@
 mod read;
-use crate::dpds_path::io::{self, ErrorKind};
-use crate::dpds_path::File;
+mod write;
 use std::env;
-
-pub struct Pack<'a> {
-    possible_directories: String,
+pub struct QPack<'a> {
+    possible_directories: Vec<String>,
     user_path: &'a str,
+    correct_path: &'a str,
     os: &'a str,
 }
 
 //======================================================
-impl<'a> Pack<'a> {
-    
-}
-fn os_check<'a>() -> &'a str {
-    env::consts::OS
+impl<'a> QPack<'a> {
+    pub fn add_path(path: &'a str) -> Self {
+        QPack {
+            possible_directories: Default::default(),
+            user_path: path,
+            correct_path: Default::default(),
+            os: env::consts::OS,
+        }
+    }
 }

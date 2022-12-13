@@ -1,6 +1,5 @@
-use crate::core::Pack;
+use crate::core::QPack;
 use crate::dpds_path::{io, ErrorKind, File, Read};
-// Получить файл
 fn get_file(path: &str) -> Result<File, io::Error> {
     match File::open(path) {
         Ok(file) => Ok(file),
@@ -11,8 +10,10 @@ fn get_file(path: &str) -> Result<File, io::Error> {
         },
     }
 }
-impl<'a> Pack<'a> {
-    pub fn file_read(self) -> Result<String, io::Error> {
+fn correct_path(os: &str, path_user: &str) -> &str {}
+
+impl<'a> QPack<'a> {
+    pub fn read(&self) -> Result<String, io::Error> {
         let mut text = String::new();
         match get_file(self.user_path) {
             Ok(mut access) => match access.read_to_string(&mut text) {
