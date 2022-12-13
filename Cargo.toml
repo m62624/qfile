@@ -1,6 +1,6 @@
 [package]
 name = "qfile"
-version = "0.1.3"
+version = "0.1.6"
 edition = "2021"
 description = "The crate for working with files without taking into account the case of the path. Automatic detection, create a path with a new file or open an existing file"
 repository="https://github.com/m62624/qfile"

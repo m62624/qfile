@@ -6,13 +6,12 @@ use crate::dpds_path::{io, Regex};
 pub fn collect_folder(path: &str) -> Vec<String> {
     let os_v = os_check();
     let os_v = if os_v == "linux" || os_v == "macos" {
-        Regex::new(r"^(?:\.\./|\./|[\./]?)|(?:(?:\.\./|\./|[\./])?[^/]*)").unwrap()
+        Regex::new(r"(?:\./|\.\.|(?:\.\./|\./|[\./])?[^/]*)").unwrap()
     } else if os_v == "windows" {
-        Regex::new(r"^(?:.?:\\|\.\.\\|\.\\|[\.\\]?)|(?:(?:\.\.\\|\.\\|[\.\\])?[^\\]*)").unwrap()
+        Regex::new(r"(?:.:\\|\.\\|\.\.|(?:\.\.\\|\.\\|[\.\\])?[^\\]*)").unwrap()
     } else {
         panic!("OS not defined");
     };
-
     let (mut folders, mut i, rgx) = (Vec::new(), 1, os_v);
     let mut captures = rgx.captures_iter(path);
     folders.push(captures.next().unwrap()[0].to_string());
@@ -36,7 +35,21 @@ fn files(path: &str) -> Vec<String> {
 }
 
 pub fn correct_path(path: &str) -> Result<String, io::Error> {
-    let mut user_paths = collect_folder(path);
+    let mut user_paths: Vec<String>;
+    //"./new.txt/test.t"
+    //^[^/\\/]+[^/\\]+.*
+    if !(Regex::new(r"^.:\\|^./|^/|^\\|^.\\").unwrap()).is_match(path) {
+        if os_check() == "linux" || os_check() == "macos" {
+            user_paths = collect_folder(&format!("./{}", path));
+        } else if os_check() == "windows" {
+            user_paths = collect_folder(&format!(".\\{}", path));
+        } else {
+            panic!("OS not defined");
+        }
+    } else {
+        user_paths = collect_folder(path);
+    }
+    // let mut user_paths = collect_folder(path);
     for i in 0..user_paths.len() {
         let mut really_paths = files(&user_paths[i]);
         for j in 0..really_paths.len() {
@@ -49,6 +62,11 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
                 user_paths[i + 1] = really_paths.remove(j);
                 break;
             }
+        }
+    }
+    if user_paths.len() == 1 {
+        if let Err(err) = only_for_crate::file_read(&user_paths[0]) {
+            return Err(err);
         }
     }
     let (value_1, value_2) = (
@@ -77,6 +95,13 @@ pub fn correct_path(path: &str) -> Result<String, io::Error> {
 }
 
 #[test]
+fn correct_path_without_slash() {
+    assert_eq!(
+        correct_path("Polygon/correct2").unwrap().as_str(),
+        "./Polygon/correct2"
+    );
+}
+#[test]
 fn correct_path_with_file_test() {
     assert_eq!(
         correct_path("./Polygon/correctPath1/FILE1.txt")
@@ -90,13 +115,14 @@ fn correct_path_with_file_test() {
 // #[ignore]
 fn correct_path_with_file_test_panic() {
     assert_eq!(
-        correct_path("./Polygon/correctPath1/unknown.txt")
+        correct_path(".Polygon/correctPath1/unknown.txt")
             .unwrap()
             .as_str(),
         "./Polygon/correctPath1/unknown.txt"
     );
 }
 #[test]
+#[should_panic]
 fn correct_path_without_file_test() {
     assert_eq!(
         correct_path("./Polygon/correctPath2/").unwrap().as_str(),

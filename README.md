@@ -1,17 +1,10 @@
 
----
 [![Crate](https://img.shields.io/crates/v/qfile?color=green)](https://crates.io/crates/qfile)
-[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/0.1.3/qfile/)
+[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/0.1.6/qfile/)
 
 The crate for working with files without taking into account the case of the path.
 Automatic detection, create a path with a new file or open an existing file.
 
- # Usage
- Add this to your Cargo.toml:
-```toml
-[dependencies]
-qfile="0.1.3"
-```
  # Example
  ```
  use qfile::{file_read, file_write, Flag};
@@ -28,9 +21,12 @@ fn main() {
 
   # Paths syntax
   - Windows 
-  > `".\\folder\\\folder\\file.txt"`
+  > `".\\folder\\folder\\file.txt"`\
+  > `"folder\\folder\\file.txt"`\
+  > `D:\\"folder\\folder\\file.txt"`
   - linux
- > `"./folder/folder/file.txt"`
+ > `"./folder/folder/file.txt"`\
+ > `"folder/folder/file.txt"`
   - macos   (**doesn't work** with files with '/', "x/y/z.txt" in the name on macos)
  > `"./folder/folder/file.txt"`
 
@@ -47,21 +43,21 @@ Creates a new path with file. Writes new data to an empty file
 ## Auto mode 
  - If the path exists, regardless of the case, we work with the file `(Flag::Old)`
  
- > **The path we specified**: `"/Folder1/folDER2/file.TXT"`\
-  **real path** : `"/Folder1/Folder2/file.txt"`\
-  **Result** : `"/Folder1/Folder2/file.txt"`
+ > **The path we specified**: `"./Folder1/folDER2/file.TXT"`\
+  **real path** : `"./Folder1/Folder2/file.txt"`\
+  **Result** : `"./Folder1/Folder2/file.txt"`
 
 - If the file/path is not found, creates a new path with the file (*if initial path exists*) `(Flag::New)`
  
- > **The path we specified**: `"/Folder1/newFolder/file.TXT"`\
-  **real path** : `"/Folder1/newFolder/file.txt"`\
-  **Result** : `"/Folder1/newFolder/file.txt"`
+ > **The path we specified**: `"./Folder1/newFolder/file.TXT"`\
+  **real path** : `"./Folder1/newFolder/file.txt"`\
+  **Result** : `"./Folder1/newFolder/file.txt"`
  
   but if the initial path is case different, then a *new path with the file* is created `(Flag::New)`
  
- > **The path we specified**: `"/folder1/newFolder/file.TXT"`\
-  **real path** : `"/folder1/newFolder/file.txt"`\
-  **Result** : `"/folder1/newFolder/file.txt"`
+ > **The path we specified**: `"./folder1/newFolder/file.TXT"`\
+  **real path** : `"./folder1/newFolder/file.txt"`\
+  **Result** : `"./folder1/newFolder/file.txt"`
   ### Example
   ```
     let path = "./Folder1/not_existing_folder/file_new.txt";
@@ -78,4 +74,3 @@ Creates a new path with file. Writes new data to an empty file
      ```
  # License
  [MIT](https://choosealicense.com/licenses/mit/)
-
