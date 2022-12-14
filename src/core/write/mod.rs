@@ -4,6 +4,21 @@ use crate::dpds_path::io::{self, Write};
 use crate::dpds_path::{DirBuilder, ErrorKind, File, OpenOptions};
 
 impl<'a> QFilePack<'a> {
+    /// Method for writing data to a file
+    /// # Example
+    /// ```
+    /// use qfile::QFilePack;
+    /// # fn main() {
+    /// //---
+    /// // the real file path:
+    /// // ./FILE.txt
+    /// let mut file = QFilePack::add_path("./file.txt");
+    /// file.write("ok").unwrap();
+    /// assert_eq(file.read().unwrap(),"ok");
+    /// //---
+    /// 
+    /// # }
+    /// ```
     pub fn write(&mut self, text: &'a str) -> Result<(), io::Error> {
         let os = self.os;
         if self.update_path {
@@ -88,44 +103,3 @@ impl<'a> QFilePack<'a> {
     }
 }
 //=====================================(tests)=====================================
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_1() {
-    let mut file = QFilePack::add_path("./polygon/write/new.txt");
-    file.write("ok").unwrap();
-    let data = file.read().unwrap();
-    assert_eq!(data, "ok");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_2() {
-    let mut file = QFilePack::add_path("./Polygon/ru_Папка/new.txt");
-    file.write("ok").unwrap();
-    let data = file.read().unwrap();
-    assert_eq!(data, "ok");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_3() {
-    let mut file = QFilePack::add_path("./new.txt");
-    file.write("ok").unwrap();
-    let data = file.read().unwrap();
-    assert_eq!(data, "ok");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_4() {
-    let mut file = QFilePack::add_path("./Polygon/write/new-4.txt");
-    file.write("oldata").unwrap();
-    file.write("newdata").unwrap();
-    let data = file.read().unwrap();
-    assert_eq!(data, "oldatanewdata");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_5() {
-    let mut file = QFilePack::add_path("root.txt");
-    file.write("ok").unwrap();
-    let data = file.read().unwrap();
-    assert_eq!(data, "ok");
-}
