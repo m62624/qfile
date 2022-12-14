@@ -31,7 +31,6 @@ impl<'a> QFilePack<'a> {
                 Err(err) => match err.kind() {
                     ErrorKind::NotFound => {
                         let fullpath = self.user_path;
-                        dbg!(&self.user_path);
                         let filename = match os {
                             "linux" | "macos" => fullpath.rsplit_once("/").unwrap().1,
                             "windows" => fullpath.rsplit_once("\\").unwrap().1,
@@ -49,21 +48,10 @@ impl<'a> QFilePack<'a> {
                             self.file_name = filename;
                             self.flag = Flag::New;
                         }
-
-                        // dbg!(self.cache_path());
                         DirBuilder::new()
                             .recursive(true)
-                            .create(
-                                //     if !self.correct_path.is_empty() {
-                                //     self.cache_path();
-                                //     self.user_path
-                                // } else {
-                                //     self.user_path
-                                // }
-                                self.cache_path(),
-                            )
+                            .create(self.cache_path())
                             .unwrap();
-                        dbg!(&self.user_path);
                         return self.write(text);
                     }
                     ErrorKind::PermissionDenied => {
@@ -73,30 +61,14 @@ impl<'a> QFilePack<'a> {
                 },
             },
 
-            Flag::New => match File::create(
-                // if !self.correct_path.is_empty() {
-                //     self.cache_path();
-                //     self.correct_path.as_str()
-                // } else {
-                //     self.user_path
-                // }
-                self.cache_path(),
-            ) {
+            Flag::New => match File::create(self.cache_path()) {
                 Ok(_) => {
                     self.update_path = false;
                     self.flag = Flag::Auto;
                     OpenOptions::new()
                         .write(true)
                         .create(true)
-                        .open(
-                            //     if !self.correct_path.is_empty() {
-                            //     self.cache_path();
-                            //     self.correct_path.as_str()
-                            // } else {
-                            //     self.user_path
-                            // }
-                            self.cache_path(),
-                        )
+                        .open(self.cache_path())
                         .unwrap()
                         .write_all(text.as_bytes())
                 }
