@@ -53,12 +53,15 @@ impl<'a> QFilePack<'a> {
                         // dbg!(self.cache_path());
                         DirBuilder::new()
                             .recursive(true)
-                            .create(if !self.correct_path.is_empty() {
-                                self.cache_path();
-                                self.user_path
-                            } else {
-                                self.user_path
-                            })
+                            .create(
+                                //     if !self.correct_path.is_empty() {
+                                //     self.cache_path();
+                                //     self.user_path
+                                // } else {
+                                //     self.user_path
+                                // }
+                                self.cache_path(),
+                            )
                             .unwrap();
                         dbg!(&self.user_path);
                         return self.write(text);
@@ -69,38 +72,51 @@ impl<'a> QFilePack<'a> {
                     _ => panic!("other errors"),
                 },
             },
-            Flag::New => match File::create(if !self.correct_path.is_empty() {
-                self.cache_path();
-                self.correct_path.as_str()
-            } else {
-                self.user_path
-            }) {
-                Ok(_) => OpenOptions::new()
-                    .write(true)
-                    .create(true)
-                    .open(if !self.correct_path.is_empty() {
-                        self.cache_path();
-                        self.correct_path.as_str()
-                    } else {
-                        self.user_path
-                    })
-                    .unwrap()
-                    .write_all(text.as_bytes()),
+
+            Flag::New => match File::create(
+                // if !self.correct_path.is_empty() {
+                //     self.cache_path();
+                //     self.correct_path.as_str()
+                // } else {
+                //     self.user_path
+                // }
+                self.cache_path(),
+            ) {
+                Ok(_) => {
+                    self.update_path = false;
+                    self.flag = Flag::Auto;
+                    OpenOptions::new()
+                        .write(true)
+                        .create(true)
+                        .open(
+                            //     if !self.correct_path.is_empty() {
+                            //     self.cache_path();
+                            //     self.correct_path.as_str()
+                            // } else {
+                            //     self.user_path
+                            // }
+                            self.cache_path(),
+                        )
+                        .unwrap()
+                        .write_all(text.as_bytes())
+                }
                 Err(err) => return Err(err),
             },
-            Flag::Old => OpenOptions::new()
-                // .write(true)
-                .append(true)
-                .open(self.cache_path())
-                .unwrap()
-                .write_all(text.as_bytes()),
+            Flag::Old => {
+                self.flag = Flag::Auto;
+                OpenOptions::new()
+                    .append(true)
+                    .open(self.cache_path())
+                    .unwrap()
+                    .write_all(text.as_bytes())
+            }
         }
     }
 }
 //=====================================(tests)=====================================
 #[cfg(target_family = "unix")]
 #[test]
-fn test_read_1() {
+fn test_write_1() {
     let mut file = QFilePack::add_path("./polygon/write/new.txt");
     file.write("ok").unwrap();
     let data = file.read().unwrap();
@@ -108,8 +124,33 @@ fn test_read_1() {
 }
 #[cfg(target_family = "unix")]
 #[test]
-fn test_read_2() {
-    let mut file = QFilePack::add_path("./Polygon/Папка/new.txt");
+fn test_write_2() {
+    let mut file = QFilePack::add_path("./Polygon/ru_Папка/new.txt");
+    file.write("ok").unwrap();
+    let data = file.read().unwrap();
+    assert_eq!(data, "ok");
+}
+#[cfg(target_family = "unix")]
+#[test]
+fn test_write_3() {
+    let mut file = QFilePack::add_path("./new.txt");
+    file.write("ok").unwrap();
+    let data = file.read().unwrap();
+    assert_eq!(data, "ok");
+}
+#[cfg(target_family = "unix")]
+#[test]
+fn test_write_4() {
+    let mut file = QFilePack::add_path("./Polygon/Write/new-4.txt");
+    file.write("oldata").unwrap();
+    file.write("newdata").unwrap();
+    let data = file.read().unwrap();
+    assert_eq!(data, "oldatanewdata");
+}
+#[cfg(target_family = "unix")]
+#[test]
+fn test_write_5() {
+    let mut file = QFilePack::add_path("root.txt");
     file.write("ok").unwrap();
     let data = file.read().unwrap();
     assert_eq!(data, "ok");

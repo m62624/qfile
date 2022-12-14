@@ -92,9 +92,15 @@ impl<'a> QFilePack<'a> {
     }
     fn cache_path(&mut self) -> &str {
         if Path::new(self.user_path).exists() {
+            if !self.correct_path.is_empty() && self.user_path != self.correct_path {
+                return self.correct_path.as_str();
+            }
             self.user_path
         } else if self.correct_path.is_empty() {
             self.correct_path();
+            if self.correct_path.is_empty() {
+                return self.user_path;
+            }
             self.correct_path.as_str()
         } else {
             // self.user_path
@@ -158,6 +164,7 @@ fn test_path_content() {
         ]
     )
 }
+#[cfg(target_family = "unix")]
 #[test]
 fn test_correct_path_1() {
     let mut temp = QFilePack::add_path("./polygon/Read/test-1.txt");
@@ -165,12 +172,14 @@ fn test_correct_path_1() {
     dbg!(temp);
     assert_eq!(true, true);
 }
+#[cfg(target_family = "unix")]
 #[test]
 fn test_correct_path_2() {
     let mut temp = QFilePack::add_path("./polygon/READ/TEst-2.txt");
     temp.correct_path();
     assert_eq!(temp.correct_path, "./Polygon/Read/TESt-2.txt");
 }
+#[cfg(target_family = "unix")]
 #[test]
 fn test_correct_path_3() {
     let mut temp = QFilePack::add_path("./polygon/does_not_exist.txt");
