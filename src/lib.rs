@@ -1,25 +1,25 @@
 //! # Qfile
 //!
-//! The crate for working with files without taking into account the case of the path.
-//! Automatic detection, create a path with a new file or open an existing file
+//! Crate for accessing a file by path, case insensitive
 //!
 //! # Example
 //! ```
-//! use qfile::{file_read, file_write, Flag};
-//!fn main() {
-//!    file_write(
-//!        "./Folder1/NewFolder1/file_new.txt",
-//!        "TEXT TEXT TEXT",
-//!        Flag::Auto,
-//!    )
-//!    .unwrap();
-//!    println!("{}",file_read("./Folder1/NewFolder1/file_new.txt").unwrap());
-//!}
-//! ```
-//! **more information** in the [FLAG](enum.Flag.html)
+//! use qfile::*;
+//!# fn main() {
+//! //---
+//!    let mut file = QFilePack::add_path("./Folder1/Folder2/file.txt");
+//!    file.write("text_1").unwrap();
+//!    let data = file.read().unwrap();
+//!    println!("{}",data);
+//! //---
+//!# }
 //!
-//! # License
-//! [MIT](https://choosealicense.com/licenses/mit/)
+//! ```
+//! # Methods
+//! - [add_path](<struct.QFilePack.html#method.add_path>) - Constructor for storing file data \
+//! - [file](<struct.QFilePack.html#method.file>) - Get the file directly\
+//! - [read](<struct.QFilePack.html#method.read>) - Getting data from a file (`String`) \
+//! - [write](<struct.QFilePack.html#method.write>) - Writing data to a file (`&str`)
 mod core;
 mod dpds_path;
 pub use crate::core::QFilePack;
