@@ -40,9 +40,17 @@ fn test_read_2() {
 #[cfg(target_family = "unix")]
 #[test]
 fn test_read_3() {
-    let mut file = QFilePack::add_path("./Polygon/Read/test-3.txt");
+    let mut file = QFilePack::add_path("./polygon/Read/test-3.txt");
     let data = file.read().unwrap();
     let data2 = file.read().unwrap();
     assert_eq!(data, "ok");
     assert_eq!(data2, "ok");
+}
+#[cfg(target_family = "unix")]
+#[test]
+fn test_read_4() {
+    let mut file = QFilePack::add_path("root.txt");
+    let data = file.read().unwrap();
+    dbg!(data);
+    assert_eq!(true, true);
 }

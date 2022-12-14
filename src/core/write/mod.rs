@@ -2,6 +2,7 @@ use crate::core::QFilePack;
 use crate::core::{get_file, Flag};
 use crate::dpds_path::io::{self, Write};
 use crate::dpds_path::{DirBuilder, ErrorKind, File, OpenOptions};
+
 impl<'a> QFilePack<'a> {
     pub fn write(&mut self, text: &'a str) -> Result<(), io::Error> {
         let os = self.os;
@@ -30,6 +31,7 @@ impl<'a> QFilePack<'a> {
                 }
                 Err(err) => match err.kind() {
                     ErrorKind::NotFound => {
+                        self.cache_path().to_string();
                         let fullpath = self.user_path;
                         let filename = match os {
                             "linux" | "macos" => fullpath.rsplit_once("/").unwrap().1,
@@ -113,7 +115,7 @@ fn test_write_3() {
 #[cfg(target_family = "unix")]
 #[test]
 fn test_write_4() {
-    let mut file = QFilePack::add_path("./Polygon/Write/new-4.txt");
+    let mut file = QFilePack::add_path("./Polygon/write/new-4.txt");
     file.write("oldata").unwrap();
     file.write("newdata").unwrap();
     let data = file.read().unwrap();
