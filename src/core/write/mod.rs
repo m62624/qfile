@@ -8,8 +8,12 @@ impl<'a> QFilePack<'a> {
         if self.update_path {
             match self.os {
                 "linux" | "macos" => {
-                    self.correct_path =
-                        format!("{}{}{}", self.correct_path.clone(), "/", self.file_name)
+                    if self.correct_path.is_empty() {
+                        self.correct_path = format!("{}{}{}", self.user_path, "/", self.file_name)
+                    } else {
+                        self.correct_path =
+                            format!("{}{}{}", self.correct_path.clone(), "/", self.file_name)
+                    }
                 }
                 "windows" => {
                     self.correct_path =
@@ -45,9 +49,16 @@ impl<'a> QFilePack<'a> {
                             self.file_name = filename;
                             self.flag = Flag::New;
                         }
+
+                        // dbg!(self.cache_path());
                         DirBuilder::new()
                             .recursive(true)
-                            .create(self.cache_path())
+                            .create(if !self.correct_path.is_empty() {
+                                self.cache_path();
+                                self.user_path
+                            } else {
+                                self.user_path
+                            })
                             .unwrap();
                         dbg!(&self.user_path);
                         return self.write(text);
@@ -58,11 +69,21 @@ impl<'a> QFilePack<'a> {
                     _ => panic!("other errors"),
                 },
             },
-            Flag::New => match File::create(self.cache_path()) {
+            Flag::New => match File::create(if !self.correct_path.is_empty() {
+                self.cache_path();
+                self.correct_path.as_str()
+            } else {
+                self.user_path
+            }) {
                 Ok(_) => OpenOptions::new()
                     .write(true)
                     .create(true)
-                    .open(self.cache_path())
+                    .open(if !self.correct_path.is_empty() {
+                        self.cache_path();
+                        self.correct_path.as_str()
+                    } else {
+                        self.user_path
+                    })
                     .unwrap()
                     .write_all(text.as_bytes()),
                 Err(err) => return Err(err),
@@ -81,6 +102,14 @@ impl<'a> QFilePack<'a> {
 #[test]
 fn test_read_1() {
     let mut file = QFilePack::add_path("./polygon/write/new.txt");
+    file.write("ok").unwrap();
+    let data = file.read().unwrap();
+    assert_eq!(data, "ok");
+}
+#[cfg(target_family = "unix")]
+#[test]
+fn test_read_2() {
+    let mut file = QFilePack::add_path("./Polygon/Папка/new.txt");
     file.write("ok").unwrap();
     let data = file.read().unwrap();
     assert_eq!(data, "ok");

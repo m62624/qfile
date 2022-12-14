@@ -1,3 +1,5 @@
+use std::fs;
+
 use crate::core::get_file;
 use crate::core::QFilePack;
 use crate::dpds_path::{io, Path, Read};
@@ -12,12 +14,9 @@ impl<'a> QFilePack<'a> {
                     return Err(err);
                 }
             },
-            Err(err) => {
-                return Err(err);
-            }
+            Err(err) => return Err(err),
         }
     }
-    
 }
 
 //=====================================(tests)=====================================

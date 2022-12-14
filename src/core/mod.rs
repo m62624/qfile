@@ -19,7 +19,6 @@ pub struct QFilePack<'a> {
     os: &'a str,
     flag: Flag,
     update_path: bool,
-    
 }
 
 //======================================================
@@ -98,6 +97,7 @@ impl<'a> QFilePack<'a> {
             self.correct_path();
             self.correct_path.as_str()
         } else {
+            // self.user_path
             self.correct_path.as_str()
         }
     }

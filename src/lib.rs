@@ -20,7 +20,6 @@
 //!
 //! # License
 //! [MIT](https://choosealicense.com/licenses/mit/)
-
 mod core;
 mod dpds_path;
 pub use crate::core::QFilePack;
