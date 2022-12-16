@@ -16,7 +16,7 @@ impl<'a> QFilePack<'a> {
     /// file.write("ok").unwrap();
     /// assert_eq(file.read().unwrap(),"ok");
     /// //---
-    /// 
+    ///
     /// # }
     /// ```
     pub fn write(&mut self, text: &'a str) -> Result<(), io::Error> {
@@ -102,4 +102,3 @@ impl<'a> QFilePack<'a> {
         }
     }
 }
-//=====================================(tests)=====================================

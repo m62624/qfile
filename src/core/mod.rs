@@ -1,3 +1,5 @@
+mod unit_tests;
+//=========================
 mod read;
 mod write;
 use crate::dpds_path::{fs, io, lazy_static, ErrorKind, File, Path, Regex, __Deref};
@@ -183,40 +185,4 @@ fn directory_contents(path: &str) -> Vec<String> {
     }
     // self.possible_directories = files;
     return files;
-}
-
-//=====================================(tests)=====================================
-#[cfg(target_family = "unix")]
-#[test]
-fn test_way_step_by_step() {
-    let mut temp = QFilePack::add_path("./Polygon/CorrectPath/f1.txt");
-    temp.way_step_by_step();
-    assert_eq!(
-        temp.request_items,
-        vec![
-            "./",
-            "./Polygon",
-            "./Polygon/CorrectPath",
-            "./Polygon/CorrectPath/f1.txt"
-        ]
-    );
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_path_content() {
-    assert_eq!(
-        directory_contents("./Polygon/CorrectPath"),
-        vec![
-            "./Polygon/CorrectPath/F2.txt",
-            "./Polygon/CorrectPath/f1.txt",
-            "./Polygon/CorrectPath/F3.txt",
-        ]
-    )
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_correct_path() {
-    let mut temp = QFilePack::add_path("./polygon/correctPATH/F1.txt");
-    temp.correct_path();
-    assert_eq!(temp.read().unwrap(), "ok");
 }

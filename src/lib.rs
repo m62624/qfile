@@ -6,10 +6,10 @@
 //! ```
 //! use qfile::*;
 //!# fn main() {
-//! //--- 
+//! //---
 //! let mut file = QFilePack::add_path("./folder/folder/file.txt");
 //! {
-//!    // The real path is searched after the first method call. 
+//!    // The real path is searched after the first method call.
 //!    // It's stored in the structure
 //!
 //!    file.write("text_1").unwrap();
