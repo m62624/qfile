@@ -169,6 +169,11 @@ impl<'a> QFilePack<'a> {
         }
     }
 }
+impl<'a> Drop for QFilePack<'a> {
+    fn drop(&mut self) {
+        dbg!("dropped");
+    }
+}
 fn get_file(path: &str) -> Result<File, io::Error> {
     match File::open(path) {
         Ok(file) => Ok(file),

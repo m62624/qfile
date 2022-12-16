@@ -55,7 +55,7 @@ impl<'a> QFilePack<'a> {
                         };
                         let path_without_file = {
                             let temp = fullpath.rsplit_once(filename).unwrap().0;
-                            let (first, _) = temp.split_at(temp.len() - 1);
+                            let first = temp.split_at(temp.len() - 1).0;
                             first
                         };
                         {
