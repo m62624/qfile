@@ -2,7 +2,7 @@ mod unit_tests;
 //=========================
 mod read;
 mod write;
-use crate::dpds_path::{fs, io, lazy_static, ErrorKind, File, Path, Regex, __Deref};
+use crate::dpds_path::{fs, io, lazy_static, ErrorKind, File, OpenOptions, Path, Regex, __Deref};
 use std::env;
 #[derive(Debug)]
 pub enum Flag {
@@ -163,8 +163,9 @@ impl<'a> QFilePack<'a> {
     /// # }
     /// ```
     pub fn file(&mut self) -> Result<File, io::Error> {
-        match get_file(self.cache_path()) {
-            Ok(fl) => Ok(fl),
+        let rs = self.cache_path();
+        match get_file(rs) {
+            Ok(_) => Ok(OpenOptions::new().read(true).write(true).open(rs).unwrap()),
             Err(err) => return Err(err),
         }
     }
