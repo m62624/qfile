@@ -18,13 +18,6 @@ pub enum Flag {
 /// - possible file paths
 /// - file name
 /// - OS (information about what format to look for the file `/` and `\\`)
-/// A structure for storing the file path\
-///
-///  The structure stores :
-/// - true file path (**used as a [cache](<struct.QFilePack.html#method.add_path>) for reuse**)
-/// - possible file paths
-/// - file name
-/// - os (information about what format to look for the file `/` and `\\`)
 pub struct QFilePack<'a> {
     request_items: Vec<String>,
     //================
@@ -39,25 +32,23 @@ pub struct QFilePack<'a> {
 
 //======================================================
 impl<'a> QFilePack<'a> {
-    ///  **The constructor for the cache**. Constructor for adding a file path. After using the `write()` or `read()` methods, and if Ok(), we get the correct path, which will be used as a cache when we reuse
-    ///
+    ///  **The constructor for the cache**. Constructor for adding a file path. 
+    /// After using the `write()` or `read()` methods, and if Ok(), 
+    /// we get the correct path, which will be used as a cache when we reuse
     /// # Example
-    /// ```
-    /// use qfile::QFilePack;
+    /// ```rust
+    /// # use qfile::QFilePack;
     /// # fn main() {
-    ///     //---
-    ///     // the real file path:
-    ///     // ./FOLder/Folder/NEW.txt
-    ///     let path = "./folder/Folder/new.txt";
-    ///     let mut file = QFilePack::add_path(path);
-    ///     {
-    ///     // The real path is searched after the first method call. The real path is stored in the structure
-    ///     file.write("Oldata").unwrap();
-    ///     }
-    ///     // we get the saved path right away
-    ///     file.write("Newdata").unwrap();
-    ///     assert_eq!(file.read().unwrap(), "OldataNewdata");
-    ///     //---
+    /// // the real file path: `./FOLder/Folder/NEW.txt`
+    /// let mut file = QFilePack::add_path("./folder/Folder/new.txt");
+    /// // The real path is searched after the first method call 
+    /// // (it's stored in the structure).
+    /// {
+    /// file.write("Olddata").unwrap();
+    /// }
+    /// // we get the saved path right away
+    /// file.write("Newdata").unwrap();
+    /// assert_eq!(file.read().unwrap(), "OlddataNewdata");
     /// # }
     ///```
     ///
@@ -153,15 +144,12 @@ impl<'a> QFilePack<'a> {
     /// use qfile::QFilePack;
     /// use std::fs::File;
     /// # fn main(){
-    /// //---
-    /// // the real file path:
-    /// // ./new_FILE.txt
-    /// let mut qpack = QFilePack::add_path("./new_file.txt");
-    /// let file = qpack.file().unwrap();
+    /// // the real file path: `./new_FILE.txt`
+    /// let mut qpack = QFilePack::add_path("./new_file.txt").file().unwrap();
     /// assert_eq!(file.metadata().unwrap().is_file(), true);
-    /// //---
     /// # }
     /// ```
+    ///
     pub fn file(&mut self) -> Result<File, io::Error> {
         let rs = self.cache_path();
         match get_file(rs) {
@@ -171,9 +159,7 @@ impl<'a> QFilePack<'a> {
     }
 }
 impl<'a> Drop for QFilePack<'a> {
-    fn drop(&mut self) {
-        dbg!("dropped");
-    }
+    fn drop(&mut self) {}
 }
 fn get_file(path: &str) -> Result<File, io::Error> {
     match File::open(path) {
@@ -195,6 +181,5 @@ fn directory_contents(path: &str) -> Vec<String> {
             }
         }
     }
-    // self.possible_directories = files;
     return files;
 }

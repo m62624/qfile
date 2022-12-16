@@ -6,19 +6,16 @@ use crate::dpds_path::{DirBuilder, ErrorKind, File, OpenOptions};
 impl<'a> QFilePack<'a> {
     /// Method for writing data to a file
     /// # Example
-    /// ```
-    /// use qfile::QFilePack;
+    /// ```rust
+    /// # use qfile::QFilePack;
     /// # fn main() {
-    /// //---
-    /// // the real file path:
-    /// // ./FILE.txt
+    /// // the real file path: `./FILE.txt`
     /// let mut file = QFilePack::add_path("./file.txt");
     /// file.write("ok").unwrap();
     /// assert_eq(file.read().unwrap(),"ok");
-    /// //---
-    ///
     /// # }
     /// ```
+    /// 
     pub fn write(&mut self, text: &'a str) -> Result<(), io::Error> {
         let os = self.os;
         if self.update_path {
