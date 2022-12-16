@@ -7,10 +7,19 @@
 //! use qfile::*;
 //!# fn main() {
 //! //---
-//!    let mut file = QFilePack::add_path("./Folder1/Folder2/file.txt");
+//! let mut file = QFilePack::add_path("./folder/folder/file.txt");
+//! {
+//!    // The real path is searched after the first method call.
+//!    // It's stored in the structure
+//!
 //!    file.write("text_1").unwrap();
-//!    let data = file.read().unwrap();
-//!    println!("{}",data);
+//! }
+//! // we get the saved path right away
+//! file.write("text_2").unwrap();
+//!
+//! println!("{}",file.read().unwrap());
+//!
+//! //output: text_1text2
 //! //---
 //!# }
 //!

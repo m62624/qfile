@@ -16,7 +16,7 @@ impl<'a> QFilePack<'a> {
     /// file.write("ok").unwrap();
     /// assert_eq(file.read().unwrap(),"ok");
     /// //---
-    /// 
+    ///
     /// # }
     /// ```
     pub fn write(&mut self, text: &'a str) -> Result<(), io::Error> {
@@ -101,58 +101,4 @@ impl<'a> QFilePack<'a> {
             }
         }
     }
-}
-//=====================================(tests)=====================================
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_1() {
-    use std::fs;
-    let path = "./polygon/write/new.txt";
-    let mut file = QFilePack::add_path(path);
-    file.write("ok").unwrap();
-    let data = file.read().unwrap();
-    fs::remove_file(path).unwrap();
-    assert_eq!(data, "ok");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_2() {
-    use std::fs;
-    let path = "./Polygon/ru_Папка/new.txt";
-    let mut file = QFilePack::add_path(path);
-    file.write("ok").unwrap();
-    let data = file.read().unwrap();
-    fs::remove_dir_all(path).unwrap();
-    assert_eq!(data, "ok");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_3() {
-    let mut file = QFilePack::add_path("./new.txt");
-    file.write("ok").unwrap();
-    let data = file.read().unwrap();
-    assert_eq!(data, "ok");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_4() {
-    use std::fs;
-    let path = "./Polygon/write/new-4.txt";
-    let mut file = QFilePack::add_path(path);
-    file.write("oldata").unwrap();
-    file.write("newdata").unwrap();
-    let data = file.read().unwrap();
-    fs::remove_file(path).unwrap();
-    assert_eq!(data, "oldatanewdata");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_5() {
-    use std::fs;
-    let path = "./root-5.txt";
-    let mut file = QFilePack::add_path(path);
-    file.write("ok").unwrap();
-    let data = file.read().unwrap();
-    fs::remove_file(path).unwrap();
-    assert_eq!(data, "ok");
 }

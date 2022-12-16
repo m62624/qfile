@@ -1,3 +1,5 @@
+mod unit_tests;
+//=========================
 mod read;
 mod write;
 use crate::dpds_path::{fs, io, lazy_static, ErrorKind, File, Path, Regex, __Deref};
@@ -10,7 +12,14 @@ pub enum Flag {
 }
 #[derive(Debug)]
 /// A structure for storing the file path\
-/// 
+///
+///  The structure stores :
+/// - true file path (**used as a [cache](<struct.QFilePack.html#method.add_path>) for reuse**)
+/// - possible file paths
+/// - file name
+/// - OS (information about what format to look for the file `/` and `\\`)
+/// A structure for storing the file path\
+///
 ///  The structure stores :
 /// - true file path (**used as a [cache](<struct.QFilePack.html#method.add_path>) for reuse**)
 /// - possible file paths
@@ -138,10 +147,10 @@ impl<'a> QFilePack<'a> {
     }
 
     /// Get the file directly\
-    /// You can use the function to retrieve data in byte format or in some other way
+    /// You can use the function to retrieve data in bytes format or use it for any other option
     /// # Example
     /// ```
-    /// use qfile::*;
+    /// use qfile::QFilePack;
     /// use std::fs::File;
     /// # fn main(){
     /// //---
@@ -160,7 +169,6 @@ impl<'a> QFilePack<'a> {
         }
     }
 }
-//======================================================
 fn get_file(path: &str) -> Result<File, io::Error> {
     match File::open(path) {
         Ok(file) => Ok(file),
@@ -183,58 +191,4 @@ fn directory_contents(path: &str) -> Vec<String> {
     }
     // self.possible_directories = files;
     return files;
-}
-
-//=====================================(tests)=====================================
-#[cfg(target_family = "unix")]
-#[test]
-fn test_way_step_by_step() {
-    let mut temp = QFilePack::add_path("./Polygon/Don't delete/test-1.txt");
-    temp.way_step_by_step();
-    assert_eq!(
-        temp.request_items,
-        vec![
-            "./",
-            "./Polygon",
-            "./Polygon/Don't delete",
-            "./Polygon/Don't delete/test-1.txt"
-        ]
-    );
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_path_content() {
-    dbg!(directory_contents("./Polygon/Don't delete"));
-    assert_eq!(
-        directory_contents("./Polygon/Don't delete"),
-        vec![
-            "./Polygon/Don't delete/test-1.txt",
-            "./Polygon/Don't delete/temp3.txt",
-            "./Polygon/Don't delete/temp1.txt",
-            "./Polygon/Don't delete/tempFolder",
-            "./Polygon/Don't delete/temp2.txt",
-        ]
-    )
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_correct_path_1() {
-    let mut temp = QFilePack::add_path("./polygon/Read/test-1.txt");
-    temp.correct_path();
-    dbg!(temp);
-    assert_eq!(true, true);
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_correct_path_2() {
-    let mut temp = QFilePack::add_path("./polygon/READ/TEst-2.txt");
-    temp.correct_path();
-    assert_eq!(temp.correct_path, "./Polygon/Read/TESt-2.txt");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_correct_path_3() {
-    let mut temp = QFilePack::add_path("./polygon/does_not_exist.txt");
-    temp.correct_path();
-    assert_eq!(temp.correct_path, "");
 }
