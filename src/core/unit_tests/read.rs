@@ -32,6 +32,7 @@ fn test_read_3() {
 #[cfg(target_family = "unix")]
 #[test]
 fn test_read_1() {
+    use crate::QFilePack;
     use std::path::Path;
     //==============================================================
     let mut file = QFilePack::add_path("./Polygon/READ/Test-1.txt");

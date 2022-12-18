@@ -1,5 +1,4 @@
-use crate::core::get_file;
-use crate::core::QFilePack;
+use crate::core::{get_file, QFilePack};
 use crate::dpds_path::{io, Read};
 
 impl<'a> QFilePack<'a> {
@@ -22,8 +21,8 @@ impl<'a> QFilePack<'a> {
     /// // file content:
     /// // ok
     ///
-    ///```
-    /// 
+    /// ```
+    ///
     pub fn read(&mut self) -> Result<String, io::Error> {
         let mut text = String::new();
         match get_file(self.cache_path()) {

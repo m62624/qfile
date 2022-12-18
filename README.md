@@ -1,6 +1,6 @@
 
 [![Crate](https://img.shields.io/crates/v/qfile?color=green)](https://crates.io/crates/qfile)
-[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/1.0.0/qfile/)
+[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/1.1.0/qfile/)
 
  # Qfile
 
@@ -24,7 +24,7 @@
     file.write("text_2").unwrap();
     println!("{}",file.read().unwrap());
 
-    //output: text_1text2
+    //output: text_1text_2
   
 ```
 
@@ -63,7 +63,7 @@ Creates a new path with file. Writes new data to an empty file
     assert_eq!(file.read().unwrap(),":D:D");
     
 ```
- - If the path exists, regardless of the case, we work with the file
+- If the path exists, we work with the file (case insensitive)
  
  > **The path we specified**: `./FLDR/FlDr/file.TXT`\
   **real path** : `./fldr/fldr/file.txt`\
@@ -74,14 +74,13 @@ Creates a new path with file. Writes new data to an empty file
  > **The path we specified**: `./fldr/fldr_new/file.txt`\
   **real path** : `./fldr`\
   **Result** : `./fldr/fldr_new/file.txt`
- 
-  but if the initial path is case different, then a *new path with the file* is created 
- 
+
+- but if the initial path is different case of letters and a new file/folder is specified in the path, then a new path is created with the file
  > **The path we specified**: `./FLDR/fldr_new/file.TXT`\
-  **real path** : `./fldr`\
-  **Result** :\
-  `./fldr`\
-  `./FLDR/fldr_new/file.TXT`
+ **real path** : `./fldr`\
+ **Result** :\
+ `./fldr`\
+ `./FLDR/fldr_new/file.TXT`
 
  # License
  [MIT](https://choosealicense.com/licenses/mit/)

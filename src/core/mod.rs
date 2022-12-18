@@ -32,16 +32,16 @@ pub struct QFilePack<'a> {
 
 //======================================================
 impl<'a> QFilePack<'a> {
-    ///  **The constructor for the cache**. Constructor for adding a file path. 
-    /// After using the `write()` or `read()` methods, and if Ok(), 
+    /// **The constructor for the cache**. Constructor for adding a file path.\
+    /// After using the `write()` or `read()` methods, and if Ok(),\
     /// we get the correct path, which will be used as a cache when we reuse
-    /// # Example
+    /// Example
     /// ```rust
     /// # use qfile::QFilePack;
     /// # fn main() {
     /// // the real file path: `./FOLder/Folder/NEW.txt`
     /// let mut file = QFilePack::add_path("./folder/Folder/new.txt");
-    /// // The real path is searched after the first method call 
+    /// // The real path is searched after the first method call
     /// // (it's stored in the structure).
     /// {
     /// file.write("Olddata").unwrap();
@@ -50,8 +50,7 @@ impl<'a> QFilePack<'a> {
     /// file.write("Newdata").unwrap();
     /// assert_eq!(file.read().unwrap(), "OlddataNewdata");
     /// # }
-    ///```
-    ///
+    /// ```
     pub fn add_path(path: &'a str) -> Self {
         QFilePack {
             request_items: Default::default(),
@@ -63,7 +62,6 @@ impl<'a> QFilePack<'a> {
             update_path: false,
         }
     }
-
     fn way_step_by_step(&mut self) {
         let mut items = |rgx: &Regex, path: &str| {
             let (mut folders, mut i) = (Vec::new(), 1);
@@ -100,7 +98,6 @@ impl<'a> QFilePack<'a> {
         self.way_step_by_step();
         let request_items = &mut self.request_items;
         for user_i in 0..request_items.len() {
-            // println!("{}", request_items[user_i]);
             let mut possible_directories = directory_contents(request_items[user_i].as_str());
             for pos_j in 0..possible_directories.len() {
                 if request_items
@@ -119,7 +116,18 @@ impl<'a> QFilePack<'a> {
             self.correct_path = result.unwrap().to_string();
         }
     }
-    fn cache_path(&mut self) -> &str {
+    /// Get the true path\
+    /// # Example
+    /// ```rust
+    /// # use qfile::QFilePack;
+    /// # fn main() {
+    /// // the real file path: `./My_Folder/fIle.txt`
+    /// let mut file = QFilePack::add_path("./my_folder/file.txt");
+    /// file.write("ok").unwrap();
+    /// assert_eq(file.cache_path(),"./My_Folder/fIle.txt");
+    /// # }
+    /// ```
+    pub fn cache_path(&mut self) -> &str {
         if Path::new(self.user_path).exists() {
             if !self.correct_path.is_empty() && self.user_path != self.correct_path {
                 return self.correct_path.as_str();
@@ -140,7 +148,7 @@ impl<'a> QFilePack<'a> {
     /// Get the file directly\
     /// You can use the function to retrieve data in bytes format or use it for any other option
     /// # Example
-    /// ```
+    /// ```rust
     /// use qfile::QFilePack;
     /// use std::fs::File;
     /// # fn main(){
