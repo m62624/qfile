@@ -131,7 +131,7 @@ impl<'a> QFilePack<'a> {
     /// assert_eq(file.read().unwrap(),"4 5 6");
     /// # }
     /// ```
-    pub fn write_only_new(&mut self, text: &'a str) -> Result<(), io::Error> {
+    pub fn write_only_new(&mut self, text: &str) -> Result<(), io::Error> {
         self.flag = Flag::New;
         if let Err(err) = self.write(text) {
             self.dir_create(err.kind()).unwrap();

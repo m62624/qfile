@@ -1,6 +1,6 @@
 
 [![Crate](https://img.shields.io/crates/v/qfile?color=green)](https://crates.io/crates/qfile)
-[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/1.1.1/qfile/)
+[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/1.1.2/qfile/)
 
  # Qfile
 
