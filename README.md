@@ -1,6 +1,6 @@
 
 [![Crate](https://img.shields.io/crates/v/qfile?color=green)](https://crates.io/crates/qfile)
-[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/1.1.0/qfile/)
+[![Docrs](https://img.shields.io/crates/v/qfile?color=blue&label=docs)](https://docs.rs/qfile/1.1.1/qfile/)
 
  # Qfile
 
@@ -67,7 +67,7 @@ Creates a new path with file. Writes new data to an empty file
  
  > **The path we specified**: `./FLDR/FlDr/file.TXT`\
   **real path** : `./fldr/fldr/file.txt`\
-  **Result** : `"./fldr/fldr/file.txt"`
+  **Result** : `./fldr/fldr/file.txt`
 
 - If the file/path is not found, creates a new path with the file (*if initial path exists*)
  

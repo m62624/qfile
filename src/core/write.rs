@@ -1,6 +1,8 @@
 use crate::core::{get_file, Flag, QFilePack};
-use crate::dpds_path::io::{self, Write};
-use crate::dpds_path::{DirBuilder, ErrorKind, File, OpenOptions};
+use crate::dpds_path::{
+    io::{self, Write},
+    DirBuilder, ErrorKind, File, OpenOptions,
+};
 
 impl<'a> QFilePack<'a> {
     /// Method for writing data to a file
@@ -28,7 +30,7 @@ impl<'a> QFilePack<'a> {
     ///  **Result** :\
     ///  `./fldr`\
     ///  `./FLDR/fldr_new/file.TXT`
-    pub fn write(&mut self, text: &'a str) -> Result<(), io::Error> {
+    pub fn write(&mut self, text: &str) -> Result<(), io::Error> {
         if self.update_path {
             match self.os {
                 "linux" | "macos" => {

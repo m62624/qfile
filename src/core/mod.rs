@@ -1,9 +1,8 @@
-mod unit_tests;
-//=========================
 mod read;
 mod write;
-use crate::dpds_path::{fs, io, lazy_static, ErrorKind, File, OpenOptions, Path, Regex, __Deref};
-use std::env;
+use crate::dpds_path::{
+    fs, io, lazy_static, ErrorKind, File, OpenOptions, Path, Regex, __Deref, env,
+};
 #[derive(Debug)]
 pub enum Flag {
     New,
@@ -145,7 +144,7 @@ impl<'a> QFilePack<'a> {
         }
     }
 
-    /// Get the file directly\
+    /// Get the file directly
     /// You can use the function to retrieve data in bytes format or use it for any other option
     /// # Example
     /// ```rust
