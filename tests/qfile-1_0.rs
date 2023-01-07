@@ -89,13 +89,22 @@ fn unix_test_path_4() {
     let path = pwmf(&main_folder, "/a/B/c/file.txt");
     let mut file = QFilePack::add_path(&path);
     file.write_only_new("").unwrap();
-
     let find_path = format!("{}{}", main_folder.to_lowercase(), "/A/B/c/file.txt");
     let mut find = QFilePack::add_path(&find_path);
-    assert_eq!(find.cache_path(), path);
+    assert_eq!(find.cache_path(), format!("./{}", path));
     delete_item(&main_folder);
 }
-
+#[cfg(target_family = "unix")]
+#[test]
+// folder
+fn unix_test_path_5() {
+    let main_folder = TestFolder::new("./Polygon").folder;
+    let path = pwmf(&main_folder, "/a/b/c/file.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("ok").unwrap();
+    assert_eq!(file.read().unwrap(), "ok");
+    delete_item(&main_folder);
+}
 //===========================================(WINDOWS)================================================
 #[cfg(target_family = "windows")]
 #[test]
@@ -170,7 +179,6 @@ fn unix_test_path_5() {
     let path = pwmf(&main_folder, "\\a\\B\\c\\file.txt");
     let mut file = QFilePack::add_path(&path);
     file.write_only_new("").unwrap();
-
     let find_path = format!("{}{}", main_folder.to_lowercase(), "\\A\\B\\c\\file.txt");
     let mut find = QFilePack::add_path(&find_path);
     assert_eq!(find.cache_path(), path);
