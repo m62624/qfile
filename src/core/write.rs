@@ -7,7 +7,7 @@ use crate::dpds_path::{
 impl<'a> QFilePack<'a> {
     /// Method for writing data to a file
     /// # Example
-    /// ```rust
+    /// ```
     /// # use qfile::QFilePack;
     /// # fn main() {
     /// // the real file path: `./FILE.txt`
@@ -114,14 +114,14 @@ impl<'a> QFilePack<'a> {
                 Ok(())
             }
             ErrorKind::PermissionDenied => {
-                panic!("PermissionDenied");
+                panic!("Permission denied");
             }
             _ => panic!("other errors"),
         }
     }
     /// The same as `write()`, only the method for overwriting the data in the file
     /// # Example
-    /// ```rust
+    /// ```
     /// # use qfile::QFilePack;
     /// # fn main() {
     /// // the real file path: `./FILE.txt`

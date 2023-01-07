@@ -4,7 +4,7 @@ use crate::dpds_path::{io, Read};
 impl<'a> QFilePack<'a> {
     /// The method returns the contents of the file
     /// # Example
-    /// ```rust
+    /// ```
     /// # use qfile::QFilePack;
     /// # fn main() {
     /// // the real file path:

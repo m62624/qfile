@@ -10,8 +10,7 @@ pub enum Flag {
     Old,
 }
 #[derive(Debug)]
-/// A structure for storing the file path\
-///
+/// A structure for storing the file path
 ///  The structure stores :
 /// - true file path (**used as a [cache](<struct.QFilePack.html#method.add_path>) for reuse**)
 /// - possible file paths
@@ -35,7 +34,7 @@ impl<'a> QFilePack<'a> {
     /// After using the `write()` or `read()` methods, and if Ok(),\
     /// we get the correct path, which will be used as a cache when we reuse
     /// Example
-    /// ```rust
+    /// ```
     /// # use qfile::QFilePack;
     /// # fn main() {
     /// // the real file path: `./FOLder/Folder/NEW.txt`
@@ -113,17 +112,19 @@ impl<'a> QFilePack<'a> {
         let result = request_items.last();
         if Path::new(result.unwrap()).exists() {
             self.correct_path = result.unwrap().to_string();
+            self.request_items.clear();
+            self.request_items.shrink_to_fit();
         }
     }
-    /// Get the true path\
+    /// Get the true path
     /// # Example
-    /// ```rust
+    /// ```
     /// # use qfile::QFilePack;
     /// # fn main() {
     /// // the real file path: `./My_Folder/fIle.txt`
     /// let mut file = QFilePack::add_path("./my_folder/file.txt");
     /// file.write("ok").unwrap();
-    /// assert_eq(file.cache_path(),"./My_Folder/fIle.txt");
+    /// assert_eq!(file.cache_path(),"./My_Folder/fIle.txt");
     /// # }
     /// ```
     pub fn cache_path(&mut self) -> &str {
@@ -147,7 +148,7 @@ impl<'a> QFilePack<'a> {
     /// Get the file directly
     /// You can use the function to retrieve data in bytes format or use it for any other option
     /// # Example
-    /// ```rust
+    /// ```
     /// use qfile::QFilePack;
     /// use std::fs::File;
     /// # fn main(){

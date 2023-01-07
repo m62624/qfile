@@ -1,196 +1,178 @@
 use qfile::QFilePack;
-use std::{fs, io::Read};
-
-fn get_paths(element: usize) -> String {
-    let mut data = String::new();
-    fs::File::open("./tests/Paths")
-        .unwrap()
-        .read_to_string(&mut data)
-        .unwrap();
-    let data: Vec<&str> = data.as_str().split("\n").collect();
-    match data.get(element) {
-        Some(path) => path.to_string(),
-        None => panic!("ERROR PATHS"),
+use rand::Rng;
+use std::fs;
+use std::iter;
+struct TestFolder {
+    folder: String,
+}
+impl TestFolder {
+    fn generate(len: usize) -> String {
+        const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-";
+        let mut rng = rand::thread_rng();
+        let one_char = || CHARSET[rng.gen_range(0..CHARSET.len())] as char;
+        iter::repeat_with(one_char).take(len).collect()
+    }
+    fn new(first_path: &str) -> Self {
+        TestFolder {
+            folder: format!("{}-{}", first_path, Self::generate(15)),
+        }
     }
 }
+
 fn delete_item(path: &str) {
     if let Err(_) = fs::remove_dir_all(path) {
         dbg!("removed");
     }
 }
-
-#[cfg(target_family = "unix")]
-#[test]
-#[should_panic]
-fn check_access_api() {
-    let mut file = QFilePack::add_path("");
-
-    file.write("").unwrap();
-    file.read().unwrap();
+fn pwmf(main_folder: &str, path: &str) -> String {
+    format!("{}{}", main_folder, path)
 }
+//===========================================(Unix)================================================
 #[cfg(target_family = "unix")]
 #[test]
-fn test_write_1_u() {
-    //=========================================
-    let path = &get_paths(1);
-    delete_item(&get_paths(0));
-    //=========================================
+fn unix_test_path_0_part1() {
+    let main_folder = TestFolder::new(".Polygon").folder;
+    let path = pwmf(&main_folder, "/file.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("ok").unwrap();
+    if let Ok(()) = unix_test_path_0_part2(&path) {
+        assert_eq!(file.read().unwrap(), "okok");
+        delete_item(&main_folder);
+        return;
+    }
+    delete_item(&main_folder);
+    panic!(":: ERROR - part2 from first_slash_add1");
+}
+fn unix_test_path_0_part2(path: &str) -> Result<(), std::io::Error> {
+    QFilePack::add_path(path).write("ok")
+}
 
-    let mut file = QFilePack::add_path(path);
+#[cfg(target_family = "unix")]
+#[test]
+//..folder
+fn unix_test_path_1() {
+    let main_folder = TestFolder::new("../delete me").folder;
+    let path = pwmf(&main_folder, "/file.txt");
+    let mut file = QFilePack::add_path(&path);
     file.write("ok").unwrap();
-
     assert_eq!(file.read().unwrap(), "ok");
+    delete_item(&main_folder);
 }
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_2_u() {
-    //=========================================
-    let path = &get_paths(2);
-    delete_item(&get_paths(0));
-    //=========================================
 
-    let mut file = QFilePack::add_path(path);
-
-    file.write("ok").unwrap();
-    file.write("ok").unwrap();
-
-    assert_eq!(file.read().unwrap(), "okok");
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_3_u() {
-    //=========================================
-    use std::path::Path;
-    let path = &get_paths(3);
-    let delete_i = &mut get_paths(3);
-    delete_i.truncate(36);
-    delete_item(delete_i);
-    //=========================================
-
-    let mut file = QFilePack::add_path(path);
-    file.write("").unwrap();
-
-    assert!(Path::new("./Polygon/OldFolder/NewFolder-test3/file.txt").exists());
-}
-#[cfg(target_family = "unix")]
-#[test]
-fn test_write_4_u() {
-    //=========================================
-    let path = &get_paths(4);
-    if let Err(_) = fs::remove_file(path) {
-        dbg!("removed");
-    }
-    //=========================================
-
-    let mut file = QFilePack::add_path(path);
-    file.write("fileroot").unwrap();
-
-    assert_eq!(file.read().unwrap(), "fileroot");
-}
 #[cfg(target_family = "unix")]
 #[test]
 #[should_panic]
-fn test_write_5_u() {
-    //=========================================
-    let path = &get_paths(5);
-    //=========================================
-
-    let mut file = QFilePack::add_path(path);
-    file.write("").unwrap();
+// root folder
+fn unix_test_path_2() {
+    QFilePack::add_path("/usr/invalid_file.txt")
+        .write("delete this file ")
+        .unwrap();
 }
-//===============================================================================
-#[cfg(target_family = "windows")]
+
+#[cfg(target_family = "unix")]
 #[test]
-fn test_write_1_w() {
-    //=========================================
-    let path = &get_paths(6);
-    delete_item(&get_paths(0));
-    //=========================================
-
-    let mut file = QFilePack::add_path(path);
-    file.write("ok").unwrap();
-
+// folder
+fn unix_test_path_3() {
+    let main_folder = TestFolder::new("Polygon").folder;
+    let path = pwmf(&main_folder, "/a/b/c/file.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("ok").unwrap();
     assert_eq!(file.read().unwrap(), "ok");
+    delete_item(&main_folder);
 }
+
+#[cfg(target_family = "unix")]
+#[test]
+// folder
+fn unix_test_path_4() {
+    let main_folder = TestFolder::new("Polygon").folder;
+    let path = pwmf(&main_folder, "/a/B/c/file.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("").unwrap();
+
+    let find_path = format!("{}{}", main_folder.to_lowercase(), "/A/B/c/file.txt");
+    let mut find = QFilePack::add_path(&find_path);
+    assert_eq!(find.cache_path(), path);
+    delete_item(&main_folder);
+}
+
+//===========================================(WINDOWS)================================================
 #[cfg(target_family = "windows")]
 #[test]
-fn test_write_2_w() {
-    //=========================================
-    let path = &get_paths(7);
-    delete_item(&get_paths(0));
-    //=========================================
-
-    let mut file = QFilePack::add_path(path);
-
-    file.write("ok").unwrap();
-    file.write("ok").unwrap();
-
-    assert_eq!(file.read().unwrap(), "okok");
-}
-#[cfg(target_family = "windows")]
-#[test]
-fn test_write_3_w() {
-    //=========================================
-    use std::path::Path;
-    let path = &get_paths(8);
-    let delete_i = &mut get_paths(8);
-    delete_i.truncate(40);
-    delete_item(delete_i);
-    //=========================================
-
-    let mut file = QFilePack::add_path(path);
-    file.write("").unwrap();
-
-    assert!(Path::new(".\\Polygon\\OldFolder\\NewFolder-test3\\file.txt").exists());
-}
-#[cfg(target_family = "windows")]
-#[test]
-fn test_write_4_w() {
-    //=========================================
-    let path = &get_paths(9);
-    if let Err(_) = fs::remove_file(path) {
-        dbg!("removed");
+fn windows_test_path_0_part1() {
+    let main_folder = TestFolder::new(".Polygon").folder;
+    let path = pwmf(&main_folder, "\\file.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("ok").unwrap();
+    if let Ok(()) = windows_test_path_0_part2(&path) {
+        assert_eq!(file.read().unwrap(), "okok");
+        delete_item(&main_folder);
+        return;
     }
-    //=========================================
-
-    let mut file = QFilePack::add_path(path);
-    file.write("fileroot").unwrap();
-
-    assert_eq!(file.read().unwrap(), "fileroot");
+    delete_item(&main_folder);
+    panic!(":: ERROR - part2 from first_slash_add1");
 }
+fn windows_test_path_0_part2(path: &str) -> Result<(), std::io::Error> {
+    QFilePack::add_path(path).write("ok")
+}
+
+#[cfg(target_family = "windows")]
+#[test]
+//..folder
+fn windows_test_path_1() {
+    let main_folder = TestFolder::new("..\\delete me").folder;
+    let path = pwmf(&main_folder, "\\file.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write("ok").unwrap();
+    assert_eq!(file.read().unwrap(), "ok");
+    delete_item(&main_folder);
+}
+
 #[cfg(target_family = "windows")]
 #[test]
 #[should_panic]
-fn test_write_5_w() {
-    //=========================================
-    let path = &get_paths(10);
-    //=========================================
-
-    let mut file = QFilePack::add_path(path);
-    file.write("").unwrap();
+// root folder
+fn windows_test_path_2() {
+    QFilePack::add_path("C:\\Windows\\System32\\invalid_file.txt")
+        .write("delete this file ")
+        .unwrap();
 }
+
 #[cfg(target_family = "windows")]
 #[test]
-fn test_write_6_w() {
-    //=========================================
-    let path = &get_paths(11);
-    match fs::File::open(path) {
-        Ok(mut x) => {
-            let mut text = String::new();
-            x.read_to_string(&mut text).unwrap();
-            if text == "delete me" {
-                return fs::remove_file(path).unwrap();
-            }
-            panic!("ERROR: name match");
-        }
-        Err(_) => {
-            dbg!("removed");
-        }
-    }
-    //=========================================
+// folder
+fn windows_test_path_3() {
+    let main_folder = TestFolder::new("Polygon").folder;
+    let path = pwmf(&main_folder, "\\a\\b\\cfile.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("ok").unwrap();
+    assert_eq!(file.read().unwrap(), "ok");
+    delete_item(&main_folder);
+}
 
-    let mut file = QFilePack::add_path(path);
-    file.write("delete me").unwrap();
+#[cfg(target_family = "windows")]
+#[test]
+// folder
+fn windows_test_path_4() {
+    let main_folder = TestFolder::new("D:\\Polygon").folder;
+    let path = pwmf(&main_folder, "\\a\\b\\cfile.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("ok").unwrap();
+    assert_eq!(file.read().unwrap(), "ok");
+    delete_item(&main_folder);
+}
 
-    assert_eq!(file.read().unwrap(), "delete me")
+#[cfg(target_family = "windows")]
+#[test]
+// folder
+fn unix_test_path_5() {
+    let main_folder = TestFolder::new("Polygon").folder;
+    let path = pwmf(&main_folder, "\\a\\B\\c\\file.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("").unwrap();
+
+    let find_path = format!("{}{}", main_folder.to_lowercase(), "\\A\\B\\c\\file.txt");
+    let mut find = QFilePack::add_path(&find_path);
+    assert_eq!(find.cache_path(), path);
+    delete_item(&main_folder);
 }
