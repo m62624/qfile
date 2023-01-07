@@ -69,20 +69,18 @@ impl<'a> QFilePack<'a> {
                     lazy_static! {
                         static ref SL: Regex = Regex::new(r"^/|^../|^./").unwrap();
                     }
-                    dbg!(!SL.is_match(&temp));
+                    // dbg!(!SL.is_match(&temp));
                     if !SL.is_match(&temp) {
                         temp = format!("./{}", temp);
-                        // temp.insert(0, "./".to_string());
                     }
                 }
                 "windows" => {
                     lazy_static! {
-                        static ref SL: Regex = Regex::new(r"^.:\\|^\\|^..\\|^.\\").unwrap();
+                        static ref SL: Regex = Regex::new(r"^.:\\+|^..\\|^.\\").unwrap();
                     }
-                    dbg!(!SL.is_match(&temp));
+                    // dbg!(!SL.is_match(&temp));
                     if !SL.is_match(&temp) {
-                        temp = format!("./{}", temp);
-                        // temp.insert(0, ".\\".to_string());
+                        temp = format!(".\\{}", temp);
                     }
                 }
                 _ => {
@@ -91,12 +89,6 @@ impl<'a> QFilePack<'a> {
             }
             let mut captures = rgx.captures_iter(&temp);
             folders.push(captures.next().unwrap()[0].to_string());
-
-            // if let "linux" | "macos" = self.os {
-            //     folders.insert(0, "./".to_string());
-            // } else if let "windows" = self.os {
-            //     folders.insert(0, ".\\".to_string());
-            // }
             for element in captures {
                 folders.push(format!("{}{}", folders[i - 1], &element[0]));
                 i += 1;
@@ -115,7 +107,9 @@ impl<'a> QFilePack<'a> {
             }
             "windows" => {
                 lazy_static! {
-                    static ref RE: Regex = Regex::new(r".:\\|..\\|.\\|[^\\]+").unwrap();
+                    // ^.:\\|^..\\|^.\\|.+?[^\\]+
+                    // ^.:\\+|^..\\|^.\\|.+?[^\\]+
+                    static ref RE: Regex = Regex::new(r" ^.:\\+|^..\\|^.\\|.+?[^\\]+").unwrap();
                 }
                 return items(RE.deref(), self.user_path);
             }
@@ -140,11 +134,6 @@ impl<'a> QFilePack<'a> {
                     request_items[user_i + 1] = possible_directories.remove(pos_j);
                     break;
                 }
-                // dbg!(request_items
-                //     .get(user_i + 1)
-                //     .unwrap_or(&request_items.get(user_i).unwrap().to_lowercase())
-                //     .to_lowercase());
-                // dbg!(possible_directories[pos_j].to_lowercase());
             }
         }
         let result = request_items.last();
@@ -169,6 +158,8 @@ impl<'a> QFilePack<'a> {
         if Path::new(self.user_path).exists() {
             if !self.correct_path.is_empty() && self.user_path != self.correct_path {
                 return self.correct_path.as_str();
+            } else if let "windows" = self.os {
+                self.correct_path();
             }
             self.user_path
         } else if self.correct_path.is_empty() {

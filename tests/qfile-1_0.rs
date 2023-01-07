@@ -105,6 +105,18 @@ fn unix_test_path_5() {
     assert_eq!(file.read().unwrap(), "ok");
     delete_item(&main_folder);
 }
+#[cfg(target_family = "unix")]
+#[test]
+// folder
+fn unix_test_path_6() {
+    let file_name = TestFolder::generate(15);
+    let file_name = format!("{}.txt", file_name);
+    let mut file = QFilePack::add_path(&file_name);
+    file.write("").unwrap();
+    if let Err(err) = fs::remove_file(&file_name) {
+        panic!("unix_test_path_6 :\nError delete file")
+    }
+}
 //===========================================(WINDOWS)================================================
 #[cfg(target_family = "windows")]
 #[test]
@@ -173,14 +185,39 @@ fn windows_test_path_4() {
 
 #[cfg(target_family = "windows")]
 #[test]
-// folder
-fn unix_test_path_5() {
-    let main_folder = TestFolder::new("Polygon").folder;
-    let path = pwmf(&main_folder, "\\a\\B\\c\\file.txt");
+fn windows_test_path_5() {
+    let main_folder = TestFolder::new(".Polygon").folder;
+    let path = pwmf(&main_folder, "\\FOlder\\folder\\file.txt");
     let mut file = QFilePack::add_path(&path);
-    file.write_only_new("").unwrap();
-    let find_path = format!("{}{}", main_folder.to_lowercase(), "\\A\\B\\c\\file.txt");
-    let mut find = QFilePack::add_path(&find_path);
-    assert_eq!(find.cache_path(), path);
+    file.write_only_new("ok").unwrap();
+    // assert_eq!(file.read().unwrap(), "ok");
+    let new_path = path.to_string();
+    let mut file = QFilePack::add_path(&new_path);
+    assert_eq!(file.cache_path(), path);
+    delete_item(&main_folder);
+}
+#[cfg(target_family = "windows")]
+#[test]
+// folder
+fn windows_test_path_6() {
+    let file_name = TestFolder::generate(15);
+    let file_name = format!("{}.txt", file_name);
+    let mut file = QFilePack::add_path(&file_name);
+    file.write("").unwrap();
+    if let Err(err) = fs::remove_file(&file_name) {
+        panic!("unix_test_path_6 :\nError delete file")
+    }
+}
+#[cfg(target_family = "windows")]
+#[test]
+fn windows_test_path_7() {
+    let main_folder = TestFolder::new("D:\\Polygon").folder;
+    let path = pwmf(&main_folder, "\\FOlder\\folder\\file.txt");
+    let mut file = QFilePack::add_path(&path);
+    file.write_only_new("ok").unwrap();
+    // assert_eq!(file.read().unwrap(), "ok");
+    let new_path = path.to_string();
+    let mut file = QFilePack::add_path(&new_path);
+    assert_eq!(file.cache_path(), path);
     delete_item(&main_folder);
 }

@@ -42,8 +42,6 @@ impl<'a> QFilePack<'a> {
                     }
                 }
                 "windows" => {
-                    // self.correct_path =
-                    //     format!("{}{}{}", self.correct_path.clone(), "\\", self.file_name)
                     if self.correct_path.is_empty() {
                         self.correct_path = format!("{}{}{}", self.user_path, "\\", self.file_name)
                     } else {
@@ -97,14 +95,26 @@ impl<'a> QFilePack<'a> {
                 self.cache_path().to_string();
                 let fullpath = self.user_path;
                 let filename = match self.os {
-                    "linux" | "macos" => fullpath.rsplit_once("/").unwrap().1,
-                    "windows" => fullpath.rsplit_once("\\").unwrap().1,
+                    "linux" | "macos" => match fullpath.rsplit_once("/") {
+                        Some(filename) => filename.1,
+                        None => self.user_path,
+                    },
+                    "windows" => match fullpath.rsplit_once("\\") {
+                        Some(filename) => filename.1,
+                        None => self.user_path,
+                    },
                     _ => panic!(),
                 };
                 let path_without_file = {
-                    let temp = fullpath.rsplit_once(filename).unwrap().0;
-                    let first = temp.split_at(temp.len() - 1).0;
-                    first
+                    let mut temp = fullpath.rsplit_once(filename).unwrap().0;
+                    if temp.is_empty() {
+                        match self.os {
+                            "linux" | "macos" => temp = "./",
+                            "windows" => temp = ".\\",
+                            _ => panic!(),
+                        }
+                    }
+                    temp.split_at(temp.len() - 1).0
                 };
                 {
                     self.user_path = path_without_file;
