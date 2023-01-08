@@ -193,7 +193,7 @@ fn windows_test_path_5() {
     // assert_eq!(file.read().unwrap(), "ok");
     let new_path = path.to_string();
     let mut file = QFilePack::add_path(&new_path);
-    assert_eq!(file.cache_path(), path);
+    assert_eq!(file.cache_path(), format!(".\\{}", path));
     delete_item(&main_folder);
 }
 #[cfg(target_family = "windows")]
@@ -205,7 +205,7 @@ fn windows_test_path_6() {
     let mut file = QFilePack::add_path(&file_name);
     file.write("").unwrap();
     if let Err(err) = fs::remove_file(&file_name) {
-        panic!("unix_test_path_6 :\nError delete file")
+        panic!("unix_test_path_6 :\nError {{{}}}", err)
     }
 }
 #[cfg(target_family = "windows")]

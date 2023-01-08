@@ -1,5 +1,5 @@
 # Changelog
-## [1.1.3] - 2022.01.07
+## [1.1.3] - 2023.01.08
 ### Changed 
 Now it is not necessary to specify `./` at the beginning of the path (but you can still write it)
 

@@ -31,9 +31,9 @@ pub struct QFilePack<'a> {
 //======================================================
 impl<'a> QFilePack<'a> {
     /// **The constructor for the cache**. Constructor for adding a file path.\
-    /// After using the `write()` or `read()` methods, and if Ok(),\
+    /// After using the `write()` or `read()` methods (also the `cache_path()` if the path exists), and if `Ok()`,\
     /// we get the correct path, which will be used as a cache when we reuse
-    /// Example
+    /// # Example
     /// ```
     /// # use qfile::QFilePack;
     /// # fn main() {
@@ -143,7 +143,12 @@ impl<'a> QFilePack<'a> {
             self.request_items.shrink_to_fit();
         }
     }
-    /// Get the true path
+    /// returns the real path if the real path is found
+    /// but if not, it returns the path you originally entered. 
+    /// (to create files/folders in the new path use\
+    /// - [write](<struct.QFilePack.html#method.write>)\
+    /// - [write_only_new](<struct.QFilePack.html#method.write_only_new>)
+
     /// # Example
     /// ```
     /// # use qfile::QFilePack;
@@ -158,8 +163,9 @@ impl<'a> QFilePack<'a> {
         if Path::new(self.user_path).exists() {
             if !self.correct_path.is_empty() && self.user_path != self.correct_path {
                 return self.correct_path.as_str();
-            } else if let "windows" = self.os {
+            } else if self.correct_path.is_empty() {
                 self.correct_path();
+                return self.correct_path.as_str();
             }
             self.user_path
         } else if self.correct_path.is_empty() {

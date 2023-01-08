@@ -35,18 +35,18 @@ impl<'a> QFilePack<'a> {
             match self.os {
                 "linux" | "macos" => {
                     if self.correct_path.is_empty() {
-                        self.correct_path = format!("{}{}{}", self.user_path, "/", self.file_name)
+                        self.correct_path = format!("{}{}", self.user_path, self.file_name)
                     } else {
                         self.correct_path =
-                            format!("{}{}{}", self.correct_path.clone(), "/", self.file_name)
+                            format!("{}{}", self.correct_path.clone(), self.file_name)
                     }
                 }
                 "windows" => {
                     if self.correct_path.is_empty() {
-                        self.correct_path = format!("{}{}{}", self.user_path, "\\", self.file_name)
+                        self.correct_path = format!("{}{}", self.user_path, self.file_name)
                     } else {
                         self.correct_path =
-                            format!("{}{}{}", self.correct_path.clone(), "\\", self.file_name)
+                            format!("{}{}", self.correct_path.clone(), self.file_name)
                     }
                 }
                 _ => panic!(),
@@ -114,7 +114,9 @@ impl<'a> QFilePack<'a> {
                             _ => panic!(),
                         }
                     }
-                    temp.split_at(temp.len() - 1).0
+                    temp.split_at(temp.len() - 1).0;
+                    // }
+                    temp
                 };
                 {
                     self.user_path = path_without_file;
