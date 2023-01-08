@@ -38,7 +38,7 @@ impl<'a> QFilePack<'a> {
                         self.correct_path = format!("{}{}", self.user_path, self.file_name)
                     } else {
                         self.correct_path =
-                            format!("{}{}", self.correct_path.clone(), self.file_name)
+                            format!("{}/{}", self.correct_path.clone(), self.file_name)
                     }
                 }
                 "windows" => {
@@ -46,7 +46,7 @@ impl<'a> QFilePack<'a> {
                         self.correct_path = format!("{}{}", self.user_path, self.file_name)
                     } else {
                         self.correct_path =
-                            format!("{}{}", self.correct_path.clone(), self.file_name)
+                            format!("{}\\{}", self.correct_path.clone(), self.file_name)
                     }
                 }
                 _ => panic!(),

@@ -1,4 +1,7 @@
 # Changelog
+## [1.1.4] - 2023.01.08
+### Fixed
+Files and folders were created in different paths - fixed 
 ## [1.1.3] - 2023.01.08
 ### Changed 
 Now it is not necessary to specify `./` at the beginning of the path (but you can still write it)
