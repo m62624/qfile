@@ -1,22 +1,28 @@
 mod read;
 mod write;
-use crate::dpds_path::{
-    fs, io, lazy_static, ErrorKind, File, OpenOptions, Path, Regex, __Deref, env,
-};
+use crate::dpds_path::{fs, io, lazy_static, File, OpenOptions, Path, Regex, __Deref, env};
 #[derive(Debug)]
 pub enum Flag {
     New,
     Auto,
     Old,
 }
-#[derive(Debug)]
-/// A structure for storing the file path
-///  The structure stores :
-/// - true file path (**used as a [cache](<struct.QFilePack.html#method.add_path>) for reuse**)
-/// - possible file paths
-/// - file name
-/// - OS (information about what format to look for the file `/` and `\\`)
-pub struct QFilePack<'a> {
+/// Enumeration for selecting read and write permissions
+pub enum Permissions {
+    /// Read mode
+    R,
+    /// Write mode
+    W,
+    /// Read and write mode
+    RW,
+}
+/// The structure for storing the file path
+///
+/// The structure stores :
+/// - true file path (**used as a [cache](<struct.QFilePath.html#method.add_path>) for reuse**)
+/// - OS (information about what format to look for the file `/` and `\\`)\
+/// (**All methods automatically find the path case insensitive**)
+pub struct QFilePath<'a> {
     request_items: Vec<String>,
     //================
     user_path: &'a str,
@@ -29,28 +35,28 @@ pub struct QFilePack<'a> {
 }
 
 //======================================================
-impl<'a> QFilePack<'a> {
-    /// **The constructor for the cache**. Constructor for adding a file path.\
-    /// After using the `write()` or `read()` methods (also the `cache_path()` if the path exists), and if `Ok()`,\
+impl<'a> QFilePath<'a> {
+    /// Constructor for adding a file path.\
+    /// After using the [`auto_write()`](<struct.QFilePath.html#method.auto_write>) or [`read()`](<struct.QFilePath.html#method.read>) methods (also the [`cache_path()`](struct.QFilePath.html#method.cache_path) if the path exists), and if `Ok`,\
     /// we get the correct path, which will be used as a cache when we reuse
     /// # Example
     /// ```
-    /// # use qfile::QFilePack;
+    /// # use qfile::QFilePath;
     /// # fn main() {
+    ///
     /// // the real file path: `./FOLder/Folder/NEW.txt`
-    /// let mut file = QFilePack::add_path("./folder/Folder/new.txt");
+    /// let mut file = QFilePath::add_path("./folder/Folder/new.txt");
     /// // The real path is searched after the first method call
     /// // (it's stored in the structure).
-    /// {
-    /// file.write("Olddata").unwrap();
-    /// }
+    /// file.auto_write("Olddata").unwrap();
     /// // we get the saved path right away
-    /// file.write("Newdata").unwrap();
+    /// file.auto_write("Newdata").unwrap();
     /// assert_eq!(file.read().unwrap(), "OlddataNewdata");
+    ///
     /// # }
     /// ```
     pub fn add_path(path: &'a str) -> Self {
-        QFilePack {
+        QFilePath {
             request_items: Default::default(),
             user_path: path,
             file_name: Default::default(),
@@ -69,7 +75,6 @@ impl<'a> QFilePack<'a> {
                     lazy_static! {
                         static ref SL: Regex = Regex::new(r"^/|^../|^./").unwrap();
                     }
-                    // dbg!(!SL.is_match(&temp));
                     if !SL.is_match(&temp) {
                         temp = format!("./{}", temp);
                     }
@@ -78,7 +83,6 @@ impl<'a> QFilePack<'a> {
                     lazy_static! {
                         static ref SL: Regex = Regex::new(r"^.:\\+|^..\\|^.\\").unwrap();
                     }
-                    // dbg!(!SL.is_match(&temp));
                     if !SL.is_match(&temp) {
                         temp = format!(".\\{}", temp);
                     }
@@ -99,16 +103,12 @@ impl<'a> QFilePack<'a> {
         match self.os {
             "linux" | "macos" => {
                 lazy_static! {
-                  //  /[^/]+|../|./|[^/]+
-                  //  /|../|./|[^/]+/?
                     static ref RE: Regex = Regex::new(r"/[^/]+|../|./|[^/]+").unwrap();
                 }
                 return items(RE.deref(), self.user_path);
             }
             "windows" => {
                 lazy_static! {
-                    // ^.:\\|^..\\|^.\\|.+?[^\\]+
-                    // ^.:\\+|^..\\|^.\\|.+?[^\\]+
                     static ref RE: Regex = Regex::new(r" ^.:\\+|^..\\|^.\\|.+?[^\\]+").unwrap();
                 }
                 return items(RE.deref(), self.user_path);
@@ -144,75 +144,92 @@ impl<'a> QFilePack<'a> {
         }
     }
     /// returns the real path if the real path is found
-    /// but if not, it returns the path you originally entered. 
-    /// (to create files/folders in the new path use\
-    /// - [write](<struct.QFilePack.html#method.write>)\
-    /// - [write_only_new](<struct.QFilePack.html#method.write_only_new>)
+    /// but if not, it returns the path you originally entered.
+    /// To create files/folders in the new path use:
+    /// - [`auto_write()`](<struct.QFilePath.html#method.auto_write>)
+    /// - [`write_only_new()`](<struct.QFilePath.html#method.write_only_new>)
 
     /// # Example
     /// ```
-    /// # use qfile::QFilePack;
+    /// # use qfile::QFilePath;
     /// # fn main() {
-    /// // the real file path: `./My_Folder/fIle.txt`
-    /// let mut file = QFilePack::add_path("./my_folder/file.txt");
-    /// file.write("ok").unwrap();
-    /// assert_eq!(file.cache_path(),"./My_Folder/fIle.txt");
+    ///
+    /// // The file already exists
+    /// // The real file path: "./My_First_Folder/New_File.txt"
+    /// let mut file = QFilePath::add_path("my_first_Folder/new_file.txt");
+    /// assert_eq!(file.cache_path(),"./My_First_Folder/New_File.txt");
+    ///
     /// # }
     /// ```
     pub fn cache_path(&mut self) -> &str {
-        if Path::new(self.user_path).exists() {
+        if let true = Path::new(self.user_path).exists() {
             if !self.correct_path.is_empty() && self.user_path != self.correct_path {
                 return self.correct_path.as_str();
-            } else if self.correct_path.is_empty() {
-                self.correct_path();
-                return self.correct_path.as_str();
             }
-            self.user_path
-        } else if self.correct_path.is_empty() {
-            self.correct_path();
-            if self.correct_path.is_empty() {
+            if self.os != "windows" {
                 return self.user_path;
             }
-            self.correct_path.as_str()
-        } else {
-            // self.user_path
-            self.correct_path.as_str()
+            self.correct_path();
+            return self.correct_path.as_str();
         }
+        if self.correct_path.is_empty() {
+            self.correct_path();
+            if !self.correct_path.is_empty() {
+                return self.correct_path.as_str();
+            }
+        }
+        if let true = Path::new(self.correct_path.as_str()).exists() {
+            return self.correct_path.as_str();
+        }
+        return self.user_path;
     }
 
-    /// Get the file directly
-    /// You can use the function to retrieve data in bytes format or use it for any other option
+    /// If the file exists, it returns the [`File`](https://doc.rust-lang.org/std/fs/struct.File.html) with the specified permissions:
+    /// - read only
+    /// - auto_write only
+    /// - read and write
+    ///
+    /// ( this method does not set permissions on files on your system, it returns an already opened file (RW)
+    /// with specific permissions for the code)
     /// # Example
     /// ```
-    /// use qfile::QFilePack;
-    /// use std::fs::File;
-    /// # fn main(){
-    /// // the real file path: `./new_FILE.txt`
-    /// let mut qpack = QFilePack::add_path("./new_file.txt").file().unwrap();
-    /// assert_eq!(file.metadata().unwrap().is_file(), true);
+    /// use qfile::*;
+    /// use std::io::BufReader;
+    /// use std::io::Read;
+    /// # fn main() {
+    ///     // The file already exists
+    ///     // The real file path: "./My_First_Folder/New_File.txt"
+    ///     // File content: Hello World
+    ///     let file = QFilePath::add_path("my_first_Folder/new_file.txt").get_file(Permissions::RW).unwrap();
+    ///     let mut buffer = Vec::new();
+    ///     // Read file into vector.
+    ///     BufReader::new(file).read_to_end(&mut buffer).unwrap();
+    ///     // Show result
+    ///     assert_eq!(
+    ///         buffer,
+    ///         vec![72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100]
+    ///     )
     /// # }
     /// ```
-    ///
-    pub fn file(&mut self) -> Result<File, io::Error> {
+    pub fn get_file(&mut self, permission: Permissions) -> Result<File, io::Error> {
         let rs = self.cache_path();
-        match get_file(rs) {
-            Ok(_) => Ok(OpenOptions::new().read(true).write(true).open(rs).unwrap()),
+        match return_file(rs) {
+            Ok(_) => match permission {
+                Permissions::R => Ok(OpenOptions::new().read(true).write(false).open(rs).unwrap()),
+                Permissions::W => Ok(OpenOptions::new().read(false).write(true).open(rs).unwrap()),
+                Permissions::RW => Ok(OpenOptions::new().read(true).write(true).open(rs).unwrap()),
+            },
             Err(err) => return Err(err),
         }
     }
 }
-impl<'a> Drop for QFilePack<'a> {
+impl<'a> Drop for QFilePath<'a> {
     fn drop(&mut self) {}
 }
-fn get_file(path: &str) -> Result<File, io::Error> {
+fn return_file(path: &str) -> Result<File, io::Error> {
     match File::open(path) {
         Ok(file) => Ok(file),
-        Err(err) => match err.kind() {
-            ErrorKind::NotFound => Err(err),
-            ErrorKind::PermissionDenied => Err(err),
-            ErrorKind::InvalidData => Err(err),
-            _ => panic!(":: other errors ::"),
-        },
+        Err(err) => Err(err),
     }
 }
 fn directory_contents(path: &str) -> Vec<String> {

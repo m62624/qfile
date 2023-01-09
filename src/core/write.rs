@@ -1,42 +1,54 @@
-use crate::core::{get_file, Flag, QFilePack};
+use crate::core::{return_file, Flag, QFilePath};
 use crate::dpds_path::{
     io::{self, Write},
     DirBuilder, ErrorKind, File, OpenOptions,
 };
 
-impl<'a> QFilePack<'a> {
-    /// Method for writing data to a file
+impl<'a> QFilePath<'a> {
+    /// Auto detect, create or open a file and write data to it
     /// # Example
     /// ```
-    /// # use qfile::QFilePack;
+    /// # use qfile::QFilePath;
     /// # fn main() {
     /// // the real file path: `./FILE.txt`
-    /// let mut file = QFilePack::add_path("./file.txt");
-    /// file.write("ok").unwrap();
+    /// let mut file = QFilePath::add_path("./file.txt");
+    /// file.auto_write("ok").unwrap();
     /// assert_eq(file.read().unwrap(),"ok");
     /// # }
     /// ```
-    ///  - If the path exists, we work with the file (case insensitive)
-    ///  > **The path we specified**: `./FLDR/FlDr/file.TXT`\
-    ///  **real path** : `./fldr/fldr/file.txt`\
-    ///  **Result** : `"./fldr/fldr/file.txt"`
+    /// - If the path exists, we work with the file (case insensitive)
+    ///
+    /// | | |
+    /// |---|---|
+    /// | **The path we specified**: | `folder1/FolDER2/file.TXT` |
+    /// | **Real path** : | `./Folder1/Folder2/file.txt` |
+    /// | **Result** : | `./Folder1/Folder2/file.txt` |
     /// - If the file/path is not found, creates a new path with the file (*if initial path exists*)
-    /// > **The path we specified**: `./fldr/fldr_new/file.txt`\
-    ///  **real path** : `./fldr`\
-    ///  **Result** : `./fldr/fldr_new/file.txt`
+    ///
+    /// | | |
+    /// |---|---|
+    /// | **The path we specified**: | `./folder/folder_new/file.txt` |
+    /// | **Real path** : | `./folder` |
+    /// | **Result** : | `./folder/folder_new/file.txt` |
     /// - but if the initial path is different case of letters and a new file/folder is specified in the path, then a new path is created with the file
-    /// > **The path we specified**: `./FLDR/fldr_new/file.TXT`\
-    ///  **real path** : `./fldr`\
-    ///  **Result** :\
-    ///  `./fldr`\
-    ///  `./FLDR/fldr_new/file.TXT`
-    pub fn write(&mut self, text: &str) -> Result<(), io::Error> {
+    ///
+    /// | | |
+    /// |---|---|
+    /// | **The path we specified**: | `./FOLDER/Folder_new/file.txt` |
+    /// |**Real path** : | `./folder` |
+    /// | **Result** :               | `./FOLDER/Folder_new/file.txt` - (**new created path**) |
+    /// |                            | `./folder` - (**real path**)
+    ///
+    pub fn auto_write(&mut self, text: &str) -> Result<(), io::Error> {
         if self.update_path {
             match self.os {
                 "linux" | "macos" => {
                     if self.correct_path.is_empty() {
                         self.correct_path = format!("{}{}", self.user_path, self.file_name)
                     } else {
+                        if self.correct_path == "./" {
+                            self.correct_path = ".".to_string();
+                        }
                         self.correct_path =
                             format!("{}/{}", self.correct_path.clone(), self.file_name)
                     }
@@ -45,6 +57,9 @@ impl<'a> QFilePack<'a> {
                     if self.correct_path.is_empty() {
                         self.correct_path = format!("{}{}", self.user_path, self.file_name)
                     } else {
+                        if self.correct_path == ".\\" {
+                            self.correct_path = ".".to_string();
+                        }
                         self.correct_path =
                             format!("{}\\{}", self.correct_path.clone(), self.file_name)
                     }
@@ -53,15 +68,15 @@ impl<'a> QFilePack<'a> {
             }
         }
         match self.flag {
-            Flag::Auto => match get_file(self.cache_path()) {
+            Flag::Auto => match return_file(self.cache_path()) {
                 Ok(_) => {
                     self.flag = Flag::Old;
-                    return self.write(text);
+                    return self.auto_write(text);
                 }
                 Err(err) => match err.kind() {
                     _ => {
                         self.dir_create(err.kind()).unwrap();
-                        return self.write(text);
+                        return self.auto_write(text);
                     }
                 },
             },
@@ -137,23 +152,23 @@ impl<'a> QFilePack<'a> {
             _ => panic!("other errors"),
         }
     }
-    /// The same as `write()`, only the method for overwriting the data in the file
+    /// The same as [`auto_write()`](<struct.QFilePath.html#method.auto_write>), only the method for overwriting the data in the file
     /// # Example
     /// ```
-    /// # use qfile::QFilePack;
+    /// # use qfile::QFilePath;
     /// # fn main() {
-    /// // the real file path: `./FILE.txt`
+    /// // the real file path: `file_Temp.txt`
     /// // file content: `1 2 3`
-    /// let mut file = QFilePack::add_path("./file.txt");
+    /// let mut file = QFilePath::add_path("File_temp.txt");
     /// file.write_only_new("4 5 6").unwrap();
     /// assert_eq(file.read().unwrap(),"4 5 6");
     /// # }
     /// ```
     pub fn write_only_new(&mut self, text: &str) -> Result<(), io::Error> {
         self.flag = Flag::New;
-        if let Err(err) = self.write(text) {
+        if let Err(err) = self.auto_write(text) {
             self.dir_create(err.kind()).unwrap();
-            self.write(text).unwrap();
+            self.auto_write(text).unwrap();
         }
         Ok(())
     }
