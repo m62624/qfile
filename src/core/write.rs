@@ -1,7 +1,7 @@
 use crate::core::{return_file, Flag, QFilePath};
 use crate::dpds_path::{
     io::{self, Write},
-    DirBuilder, ErrorKind, File, OpenOptions,
+    DirBuilder, ErrorKind, File, OpenOptions, Path, PathBuf,
 };
 
 impl<'a> QFilePath<'a> {
@@ -43,32 +43,40 @@ impl<'a> QFilePath<'a> {
         if self.update_path {
             match self.os {
                 "linux" | "macos" => {
-                    if self.correct_path.is_empty() {
-                        self.correct_path = format!("{}{}", self.user_path, self.file_name)
+                    if self.correct_path.to_str().unwrap().is_empty() {
+                        self.correct_path = PathBuf::from(format!(
+                            "{}{}",
+                            self.user_path.to_str().unwrap(),
+                            self.file_name.to_str().unwrap()
+                        ))
                     } else {
-                        if self.correct_path == "./" {
-                            self.correct_path = ".".to_string();
-                        }
-                        self.correct_path =
-                            format!("{}/{}", self.correct_path.clone(), self.file_name)
+                        self.correct_path = PathBuf::from(format!(
+                            "{}/{}",
+                            self.correct_path.to_str().unwrap(),
+                            self.file_name.to_str().unwrap()
+                        ))
                     }
                 }
                 "windows" => {
-                    if self.correct_path.is_empty() {
-                        self.correct_path = format!("{}{}", self.user_path, self.file_name)
+                    if self.correct_path.to_str().unwrap().is_empty() {
+                        self.correct_path = PathBuf::from(format!(
+                            "{}{}",
+                            self.user_path.to_str().unwrap(),
+                            self.file_name.to_str().unwrap()
+                        ))
                     } else {
-                        if self.correct_path == ".\\" {
-                            self.correct_path = ".".to_string();
-                        }
-                        self.correct_path =
-                            format!("{}\\{}", self.correct_path.clone(), self.file_name)
+                        self.correct_path = PathBuf::from(format!(
+                            "{}\\{}",
+                            self.correct_path.to_str().unwrap(),
+                            self.file_name.to_str().unwrap()
+                        ))
                     }
                 }
                 _ => panic!(),
             }
         }
         match self.flag {
-            Flag::Auto => match return_file(self.cache_path()) {
+            Flag::Auto => match return_file(self.get_path_buf().to_str().unwrap()) {
                 Ok(_) => {
                     self.flag = Flag::Old;
                     return self.auto_write(text);
@@ -81,14 +89,14 @@ impl<'a> QFilePath<'a> {
                 },
             },
 
-            Flag::New => match File::create(self.cache_path()) {
+            Flag::New => match File::create(self.get_path_buf()) {
                 Ok(_) => {
                     self.update_path = false;
                     self.flag = Flag::Auto;
                     OpenOptions::new()
                         .write(true)
                         .create(true)
-                        .open(self.cache_path())
+                        .open(self.get_path_buf())
                         .unwrap()
                         .write_all(text.as_bytes())
                 }
@@ -98,7 +106,7 @@ impl<'a> QFilePath<'a> {
                 self.flag = Flag::Auto;
                 OpenOptions::new()
                     .append(true)
-                    .open(self.cache_path())
+                    .open(self.get_path_buf())
                     .unwrap()
                     .write_all(text.as_bytes())
             }
@@ -107,42 +115,20 @@ impl<'a> QFilePath<'a> {
     fn dir_create(&mut self, err: ErrorKind) -> Result<(), std::io::Error> {
         match err {
             ErrorKind::NotFound => {
-                self.cache_path().to_string();
-                let fullpath = self.user_path;
-                let filename = match self.os {
-                    "linux" | "macos" => match fullpath.rsplit_once("/") {
-                        Some(filename) => filename.1,
-                        None => self.user_path,
-                    },
-                    "windows" => match fullpath.rsplit_once("\\") {
-                        Some(filename) => filename.1,
-                        None => self.user_path,
-                    },
-                    _ => panic!(),
-                };
-                let path_without_file = {
-                    let mut temp = fullpath.rsplit_once(filename).unwrap().0;
-                    if temp.is_empty() {
-                        match self.os {
-                            "linux" | "macos" => temp = "./",
-                            "windows" => temp = ".\\",
-                            _ => panic!(),
-                        }
-                    }
-                    temp.split_at(temp.len() - 1).0;
-                    // }
-                    temp
-                };
+                // // self.get_path_buf().to_string();
+                let fullpath = self.user_path.clone();
+                let filename = fullpath.file_name().unwrap().to_str().unwrap();
+                let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;
                 {
-                    self.user_path = path_without_file;
-                    self.correct_path();
+                    self.user_path = PathBuf::from(path_without_file);
+                    // self.correct_path();
                     self.update_path = true;
-                    self.file_name = filename;
+                    self.file_name = PathBuf::from(filename);
                     self.flag = Flag::New;
                 }
                 DirBuilder::new()
                     .recursive(true)
-                    .create(self.cache_path())
+                    .create(self.get_path_buf())
                     .unwrap();
                 Ok(())
             }

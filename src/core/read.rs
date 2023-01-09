@@ -17,7 +17,7 @@ impl<'a> QFilePath<'a> {
     /// ```
     pub fn read(&mut self) -> Result<String, io::Error> {
         let mut text = String::new();
-        match return_file(self.cache_path()) {
+        match return_file(self.get_path_buf().to_str().unwrap()) {
             Ok(mut access) => match access.read_to_string(&mut text) {
                 Ok(_) => return Ok(text),
                 Err(err) => return Err(err),

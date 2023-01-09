@@ -91,7 +91,7 @@ fn unix_test_path_4() {
     file.write_only_new("").unwrap();
     let find_path = format!("{}{}", main_folder.to_lowercase(), "/A/B/c/file.txt");
     let mut find = QFilePath::add_path(&find_path);
-    assert_eq!(find.cache_path(), format!("./{}", path));
+    assert_eq!(find.get_path_str(), format!("./{}", path));
     delete_item(&main_folder);
 }
 #[cfg(target_family = "unix")]

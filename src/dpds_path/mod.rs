@@ -4,5 +4,5 @@ pub use std::{
     env,
     fs::{self, DirBuilder, File, OpenOptions},
     io::{self, ErrorKind, Read},
-    path::Path,
+    path::{Path, PathBuf},
 };

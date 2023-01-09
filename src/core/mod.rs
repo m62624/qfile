@@ -1,6 +1,6 @@
 mod read;
 mod write;
-use crate::dpds_path::{fs, io, lazy_static, File, OpenOptions, Path, Regex, __Deref, env};
+use crate::dpds_path::{env, fs, io, lazy_static, File, OpenOptions, Path, PathBuf, Regex};
 #[derive(Debug)]
 pub enum Flag {
     New,
@@ -8,6 +8,7 @@ pub enum Flag {
     Old,
 }
 /// Enumeration for selecting read and write permissions
+#[derive(Debug)]
 pub enum Permissions {
     /// Read mode
     R,
@@ -22,12 +23,13 @@ pub enum Permissions {
 /// - true file path (**used as a [cache](<struct.QFilePath.html#method.add_path>) for reuse**)
 /// - OS (information about what format to look for the file `/` and `\\`)\
 /// (**All methods automatically find the path case insensitive**)
+#[derive(Debug)]
 pub struct QFilePath<'a> {
     request_items: Vec<String>,
     //================
-    user_path: &'a str,
-    file_name: &'a str,
-    correct_path: String,
+    user_path: PathBuf,
+    file_name: PathBuf,
+    correct_path: PathBuf,
     //================
     os: &'a str,
     flag: Flag,
@@ -55,92 +57,101 @@ impl<'a> QFilePath<'a> {
     ///
     /// # }
     /// ```
-    pub fn add_path(path: &'a str) -> Self {
-        QFilePath {
-            request_items: Default::default(),
-            user_path: path,
-            file_name: Default::default(),
-            correct_path: Default::default(),
+    pub fn add_path<T: ToString>(path_file: T) -> Self {
+        Self {
             os: env::consts::OS,
+            user_path: PathBuf::from(path_file.to_string()),
             flag: Flag::Auto,
             update_path: false,
+            request_items: Default::default(),
+            correct_path: Default::default(),
+            file_name: Default::default(),
         }
     }
-    fn way_step_by_step(&mut self) {
-        let mut items = |rgx: &Regex, path: &str| {
-            let (mut folders, mut i) = (Vec::new(), 1);
-            let mut temp = String::from(path);
-            match self.os {
-                "linux" | "macos" => {
-                    lazy_static! {
-                        static ref SL: Regex = Regex::new(r"^/|^../|^./").unwrap();
-                    }
-                    if !SL.is_match(&temp) {
-                        temp = format!("./{}", temp);
-                    }
-                }
-                "windows" => {
-                    lazy_static! {
-                        static ref SL: Regex = Regex::new(r"^.:\\+|^..\\|^.\\").unwrap();
-                    }
-                    if !SL.is_match(&temp) {
-                        temp = format!(".\\{}", temp);
-                    }
-                }
-                _ => {
-                    panic!(":: unsupported system ::")
-                }
-            }
-            let mut captures = rgx.captures_iter(&temp);
-            folders.push(captures.next().unwrap()[0].to_string());
-            for element in captures {
-                folders.push(format!("{}{}", folders[i - 1], &element[0]));
-                i += 1;
-            }
-            self.request_items = folders;
-        };
-
+    fn first_slah(&mut self) {
+        let temp = self.user_path.display().to_string();
         match self.os {
-            "linux" | "macos" => {
-                lazy_static! {
-                    static ref RE: Regex = Regex::new(r"/[^/]+|../|./|[^/]+").unwrap();
-                }
-                return items(RE.deref(), self.user_path);
-            }
             "windows" => {
                 lazy_static! {
-                    static ref RE: Regex = Regex::new(r" ^.:\\+|^..\\|^.\\|.+?[^\\]+").unwrap();
+                    static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
                 }
-                return items(RE.deref(), self.user_path);
+                if !SL.is_match(&temp) {
+                    self.user_path = PathBuf::from(format!(".\\{}", self.user_path.display()));
+                }
             }
-            _ => {
-                panic!(":: unsupported system ::")
+            "linux" | "macos" => {
+                lazy_static! {
+                    static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
+                }
+                if !SL.is_match(&temp) {
+                    self.user_path = PathBuf::from(format!("./{}", self.user_path.display()));
+                }
             }
-        };
+            _ => panic!(),
+        }
+    }
+
+    fn way_step_by_step(&mut self) {
+        self.first_slah();
+        self.request_items = self
+            .user_path
+            .ancestors()
+            .map(|element| element.display().to_string())
+            .collect();
+        if self.request_items.last().unwrap().eq("") {
+            self.request_items.pop();
+
+            if let Some(value) = self.request_items.last_mut() {
+                match self.os {
+                    "linux" | "macos" => {
+                        if value.eq(&mut ".") {
+                            *value = String::from("./")
+                        }
+                        if value.eq(&mut "..") {
+                            *value = String::from("../")
+                        }
+                    }
+                    "windows" => {
+                        if value.eq(&mut ".") {
+                            *value = String::from(".\\")
+                        }
+                        if value.eq(&mut "..") {
+                            *value = String::from("..\\")
+                        }
+                    }
+                    _ => panic!("unsupported system"),
+                }
+            }
+        }
+        self.request_items.reverse();
     }
 
     fn correct_path(&mut self) {
-        self.way_step_by_step();
-        let request_items = &mut self.request_items;
-        for user_i in 0..request_items.len() {
-            let mut possible_directories = directory_contents(request_items[user_i].as_str());
+        if self.request_items.is_empty() {
+            self.way_step_by_step();
+        }
+        for user_i in 0..self.request_items.len() {
+            let mut possible_directories = directory_contents(self.request_items[user_i].as_str());
             for pos_j in 0..possible_directories.len() {
-                if request_items
+                if self
+                    .request_items
                     .get(user_i + 1)
-                    .unwrap_or(&request_items.get(user_i).unwrap().to_lowercase())
+                    .unwrap_or(&self.request_items.get(user_i).unwrap().to_lowercase())
                     .to_lowercase()
                     == possible_directories[pos_j].to_lowercase()
                 {
-                    request_items[user_i + 1] = possible_directories.remove(pos_j);
+                    self.request_items[user_i + 1] = possible_directories.remove(pos_j);
                     break;
                 }
             }
         }
-        let result = request_items.last();
+        let result = self.request_items.last();
         if Path::new(result.unwrap()).exists() {
-            self.correct_path = result.unwrap().to_string();
-            self.request_items.clear();
-            self.request_items.shrink_to_fit();
+            self.correct_path = PathBuf::from(result.unwrap());
+
+            dbg!(&self.correct_path);
+            // self.request_items.clear();
+            // self.request_items.shrink_to_fit();
         }
     }
     /// returns the real path if the real path is found
@@ -161,27 +172,81 @@ impl<'a> QFilePath<'a> {
     ///
     /// # }
     /// ```
-    pub fn cache_path(&mut self) -> &str {
-        if let true = Path::new(self.user_path).exists() {
-            if !self.correct_path.is_empty() && self.user_path != self.correct_path {
-                return self.correct_path.as_str();
+    pub fn get_path_buf(&mut self) -> &PathBuf {
+        match self.os {
+            "linux" | "macos" => {
+                if self.user_path.exists() {
+                    if !self.correct_path.to_str().unwrap().is_empty() {
+                        return &self.correct_path;
+                    }
+                    return &self.user_path;
+                }
+                if !self.update_path
+                    && self.user_path.to_str().unwrap() != self.correct_path.to_str().unwrap()
+                {
+                    self.correct_path();
+                }
+                if self.correct_path.to_str().unwrap().is_empty() {
+                    return &self.user_path;
+                }
+                return &self.correct_path;
+                // if self.user_path.exists() {
+                //     if !self.correct_path.to_str().unwrap().is_empty()
+                //         && self.user_path != self.correct_path
+                //     {
+                //         return &self.correct_path;
+                //     }
+                //     self.correct_path();
+                //     return &self.correct_path;
+                // }
+                // if self.correct_path.to_str().unwrap().is_empty() {
+                //     self.correct_path();
+                //     if !self.correct_path.to_str().unwrap().is_empty() {
+                //         return &self.correct_path;
+                //     }
+                // }
+                // if self.correct_path.exists() {
+                //     return &self.correct_path;
+                // }
+                // return &self.user_path;
             }
-            if self.os != "windows" {
-                return self.user_path;
+            "windows" => {
+                if !self.correct_path.exists() {
+                    self.correct_path();
+                    if !self.correct_path.to_str().unwrap().is_empty() && self.update_path {
+                        let temp = self.request_items.pop();
+                        let mut last = String::new();
+                        if self.request_items.last().unwrap() != ".\\"
+                            && !self.request_items.last().unwrap().contains(":\\")
+                            && !self.request_items.last().unwrap().contains("..\\")
+                        {
+                            last = format!(
+                                "{}\\{}",
+                                self.request_items.pop().unwrap(),
+                                self.file_name.to_str().unwrap()
+                            );
+                        } else {
+                            last = temp.unwrap();
+                        }
+                        // dbg!(last);
+                        self.correct_path = PathBuf::from(last);
+                        return &self.correct_path;
+                    }
+                }
+                if !self.correct_path.to_str().unwrap().is_empty() {
+                    if self.update_path {
+                        self.correct_path();
+                    }
+                    return &self.correct_path;
+                }
+                return &self.user_path;
             }
-            self.correct_path();
-            return self.correct_path.as_str();
+            _ => panic!("unsupported system"),
         }
-        if self.correct_path.is_empty() {
-            self.correct_path();
-            if !self.correct_path.is_empty() {
-                return self.correct_path.as_str();
-            }
-        }
-        if let true = Path::new(self.correct_path.as_str()).exists() {
-            return self.correct_path.as_str();
-        }
-        return self.user_path;
+    }
+
+    pub fn get_path_str(&mut self) -> &str {
+        self.get_path_buf().to_str().unwrap()
     }
 
     /// If the file exists, it returns the [`File`](https://doc.rust-lang.org/std/fs/struct.File.html) with the specified permissions:
@@ -212,8 +277,8 @@ impl<'a> QFilePath<'a> {
     /// # }
     /// ```
     pub fn get_file(&mut self, permission: Permissions) -> Result<File, io::Error> {
-        let rs = self.cache_path();
-        match return_file(rs) {
+        let rs = self.get_path_buf();
+        match return_file(rs.to_str().unwrap()) {
             Ok(_) => match permission {
                 Permissions::R => Ok(OpenOptions::new().read(true).write(false).open(rs).unwrap()),
                 Permissions::W => Ok(OpenOptions::new().read(false).write(true).open(rs).unwrap()),
