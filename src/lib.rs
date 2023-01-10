@@ -16,11 +16,12 @@
 //!
 //! # Methods
 //! - [`add_path`](<struct.QFilePath.html#method.add_path>) - Constructor for storing file data
-//! - [`get_file`](<struct.QFilePath.html#method.get_file>) - Get the file directly
+//! - [`get_file`](<struct.QFilePath.html#method.get_file>) - Get the file directly with the specified permissions
 //! - [`read`](<struct.QFilePath.html#method.read>) - Get data from a file (`String`)
 //! - [`auto_write`](<struct.QFilePath.html#method.auto_write>) -  Auto detect, create or open a file and write data to it (`&str`)
 //! - [`write_only_new`](<struct.QFilePath.html#method.write_only_new>) - Overwrite data in the file (`&str`)
-//! - [`cache_path`](struct.QFilePath.html#method.cache_path) - Get the true path (`&str`)
+//! - [`get_path_buf`](struct.QFilePath.html#method.get_path_buf) - Get the true path (`PathBuf`)
+//! - [`get_path_str`](struct.QFilePath.html#method.get_path_str) - Get the true path (`&str`)
 mod core;
 mod dpds_path;
 pub use crate::core::Permissions;

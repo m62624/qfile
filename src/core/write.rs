@@ -1,7 +1,7 @@
 use crate::core::{return_file, Flag, QFilePath};
 use crate::dpds_path::{
     io::{self, Write},
-    DirBuilder, ErrorKind, File, OpenOptions, Path, PathBuf,
+    DirBuilder, ErrorKind, File, OpenOptions, PathBuf,
 };
 
 impl<'a> QFilePath<'a> {
@@ -16,7 +16,10 @@ impl<'a> QFilePath<'a> {
     /// assert_eq(file.read().unwrap(),"ok");
     /// # }
     /// ```
+    /// ## Linux & Windows
+    ///
     /// - If the path exists, we work with the file (case insensitive)
+    ///
     ///
     /// | | |
     /// |---|---|
@@ -30,14 +33,29 @@ impl<'a> QFilePath<'a> {
     /// | **The path we specified**: | `./folder/folder_new/file.txt` |
     /// | **Real path** : | `./folder` |
     /// | **Result** : | `./folder/folder_new/file.txt` |
-    /// - but if the initial path is different case of letters and a new file/folder is specified in the path, then a new path is created with the file
+    ///
+    /// - But if the initial path is different case of letters and a new file/folder is specified in the path, then a new path is created with the file
+    ///
+    /// ## Linux :
     ///
     /// | | |
     /// |---|---|
     /// | **The path we specified**: | `./FOLDER/Folder_new/file.txt` |
     /// |**Real path** : | `./folder` |
     /// | **Result** :               | `./FOLDER/Folder_new/file.txt` - (**new created path**) |
-    /// |                            | `./folder` - (**real path**)
+    /// |                            | `./folder` - (**original path**)
+    ///
+    /// ## Windows :
+    ///
+    /// | | |
+    /// |---|---|
+    /// | **The path we specified**: | `./FOLDER/Folder_new/file.txt` |
+    /// |**Real path** : | `./folder` |
+    /// | **Result** :               | `./folder/Folder_new/file.txt` - (**real path**) |
+    ///
+    ///  ### Different behavior
+    ///  > * The Windows file system treats file and directory names as **case insensitive**. `file.txt` and `FILE.txt` will be treated as equivalent files (Although the path is case insensitive in windows, you can return a case-sensitive path with : [`get_path_str()`](<struct.QFilePath.html#method.get_path_str>) or [`get_path_buf()`](<struct.QFilePath.html#method.get_path_buf>)).
+    ///  > * The Linux file system treats file and directory names as **case-sensitive**. `file.txt` and `FILE.txt` will be treated as different files.
     ///
     pub fn auto_write(&mut self, text: &str) -> Result<(), io::Error> {
         if self.update_path {
@@ -115,7 +133,6 @@ impl<'a> QFilePath<'a> {
     fn dir_create(&mut self, err: ErrorKind) -> Result<(), std::io::Error> {
         match err {
             ErrorKind::NotFound => {
-                // // self.get_path_buf().to_string();
                 let fullpath = self.user_path.clone();
                 let filename = fullpath.file_name().unwrap().to_str().unwrap();
                 let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;

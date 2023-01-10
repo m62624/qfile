@@ -39,13 +39,12 @@ pub struct QFilePath<'a> {
 //======================================================
 impl<'a> QFilePath<'a> {
     /// Constructor for adding a file path.\
-    /// After using the [`auto_write()`](<struct.QFilePath.html#method.auto_write>) or [`read()`](<struct.QFilePath.html#method.read>) methods (also the [`cache_path()`](struct.QFilePath.html#method.cache_path) if the path exists), and if `Ok`,\
+    /// After using the [`auto_write()`](<struct.QFilePath.html#method.auto_write>) or [`read()`](<struct.QFilePath.html#method.read>) methods (also the [`get_path_buf|get_path_str`](<struct.QFilePath.html#method.get_path_buf>) if the path exists), and if `Ok`,\
     /// we get the correct path, which will be used as a cache when we reuse
     /// # Example
     /// ```
     /// # use qfile::QFilePath;
     /// # fn main() {
-    ///
     /// // the real file path: `./FOLder/Folder/NEW.txt`
     /// let mut file = QFilePath::add_path("./folder/Folder/new.txt");
     /// // The real path is searched after the first method call
@@ -54,7 +53,6 @@ impl<'a> QFilePath<'a> {
     /// // we get the saved path right away
     /// file.auto_write("Newdata").unwrap();
     /// assert_eq!(file.read().unwrap(), "OlddataNewdata");
-    ///
     /// # }
     /// ```
     pub fn add_path<T: ToString>(path_file: T) -> Self {
@@ -148,28 +146,25 @@ impl<'a> QFilePath<'a> {
         let result = self.request_items.last();
         if Path::new(result.unwrap()).exists() {
             self.correct_path = PathBuf::from(result.unwrap());
-
-            dbg!(&self.correct_path);
-            // self.request_items.clear();
-            // self.request_items.shrink_to_fit();
         }
     }
-    /// returns the real path if the real path is found
-    /// but if not, it returns the path you originally entered.
+    /// returns the real path ([`&PathBuf`](https://doc.rust-lang.org/stable/std/path/struct.PathBuf.html)) if the real path is found
+    /// but if not, it returns the path you originally entered.\
     /// To create files/folders in the new path use:
     /// - [`auto_write()`](<struct.QFilePath.html#method.auto_write>)
     /// - [`write_only_new()`](<struct.QFilePath.html#method.write_only_new>)
-
     /// # Example
     /// ```
-    /// # use qfile::QFilePath;
+    /// use qfile::*;
+    /// use std::path::PathBuf;
     /// # fn main() {
-    ///
-    /// // The file already exists
-    /// // The real file path: "./My_First_Folder/New_File.txt"
-    /// let mut file = QFilePath::add_path("my_first_Folder/new_file.txt");
-    /// assert_eq!(file.cache_path(),"./My_First_Folder/New_File.txt");
-    ///
+    ///     // The file already exists
+    ///     // The real file path: "./My_First_Folder/New_File.txt"
+    ///     let mut file = QFilePath::add_path("my_first_Folder/new_file.txt");
+    ///     assert_eq!(
+    ///         file.get_path_buf(),
+    ///         &PathBuf::from("./My_First_Folder/New_File.txt")
+    ///     );
     /// # }
     /// ```
     pub fn get_path_buf(&mut self) -> &PathBuf {
@@ -190,25 +185,6 @@ impl<'a> QFilePath<'a> {
                     return &self.user_path;
                 }
                 return &self.correct_path;
-                // if self.user_path.exists() {
-                //     if !self.correct_path.to_str().unwrap().is_empty()
-                //         && self.user_path != self.correct_path
-                //     {
-                //         return &self.correct_path;
-                //     }
-                //     self.correct_path();
-                //     return &self.correct_path;
-                // }
-                // if self.correct_path.to_str().unwrap().is_empty() {
-                //     self.correct_path();
-                //     if !self.correct_path.to_str().unwrap().is_empty() {
-                //         return &self.correct_path;
-                //     }
-                // }
-                // if self.correct_path.exists() {
-                //     return &self.correct_path;
-                // }
-                // return &self.user_path;
             }
             "windows" => {
                 if !self.correct_path.exists() {
@@ -228,7 +204,6 @@ impl<'a> QFilePath<'a> {
                         } else {
                             last = temp.unwrap();
                         }
-                        // dbg!(last);
                         self.correct_path = PathBuf::from(last);
                         return &self.correct_path;
                     }
@@ -245,13 +220,30 @@ impl<'a> QFilePath<'a> {
         }
     }
 
+    /// returns the real path (`&str`) if the real path is found
+    /// but if not, it returns the path you originally entered.\
+    /// To create files/folders in the new path use:
+    /// - [`auto_write()`](<struct.QFilePath.html#method.auto_write>)
+    /// - [`write_only_new()`](<struct.QFilePath.html#method.write_only_new>)
+
+    /// # Example
+    /// ```
+    /// use qfile::QFilePath;
+    /// use std::path::PathBuf;
+    /// # fn main() {
+    ///     // The file already exists
+    ///     // The real file path: "./My_First_Folder/New_File.txt"
+    ///     let mut file = QFilePath::add_path("my_first_Folder/new_file.txt");
+    ///     assert_eq!(file.get_path_str(), "./My_First_Folder/New_File.txt");
+    /// # }
+    /// ```
     pub fn get_path_str(&mut self) -> &str {
         self.get_path_buf().to_str().unwrap()
     }
 
     /// If the file exists, it returns the [`File`](https://doc.rust-lang.org/std/fs/struct.File.html) with the specified permissions:
     /// - read only
-    /// - auto_write only
+    /// - write only
     /// - read and write
     ///
     /// ( this method does not set permissions on files on your system, it returns an already opened file (RW)
