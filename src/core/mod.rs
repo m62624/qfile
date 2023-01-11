@@ -1,6 +1,8 @@
+mod custom_error;
 mod read;
 mod write;
 use crate::dpds_path::{env, fs, io, lazy_static, File, OpenOptions, Path, PathBuf, Regex};
+pub use custom_error::OsPathError;
 #[derive(Debug)]
 pub enum Flag {
     New,
@@ -39,14 +41,14 @@ pub struct QFilePath<'a> {
 //======================================================
 impl<'a> QFilePath<'a> {
     /// Constructor for adding a file path.\
-    /// After using the [`auto_write()`](<struct.QFilePath.html#method.auto_write>) or [`read()`](<struct.QFilePath.html#method.read>) methods (also the [`get_path_buf|get_path_str`](<struct.QFilePath.html#method.get_path_buf>) if the path exists), and if `Ok`,\
+    /// After using the [`auto_write()`](<struct.QFilePath.html#method.auto_write>) or [`read()`](<struct.QFilePath.html#method.read>) methods (also the [`get_path_buf() | get_path_str()`](<struct.QFilePath.html#method.get_path_buf>) if the path exists), and if `Ok`,\
     /// we get the correct path, which will be used as a cache when we reuse
     /// # Example
     /// ```
     /// # use qfile::QFilePath;
     /// # fn main() {
     /// // the real file path: `./FOLder/Folder/NEW.txt`
-    /// let mut file = QFilePath::add_path("./folder/Folder/new.txt");
+    /// let mut file = QFilePath::add_path("./folder/Folder/new.txt").unwrap();
     /// // The real path is searched after the first method call
     /// // (it's stored in the structure).
     /// file.auto_write("Olddata").unwrap();
@@ -55,16 +57,48 @@ impl<'a> QFilePath<'a> {
     /// assert_eq!(file.read().unwrap(), "OlddataNewdata");
     /// # }
     /// ```
-    pub fn add_path<T: ToString>(path_file: T) -> Self {
-        Self {
+    ///
+    /// ## Linux :
+    ///
+    /// |                            |                                                         |
+    /// | -------------------------- | ------------------------------------------------------- |
+    /// | **The path we specified**: | `./FOLDER/Folder_new/file.txt`                          |
+    /// | **Real path** :            | `./folder`                                              |
+    /// | **Result** :               | `./FOLDER/Folder_new/file.txt` - (**new created path**) |
+    /// |                            | `./folder` - (**original path**)                        |
+    ///
+    /// ## Windows :
+    ///
+    /// |                            |                                                  |
+    /// | -------------------------- | ------------------------------------------------ |
+    /// | **The path we specified**: | `.\FOLDER\Folder_new\file.txt`                   |
+    /// | **Real path** :            | `.\folder`                                       |
+    /// | **Result** :               | `.\folder\Folder_new\file.txt` - (**real path**) |
+    ///
+    pub fn add_path<T: ToString>(path_file: T) -> Result<Self, OsPathError> {
+        let path_file = PathBuf::from(path_file.to_string());
+        match env::consts::OS {
+            "windows" => {
+                if path_file.to_str().unwrap().contains("/") {
+                    return Err(OsPathError::WindowsPathIncorrect);
+                }
+            }
+            "linux" | "macos" => {
+                if path_file.to_str().unwrap().contains("\\") {
+                    return Err(OsPathError::UnixPathIncorrect);
+                }
+            }
+            _ => return Err(OsPathError::SystemNotDefined),
+        }
+        Ok(Self {
             os: env::consts::OS,
-            user_path: PathBuf::from(path_file.to_string()),
+            user_path: path_file,
             flag: Flag::Auto,
             update_path: false,
             request_items: Default::default(),
             correct_path: Default::default(),
             file_name: Default::default(),
-        }
+        })
     }
     fn first_slah(&mut self) {
         let temp = self.user_path.display().to_string();
@@ -85,7 +119,7 @@ impl<'a> QFilePath<'a> {
                     self.user_path = PathBuf::from(format!("./{}", self.user_path.display()));
                 }
             }
-            _ => panic!(),
+            _ => panic!("Incorrect path"),
         }
     }
 
@@ -117,7 +151,7 @@ impl<'a> QFilePath<'a> {
                             *value = String::from("..\\")
                         }
                     }
-                    _ => panic!("unsupported system"),
+                    _ => panic!("Incorrect path"),
                 }
             }
         }
@@ -148,7 +182,7 @@ impl<'a> QFilePath<'a> {
             self.correct_path = PathBuf::from(result.unwrap());
         }
     }
-    /// returns the real path ([`&PathBuf`](https://doc.rust-lang.org/stable/std/path/struct.PathBuf.html)) if the real path is found
+    /// returns the real path ([`&PathBuf`](https://doc.rust-lang.org/stable/std/path/struct.PathBuf.html) if the real path is found
     /// but if not, it returns the path you originally entered.\
     /// To create files/folders in the new path use:
     /// - [`auto_write()`](<struct.QFilePath.html#method.auto_write>)
@@ -160,7 +194,7 @@ impl<'a> QFilePath<'a> {
     /// # fn main() {
     ///     // The file already exists
     ///     // The real file path: "./My_First_Folder/New_File.txt"
-    ///     let mut file = QFilePath::add_path("my_first_Folder/new_file.txt");
+    ///     let mut file = QFilePath::add_path("my_first_Folder/new_file.txt").unwrap();
     ///     assert_eq!(
     ///         file.get_path_buf(),
     ///         &PathBuf::from("./My_First_Folder/New_File.txt")
@@ -216,7 +250,7 @@ impl<'a> QFilePath<'a> {
                 }
                 return &self.user_path;
             }
-            _ => panic!("unsupported system"),
+            _ => panic!("Incorrect path"),
         }
     }
 
@@ -257,7 +291,10 @@ impl<'a> QFilePath<'a> {
     ///     // The file already exists
     ///     // The real file path: "./My_First_Folder/New_File.txt"
     ///     // File content: Hello World
-    ///     let file = QFilePath::add_path("my_first_Folder/new_file.txt").get_file(Permissions::RW).unwrap();
+    ///     let file = QFilePath::add_path("my_first_Folder/new_file.txt")
+    ///         .unwrap()
+    ///         .get_file(Permissions::RW)
+    ///         .unwrap();
     ///     let mut buffer = Vec::new();
     ///     // Read file into vector.
     ///     BufReader::new(file).read_to_end(&mut buffer).unwrap();

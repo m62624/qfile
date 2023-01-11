@@ -8,7 +8,7 @@ impl<'a> QFilePath<'a> {
     /// # use qfile::QFilePath;
     /// # fn main() {
     /// // the real file path: `./FOLDER/File.txt`
-    /// let mut file = QFilePath::add_path("./folder/file.txt");
+    /// let mut file = QFilePath::add_path("./folder/file.txt").unwrap();
     ///  //on re-reading, use the correct path from the cache
     /// let data = file.read().unwrap();
     /// assert_eq!(data, "ok");

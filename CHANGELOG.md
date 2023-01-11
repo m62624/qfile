@@ -1,4 +1,50 @@
 # Changelog
+## [2.1.0] -2023.01.11
+### Changed
+- `add_path()` returns `Result<Self, OsPathError>`
+### Added 
+- Custom errors:
+  - `UnixPathIncorrect`
+  - `WindowsPathIncorrect`
+
+If you catch these errors, you can get a message:
+
+---
+#### Windows
+```rust
+use qfile::*;
+fn main() {
+    let path = QFilePath::add_path("./folder/file.txt");
+    if let Err(err) = path {
+        println!("{err}");
+    }
+}
+```
+Output:
+> You are using the unix path format for Windows. Use `windows` format for the path:\
+> \> .\folder1\folder2\file.txt\
+> \> ..\folder2\file.txt\
+> \> .\file.txt
+
+---
+#### Linux
+```rust
+use qfile::*;
+fn main() {
+    let path = QFilePath::add_path(".\\folder\\file.txt");
+    if let Err(err) = path {
+        println!("{err}");
+    }
+}
+```
+Output:
+> You are using the windows path format for Unix. Use `unix` format for the path\
+> \> ./folder1/folder2/file.txt \
+> \> ../folder2/file.txt\
+> \> ./file.txt
+
+---
+
 ## [2.0.0] - 2023.01.11
 ### Added
 - `get_path_str` - returns [`PathBuf`](https://doc.rust-lang.org/stable/std/path/struct.PathBuf.html) in `&str` format
