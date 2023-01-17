@@ -34,6 +34,7 @@ use crate::dpds_path::{Display, Error};
 pub enum OsPathError {
     UnixPathIncorrect,
     WindowsPathIncorrect,
+    PathIsEmpty,
     SystemNotDefined,
 }
 impl Error for OsPathError {}
@@ -42,6 +43,7 @@ impl Display for OsPathError {
         match *self {
             OsPathError::UnixPathIncorrect => f.write_str("You are using the windows path format for Unix. Use `unix` format for the path:\n> ./folder1/folder2/file.txt\n> ../folder2/file.txt\n> ./file.txt"),
             OsPathError::WindowsPathIncorrect => f.write_str("You are using the unix path format for Windows. Use `windows` format for the path:\n> .\\folder1\\folder2\\file.txt\n> ..\\folder2\\file.txt\n> .\\file.txt"),
+            OsPathError::PathIsEmpty=>f.write_str("The path is empty"),
             OsPathError::SystemNotDefined =>f.write_str(" SystemNotDefined"),
         }
     }

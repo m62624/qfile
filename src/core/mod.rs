@@ -72,6 +72,9 @@ impl<'a> QFilePath<'a> {
     /// | **Result** :               | `.\folder\Folder_new\file.txt`                   |
     ///
     pub fn add_path<T: ToString>(path_file: T) -> Result<Self, OsPathError> {
+        if path_file.to_string().is_empty() {
+            return Err(OsPathError::PathIsEmpty);
+        }
         let path_file = PathBuf::from(path_file.to_string());
         match env::consts::OS {
             "windows" => {
@@ -229,7 +232,7 @@ impl<'a> QFilePath<'a> {
                     self.correct_path();
                     if !self.correct_path.to_str().unwrap().is_empty() && self.update_path {
                         let temp = self.request_items.pop();
-                        let mut last = String::new();
+                        let last: String;
                         if self.request_items.last().unwrap() != ".\\"
                             && !self.request_items.last().unwrap().contains(":\\")
                             && !self.request_items.last().unwrap().contains("..\\")

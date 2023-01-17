@@ -1,4 +1,9 @@
 # Changelog
+## [2.2.1] - 2023.01.17
+### Added:
+`PathIsEmpty` - new error type, if the path is empty specified in the constructor
+### Fixed:
+Removed the `last` variable warning
 ## [2.2.0] - 2023.01.17
 ### Changed
 Now on linux and windows the same behavior when creating folders/files
