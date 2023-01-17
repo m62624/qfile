@@ -45,8 +45,6 @@ impl<'a> QFilePath<'a> {
     /// we get the correct path, which will be used as a cache when we reuse
     /// # Example
     /// ```
-    /// # use qfile::QFilePath;
-    /// # fn main() {
     /// // the real file path: `./FOLder/Folder/NEW.txt`
     /// let mut file = QFilePath::add_path("./folder/Folder/new.txt").unwrap();
     /// // The real path is searched after the first method call
@@ -55,7 +53,6 @@ impl<'a> QFilePath<'a> {
     /// // we get the saved path right away
     /// file.auto_write("Newdata").unwrap();
     /// assert_eq!(file.read().unwrap(), "OlddataNewdata");
-    /// # }
     /// ```
     ///
     /// ## Linux :
@@ -101,24 +98,21 @@ impl<'a> QFilePath<'a> {
     }
     fn first_slah(&mut self) {
         let temp = self.user_path.display().to_string();
-        match self.os {
-            "windows" => {
-                lazy_static! {
-                    static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
-                }
-                if !SL.is_match(&temp) {
-                    self.user_path = PathBuf::from(format!(".\\{}", self.user_path.display()));
-                }
+        if let "windows" = self.os {
+            lazy_static! {
+                static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
             }
-            "linux" | "macos" => {
-                lazy_static! {
-                    static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
-                }
-                if !SL.is_match(&temp) {
-                    self.user_path = PathBuf::from(format!("./{}", self.user_path.display()));
-                }
+            if !SL.is_match(&temp) {
+                self.user_path = PathBuf::from(format!(".\\{}", self.user_path.display()));
             }
-            _ => panic!("Incorrect path"),
+        }
+        if let "linux" | "macos" = self.os {
+            lazy_static! {
+                static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
+            }
+            if !SL.is_match(&temp) {
+                self.user_path = PathBuf::from(format!("./{}", self.user_path.display()));
+            }
         }
     }
 
@@ -133,24 +127,21 @@ impl<'a> QFilePath<'a> {
             self.request_items.pop();
 
             if let Some(value) = self.request_items.last_mut() {
-                match self.os {
-                    "linux" | "macos" => {
-                        if value.eq(&mut ".") {
-                            *value = String::from("./")
-                        }
-                        if value.eq(&mut "..") {
-                            *value = String::from("../")
-                        }
+                if let "linux" | "macos" = self.os {
+                    if value.eq(&mut ".") {
+                        *value = String::from("./")
                     }
-                    "windows" => {
-                        if value.eq(&mut ".") {
-                            *value = String::from(".\\")
-                        }
-                        if value.eq(&mut "..") {
-                            *value = String::from("..\\")
-                        }
+                    if value.eq(&mut "..") {
+                        *value = String::from("../")
                     }
-                    _ => panic!("Incorrect path"),
+                }
+                if let "windows" = self.os {
+                    if value.eq(&mut ".") {
+                        *value = String::from(".\\")
+                    }
+                    if value.eq(&mut "..") {
+                        *value = String::from("..\\")
+                    }
                 }
             }
         }
@@ -194,7 +185,7 @@ impl<'a> QFilePath<'a> {
             }
         }
     }
-    /// returns the real path ([`&PathBuf`](https://doc.rust-lang.org/stable/std/path/struct.PathBuf.html) if the real path is found
+    /// returns the real path ([`&PathBuf`](https://doc.rust-lang.org/stable/std/path/struct.PathBuf.html)) if the real path is found
     /// but if not, it returns the path you originally entered.\
     /// To create files/folders in the new path use:
     /// - [`auto_write()`](<struct.QFilePath.html#method.auto_write>)
@@ -263,7 +254,7 @@ impl<'a> QFilePath<'a> {
                 }
                 return &self.user_path;
             }
-            _ => panic!("Incorrect path"),
+            _ => panic!(),
         }
     }
 

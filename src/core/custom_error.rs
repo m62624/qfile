@@ -1,5 +1,3 @@
-use std::{env, io};
-
 use crate::dpds_path::{Display, Error};
 /// Custom error to avoid merging paths of different systems
 /// # Example

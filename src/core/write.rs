@@ -8,13 +8,10 @@ impl<'a> QFilePath<'a> {
     /// Auto detect, create or open a file and write data to it
     /// # Example
     /// ```
-    /// # use qfile::QFilePath;
-    /// # fn main() {
     /// // the real file path: `./FILE.txt`
     /// let mut file = QFilePath::add_path("./file.txt").unwrap();
     /// file.auto_write("ok").unwrap();
     /// assert_eq(file.read().unwrap(),"ok");
-    /// # }
     /// ```
     /// ## Linux & Windows
     ///
@@ -26,7 +23,7 @@ impl<'a> QFilePath<'a> {
     /// | **Real path** :            | `./Folder1/Folder2/file.txt` | `.\Folder1\Folder2\file.txt` |
     /// | **Result** :               | `./Folder1/Folder2/file.txt` | `.\Folder1\Folder2\file.txt` |
     ///
-    /// - If the file/path is not found, creates a new path with the file (*if initial path exists*)
+    /// - If the file/path is not found, creates a new path with the file
     ///
     /// |                            | Linux                          | Windows                        |
     /// | -------------------------- | ------------------------------ | ------------------------------ |
@@ -37,38 +34,19 @@ impl<'a> QFilePath<'a> {
     ///
     pub fn auto_write(&mut self, text: &str) -> Result<(), io::Error> {
         if self.update_path {
-            match self.os {
-                "linux" | "macos" => {
-                    if self.correct_path.to_str().unwrap().is_empty() {
-                        self.correct_path = PathBuf::from(format!(
-                            "{}{}",
-                            self.user_path.to_str().unwrap(),
-                            self.file_name.to_str().unwrap()
-                        ))
-                    } else {
-                        self.correct_path = PathBuf::from(format!(
-                            "{}/{}",
-                            self.correct_path.to_str().unwrap(),
-                            self.file_name.to_str().unwrap()
-                        ))
-                    }
-                }
-                "windows" => {
-                    if self.correct_path.to_str().unwrap().is_empty() {
-                        self.correct_path = PathBuf::from(format!(
-                            "{}{}",
-                            self.user_path.to_str().unwrap(),
-                            self.file_name.to_str().unwrap()
-                        ))
-                    } else {
-                        self.correct_path = PathBuf::from(format!(
-                            "{}\\{}",
-                            self.correct_path.to_str().unwrap(),
-                            self.file_name.to_str().unwrap()
-                        ))
-                    }
-                }
-                _ => panic!(),
+            if let "linux" | "macos" = self.os {
+                self.correct_path = PathBuf::from(format!(
+                    "{}{}",
+                    self.user_path.to_str().unwrap(),
+                    self.file_name.to_str().unwrap()
+                ))
+            }
+            if let "windows" = self.os {
+                self.correct_path = PathBuf::from(format!(
+                    "{}{}",
+                    self.user_path.to_str().unwrap(),
+                    self.file_name.to_str().unwrap()
+                ))
             }
         }
         match self.flag {
@@ -111,7 +89,7 @@ impl<'a> QFilePath<'a> {
     fn dir_create(&mut self, err: ErrorKind) -> Result<(), std::io::Error> {
         match err {
             ErrorKind::NotFound => {
-                let fullpath = self.user_path.clone();
+                let fullpath = self.get_path_buf().clone();
                 let filename = fullpath.file_name().unwrap().to_str().unwrap();
                 let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;
                 {
@@ -122,7 +100,7 @@ impl<'a> QFilePath<'a> {
                 }
                 DirBuilder::new()
                     .recursive(true)
-                    .create(self.get_path_buf())
+                    .create(path_without_file)
                     .unwrap();
                 Ok(())
             }
