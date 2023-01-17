@@ -1,5 +1,39 @@
 # Changelog
-## [2.1.0] -2023.01.11
+## [2.2.0] - 2023.01.17
+### Changed
+Now on linux and windows the same behavior when creating folders/files
+#### New behavior
+Linux :
+ |                            |                                |
+ | -------------------------- | ------------------------------ |
+ | **The path we specified**: | `./FOLDER/Folder_new/file.txt` |
+ | **Real path** :            | `./folder`                     |
+ | **Result** :               | `./folder/Folder_new/file.txt` |
+
+Windows :
+ |                            |                                |
+ | -------------------------- | ------------------------------ |
+ | **The path we specified**: | `.\FOLDER\Folder_new\file.txt` |
+ | **Real path** :            | `.\folder`                     |
+ | **Result** :               | `.\folder\Folder_new\file.txt` |
+
+#### Old behavior
+Linux :
+ |                            |                                                         |
+ | -------------------------- | ------------------------------------------------------- |
+ | **The path we specified**: | `./FOLDER/Folder_new/file.txt`                          |
+ | **Real path** :            | `./folder`                                              |
+ | **Result** :               | `./FOLDER/Folder_new/file.txt` - (**new created path**) |
+ |                            | `./folder` - (**original path**)                        |
+
+Windows :
+ |                            |                                                  |
+ | -------------------------- | ------------------------------------------------ |
+ | **The path we specified**: | `.\FOLDER\Folder_new\file.txt`                   |
+ | **Real path** :            | `.\folder`                                       |
+ | **Result** :               | `.\folder\Folder_new\file.txt` - (**real path**) |
+
+## [2.1.0] - 2023.01.11
 ### Changed
 - `add_path()` returns `Result<Self, OsPathError>`
 ### Added 

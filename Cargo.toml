@@ -1,6 +1,6 @@
 [package]
 name = "qfile"
-version = "2.1.0"
+version = "2.2.0"
 edition = "2021"
 description = "Crate for accessing a file by path, case insensitive. Automatic detection, create a path with a new file or open an existing file"
 repository="https://github.com/m62624/qfile"

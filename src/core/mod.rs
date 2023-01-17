@@ -64,8 +64,7 @@ impl<'a> QFilePath<'a> {
     /// | -------------------------- | ------------------------------------------------------- |
     /// | **The path we specified**: | `./FOLDER/Folder_new/file.txt`                          |
     /// | **Real path** :            | `./folder`                                              |
-    /// | **Result** :               | `./FOLDER/Folder_new/file.txt` - (**new created path**) |
-    /// |                            | `./folder` - (**original path**)                        |
+    /// | **Result** :               | `./folder/Folder_new/file.txt`                          |
     ///
     /// ## Windows :
     ///
@@ -73,7 +72,7 @@ impl<'a> QFilePath<'a> {
     /// | -------------------------- | ------------------------------------------------ |
     /// | **The path we specified**: | `.\FOLDER\Folder_new\file.txt`                   |
     /// | **Real path** :            | `.\folder`                                       |
-    /// | **Result** :               | `.\folder\Folder_new\file.txt` - (**real path**) |
+    /// | **Result** :               | `.\folder\Folder_new\file.txt`                   |
     ///
     pub fn add_path<T: ToString>(path_file: T) -> Result<Self, OsPathError> {
         let path_file = PathBuf::from(path_file.to_string());
@@ -159,6 +158,7 @@ impl<'a> QFilePath<'a> {
     }
 
     fn correct_path(&mut self) {
+        let mut counter = 0;
         if self.request_items.is_empty() {
             self.way_step_by_step();
         }
@@ -173,13 +173,25 @@ impl<'a> QFilePath<'a> {
                     == possible_directories[pos_j].to_lowercase()
                 {
                     self.request_items[user_i + 1] = possible_directories.remove(pos_j);
+                    counter += 1;
                     break;
                 }
             }
         }
-        let result = self.request_items.last();
-        if Path::new(result.unwrap()).exists() {
-            self.correct_path = PathBuf::from(result.unwrap());
+        if Path::new(self.request_items.last().unwrap()).exists() {
+            self.correct_path = PathBuf::from(self.request_items.last().unwrap());
+        } else if let "linux" | "macos" = self.os {
+            if Path::new(&self.request_items[counter]).exists() && counter != 0 {
+                self.correct_path = PathBuf::from(format!(
+                    "{}{}",
+                    self.request_items[counter],
+                    self.request_items
+                        .last()
+                        .unwrap()
+                        .split_at(self.request_items[counter].len())
+                        .1
+                ));
+            }
         }
     }
     /// returns the real path ([`&PathBuf`](https://doc.rust-lang.org/stable/std/path/struct.PathBuf.html) if the real path is found
@@ -211,6 +223,7 @@ impl<'a> QFilePath<'a> {
                     return &self.user_path;
                 }
                 if !self.update_path
+                    && self.correct_path.to_str().unwrap().is_empty()
                     && self.user_path.to_str().unwrap() != self.correct_path.to_str().unwrap()
                 {
                     self.correct_path();

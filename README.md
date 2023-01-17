@@ -90,7 +90,7 @@ fn main() {
     let path6 = String::from("D:\\Folder\\file.txt");
 ```
 
-# Auto Mode
+# Auto mode
 
 Creates or opens if a file exists (case insensitive)
 
@@ -106,9 +106,7 @@ Creates or opens if a file exists (case insensitive)
     
 ```
 
----
-
- ### Linux & Windows
+### Linux & Windows
 
  - If the path exists, we work with the file (case insensitive)
 
@@ -118,37 +116,15 @@ Creates or opens if a file exists (case insensitive)
  | **Real path** :            | `./Folder1/Folder2/file.txt` | `.\Folder1\Folder2\file.txt` |
  | **Result** :               | `./Folder1/Folder2/file.txt` | `.\Folder1\Folder2\file.txt` |
 
- - If the file/path is not found, creates a new path with the file (*if initial path exists*)
+ - If the file/path is not found, creates a new path with the file
 
- |                            | Linux                          | Windows                        |
- | -------------------------- | ------------------------------ | ------------------------------ |
- | **The path we specified**: | `./folder/folder_new/file.txt` | `.\folder\folder_new\file.txt` |
- | **Real path** :            | `./folder`                     | `.\folder`                     |
- | **Result** :               | `./folder/folder_new/file.txt` | `.\folder\folder_new\file.txt` |
+ |                            | Linux                               | Windows                             |
+ | -------------------------- | ----------------------------------- | ----------------------------------- |
+ | **The path we specified**: | `./main_folder/folder_new/file.txt` | `.\main_folder\folder_new\file.txt` |
+ | **Real path** :            | `./Main_Folder`                     | `.\Main_Folder`                     |
+ | **Result** :               | `./Main_Folder/folder_new/file.txt` | `.\Main_Folder\folder_new\file.txt` |
  
- - But if the initial path is different case of letters and a new file/folder is specified in the path, then a new path is created with the file
-
- ### Linux :
-
- |                            |                                                         |
- | -------------------------- | ------------------------------------------------------- |
- | **The path we specified**: | `./FOLDER/Folder_new/file.txt`                          |
- | **Real path** :            | `./folder`                                              |
- | **Result** :               | `./FOLDER/Folder_new/file.txt` - (**new created path**) |
- |                            | `./folder` - (**original path**)                        |
-
- ### Windows :
-
- |                            |                                                  |
- | -------------------------- | ------------------------------------------------ |
- | **The path we specified**: | `.\FOLDER\Folder_new\file.txt`                   |
- | **Real path** :            | `.\folder`                                       |
- | **Result** :               | `.\folder\Folder_new\file.txt` - (**real path**) |
-
- ### Different behavior 
-
- > * The Windows file system treats file and directory names as **case insensitive**. `file.txt` and `FILE.txt` will be treated as equivalent files (Although the path is case insensitive in windows (`..\FOLDER\file.txt`), you can return a case-sensitive path with : `get_path_str()` or `get_path_buf()`).
- > * The Linux file system treats file and directory names as **case-sensitive**. `file.txt` and `FILE.txt` will be treated as different files.
+ > * The Windows file system treats file and directory names as **case insensitive**. `file.txt` and `FILE.txt` will be treated as equivalent files (Although the path is **case insensitive** in windows (`..\FOLDER\file.txt`), you can return a **case-sensitive** path with : `get_path_str()` or `get_path_buf()`).
 
  ---
 

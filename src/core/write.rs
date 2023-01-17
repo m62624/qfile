@@ -34,28 +34,6 @@ impl<'a> QFilePath<'a> {
     /// | **Real path** :            | `./folder`                     | `.\folder`                     |
     /// | **Result** :               | `./folder/folder_new/file.txt` | `.\folder\folder_new\file.txt` |
     ///
-    /// - But if the initial path is different case of letters and a new file/folder is specified in the path, then a new path is created with the file
-    ///
-    /// ## Linux :
-    ///
-    /// |                            |                                                         |
-    /// | -------------------------- | ------------------------------------------------------- |
-    /// | **The path we specified**: | `./FOLDER/Folder_new/file.txt`                          |
-    /// | **Real path** :            | `./folder`                                              |
-    /// | **Result** :               | `./FOLDER/Folder_new/file.txt` - (**new created path**) |
-    /// |                            | `./folder` - (**original path**)                        |
-    ///
-    /// ## Windows :
-    ///
-    /// |                            |                                                  |
-    /// | -------------------------- | ------------------------------------------------ |
-    /// | **The path we specified**: | `.\FOLDER\Folder_new\file.txt`                   |
-    /// | **Real path** :            | `.\folder`                                       |
-    /// | **Result** :               | `.\folder\Folder_new\file.txt` - (**real path**) |
-    ///
-    ///  ### Different behavior
-    ///  > * The Windows file system treats file and directory names as **case insensitive**. `file.txt` and `FILE.txt` will be treated as equivalent files (Although the path is case insensitive in windows, you can return a case-sensitive path with : [`get_path_str()`](<struct.QFilePath.html#method.get_path_str>) or [`get_path_buf()`](<struct.QFilePath.html#method.get_path_buf>)).
-    ///  > * The Linux file system treats file and directory names as **case-sensitive**. `file.txt` and `FILE.txt` will be treated as different files.
     ///
     pub fn auto_write(&mut self, text: &str) -> Result<(), io::Error> {
         if self.update_path {
@@ -169,8 +147,7 @@ impl<'a> QFilePath<'a> {
     /// | -------------------------- | ------------------------------------------------------- |
     /// | **The path we specified**: | `./FOLDER/Folder_new/file.txt`                          |
     /// | **Real path** :            | `./folder`                                              |
-    /// | **Result** :               | `./FOLDER/Folder_new/file.txt` - (**new created path**) |
-    /// |                            | `./folder` - (**original path**)                        |
+    /// | **Result** :               | `./folder/Folder_new/file.txt`                          |
     ///
     /// ## Windows :
     ///
@@ -178,8 +155,8 @@ impl<'a> QFilePath<'a> {
     /// | -------------------------- | ------------------------------------------------ |
     /// | **The path we specified**: | `.\FOLDER\Folder_new\file.txt`                   |
     /// | **Real path** :            | `.\folder`                                       |
-    /// | **Result** :               | `.\folder\Folder_new\file.txt` - (**real path**) |
-    /// 
+    /// | **Result** :               | `.\folder\Folder_new\file.txt`                   |
+    ///
     pub fn write_only_new(&mut self, text: &str) -> Result<(), io::Error> {
         self.flag = Flag::New;
         if let Err(err) = self.auto_write(text) {
