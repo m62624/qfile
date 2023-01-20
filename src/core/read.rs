@@ -1,7 +1,7 @@
 use crate::core::{return_file, QFilePath};
 use crate::dpds_path::{io, Read};
 
-impl<'a> QFilePath<'a> {
+impl QFilePath {
     /// The method returns the contents of the file
     /// # Example
     /// ```

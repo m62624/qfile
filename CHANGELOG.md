@@ -1,8 +1,15 @@
 # Changelog
+## [2.2.2] - 2023.01.21
+### Changed
+- The operating system definition was changed
+- Changed conditions for `linux` & `macos` to `unix`
+### Fixed
+- The name `slash` was restored
+- Fixed the visibility area for methods
 ## [2.2.1] - 2023.01.17
-### Added:
+### Added
 `PathIsEmpty` - new error type, if the path is empty specified in the constructor
-### Fixed:
+### Fixed
 Removed the `last` variable warning
 ## [2.2.0] - 2023.01.17
 ### Changed

@@ -4,7 +4,7 @@ use crate::dpds_path::{
     DirBuilder, ErrorKind, File, OpenOptions, PathBuf,
 };
 
-impl<'a> QFilePath<'a> {
+impl QFilePath {
     /// Auto detect, create or open a file and write data to it
     /// # Example
     /// ```
@@ -13,11 +13,11 @@ impl<'a> QFilePath<'a> {
     /// file.auto_write("ok").unwrap();
     /// assert_eq(file.read().unwrap(),"ok");
     /// ```
-    /// ## Linux & Windows
+    /// ## Unix & Windows
     ///
     /// - If the path exists, we work with the file (case insensitive)
     ///
-    /// |                            | Linux                        | Windows                      |
+    /// |                            | Unix format                  | Windows format               |
     /// | -------------------------- | ---------------------------- | ---------------------------- |
     /// | **The path we specified**: | `folder1/FolDER2/file.TXT`   | `folder1\FolDER2\file.TXT`   |
     /// | **Real path** :            | `./Folder1/Folder2/file.txt` | `.\Folder1\Folder2\file.txt` |
@@ -25,7 +25,7 @@ impl<'a> QFilePath<'a> {
     ///
     /// - If the file/path is not found, creates a new path with the file
     ///
-    /// |                            | Linux                          | Windows                        |
+    /// |                            | Unix format                    | Windows format                 |
     /// | -------------------------- | ------------------------------ | ------------------------------ |
     /// | **The path we specified**: | `./folder/folder_new/file.txt` | `.\folder\folder_new\file.txt` |
     /// | **Real path** :            | `./folder`                     | `.\folder`                     |
@@ -34,14 +34,14 @@ impl<'a> QFilePath<'a> {
     ///
     pub fn auto_write(&mut self, text: &str) -> Result<(), io::Error> {
         if self.update_path {
-            if let "linux" | "macos" = self.os {
+            if cfg!(unix) {
                 self.correct_path = PathBuf::from(format!(
                     "{}{}",
                     self.user_path.to_str().unwrap(),
                     self.file_name.to_str().unwrap()
                 ))
             }
-            if let "windows" = self.os {
+            if cfg!(windows) {
                 self.correct_path = PathBuf::from(format!(
                     "{}{}",
                     self.user_path.to_str().unwrap(),
@@ -110,16 +110,13 @@ impl<'a> QFilePath<'a> {
     /// The same as [`auto_write()`](<struct.QFilePath.html#method.auto_write>), only the method for overwriting the data in the file
     /// # Example
     /// ```
-    /// # use qfile::QFilePath;
-    /// # fn main() {
     /// // the real file path: `file_Temp.txt`
     /// // file content: `1 2 3`
     /// let mut file = QFilePath::add_path("File_temp.txt").unwrap();
     /// file.write_only_new("4 5 6").unwrap();
     /// assert_eq(file.read().unwrap(),"4 5 6");
-    /// # }
     /// ```
-    /// ## Linux :
+    /// ## Unix format:
     ///
     /// |                            |                                                         |
     /// | -------------------------- | ------------------------------------------------------- |
@@ -127,7 +124,7 @@ impl<'a> QFilePath<'a> {
     /// | **Real path** :            | `./folder`                                              |
     /// | **Result** :               | `./folder/Folder_new/file.txt`                          |
     ///
-    /// ## Windows :
+    /// ## Windows format:
     ///
     /// |                            |                                                  |
     /// | -------------------------- | ------------------------------------------------ |

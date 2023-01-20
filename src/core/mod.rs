@@ -1,8 +1,8 @@
-mod custom_error;
+mod custom_errors;
 mod read;
 mod write;
-use crate::dpds_path::{env, fs, io, lazy_static, File, OpenOptions, Path, PathBuf, Regex};
-pub use custom_error::OsPathError;
+use crate::dpds_path::{fs, io, lazy_static, File, OpenOptions, Path, PathBuf, Regex};
+pub use custom_errors::OsPathError;
 #[derive(Debug)]
 pub enum Flag {
     New,
@@ -20,26 +20,20 @@ pub enum Permissions {
     RW,
 }
 /// The structure for storing the file path
-///
-/// The structure stores :
-/// - true file path (**used as a [cache](<struct.QFilePath.html#method.add_path>) for reuse**)
-/// - OS (information about what format to look for the file `/` and `\\`)\
-/// (**All methods automatically find the path case insensitive**)
 #[derive(Debug)]
-pub struct QFilePath<'a> {
+pub struct QFilePath {
     request_items: Vec<String>,
     //================
     user_path: PathBuf,
     file_name: PathBuf,
     correct_path: PathBuf,
     //================
-    os: &'a str,
     flag: Flag,
     update_path: bool,
 }
 
 //======================================================
-impl<'a> QFilePath<'a> {
+impl QFilePath {
     /// Constructor for adding a file path.\
     /// After using the [`auto_write()`](<struct.QFilePath.html#method.auto_write>) or [`read()`](<struct.QFilePath.html#method.read>) methods (also the [`get_path_buf() | get_path_str()`](<struct.QFilePath.html#method.get_path_buf>) if the path exists), and if `Ok`,\
     /// we get the correct path, which will be used as a cache when we reuse
@@ -55,7 +49,7 @@ impl<'a> QFilePath<'a> {
     /// assert_eq!(file.read().unwrap(), "OlddataNewdata");
     /// ```
     ///
-    /// ## Linux :
+    /// ## Unix format:
     ///
     /// |                            |                                                         |
     /// | -------------------------- | ------------------------------------------------------- |
@@ -63,7 +57,7 @@ impl<'a> QFilePath<'a> {
     /// | **Real path** :            | `./folder`                                              |
     /// | **Result** :               | `./folder/Folder_new/file.txt`                          |
     ///
-    /// ## Windows :
+    /// ## Windows format:
     ///
     /// |                            |                                                  |
     /// | -------------------------- | ------------------------------------------------ |
@@ -76,21 +70,18 @@ impl<'a> QFilePath<'a> {
             return Err(OsPathError::PathIsEmpty);
         }
         let path_file = PathBuf::from(path_file.to_string());
-        match env::consts::OS {
-            "windows" => {
-                if path_file.to_str().unwrap().contains("/") {
-                    return Err(OsPathError::WindowsPathIncorrect);
-                }
+        if cfg!(unix) {
+            if path_file.to_str().unwrap().contains("\\") {
+                return Err(OsPathError::UnixPathIncorrect);
             }
-            "linux" | "macos" => {
-                if path_file.to_str().unwrap().contains("\\") {
-                    return Err(OsPathError::UnixPathIncorrect);
-                }
+        } else if cfg!(windows) {
+            if path_file.to_str().unwrap().contains("/") {
+                return Err(OsPathError::WindowsPathIncorrect);
             }
-            _ => return Err(OsPathError::SystemNotDefined),
+        } else {
+            return Err(OsPathError::SystemNotDefined);
         }
         Ok(Self {
-            os: env::consts::OS,
             user_path: path_file,
             flag: Flag::Auto,
             update_path: false,
@@ -99,17 +90,9 @@ impl<'a> QFilePath<'a> {
             file_name: Default::default(),
         })
     }
-    fn first_slah(&mut self) {
+    fn first_slash(&mut self) {
         let temp = self.user_path.display().to_string();
-        if let "windows" = self.os {
-            lazy_static! {
-                static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
-            }
-            if !SL.is_match(&temp) {
-                self.user_path = PathBuf::from(format!(".\\{}", self.user_path.display()));
-            }
-        }
-        if let "linux" | "macos" = self.os {
+        if cfg!(unix) {
             lazy_static! {
                 static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
             }
@@ -117,10 +100,18 @@ impl<'a> QFilePath<'a> {
                 self.user_path = PathBuf::from(format!("./{}", self.user_path.display()));
             }
         }
+        if cfg!(windows) {
+            lazy_static! {
+                static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
+            }
+            if !SL.is_match(&temp) {
+                self.user_path = PathBuf::from(format!(".\\{}", self.user_path.display()));
+            }
+        }
     }
 
     fn way_step_by_step(&mut self) {
-        self.first_slah();
+        self.first_slash();
         self.request_items = self
             .user_path
             .ancestors()
@@ -130,7 +121,7 @@ impl<'a> QFilePath<'a> {
             self.request_items.pop();
 
             if let Some(value) = self.request_items.last_mut() {
-                if let "linux" | "macos" = self.os {
+                if cfg!(unix) {
                     if value.eq(&mut ".") {
                         *value = String::from("./")
                     }
@@ -138,7 +129,7 @@ impl<'a> QFilePath<'a> {
                         *value = String::from("../")
                     }
                 }
-                if let "windows" = self.os {
+                if cfg!(windows) {
                     if value.eq(&mut ".") {
                         *value = String::from(".\\")
                     }
@@ -174,7 +165,7 @@ impl<'a> QFilePath<'a> {
         }
         if Path::new(self.request_items.last().unwrap()).exists() {
             self.correct_path = PathBuf::from(self.request_items.last().unwrap());
-        } else if let "linux" | "macos" = self.os {
+        } else if cfg!(unix) {
             if Path::new(&self.request_items[counter]).exists() && counter != 0 {
                 self.correct_path = PathBuf::from(format!(
                     "{}{}",
@@ -208,57 +199,55 @@ impl<'a> QFilePath<'a> {
     /// # }
     /// ```
     pub fn get_path_buf(&mut self) -> &PathBuf {
-        match self.os {
-            "linux" | "macos" => {
-                if self.user_path.exists() {
-                    if !self.correct_path.to_str().unwrap().is_empty() {
-                        return &self.correct_path;
-                    }
-                    return &self.user_path;
-                }
-                if !self.update_path
-                    && self.correct_path.to_str().unwrap().is_empty()
-                    && self.user_path.to_str().unwrap() != self.correct_path.to_str().unwrap()
-                {
-                    self.correct_path();
-                }
-                if self.correct_path.to_str().unwrap().is_empty() {
-                    return &self.user_path;
-                }
-                return &self.correct_path;
-            }
-            "windows" => {
-                if !self.correct_path.exists() {
-                    self.correct_path();
-                    if !self.correct_path.to_str().unwrap().is_empty() && self.update_path {
-                        let temp = self.request_items.pop();
-                        let last: String;
-                        if self.request_items.last().unwrap() != ".\\"
-                            && !self.request_items.last().unwrap().contains(":\\")
-                            && !self.request_items.last().unwrap().contains("..\\")
-                        {
-                            last = format!(
-                                "{}\\{}",
-                                self.request_items.pop().unwrap(),
-                                self.file_name.to_str().unwrap()
-                            );
-                        } else {
-                            last = temp.unwrap();
-                        }
-                        self.correct_path = PathBuf::from(last);
-                        return &self.correct_path;
-                    }
-                }
+        if cfg!(unix) {
+            if self.user_path.exists() {
                 if !self.correct_path.to_str().unwrap().is_empty() {
-                    if self.update_path {
-                        self.correct_path();
-                    }
                     return &self.correct_path;
                 }
                 return &self.user_path;
             }
-            _ => panic!(),
+            if !self.update_path
+                && self.correct_path.to_str().unwrap().is_empty()
+                && self.user_path.to_str().unwrap() != self.correct_path.to_str().unwrap()
+            {
+                self.correct_path();
+            }
+            if self.correct_path.to_str().unwrap().is_empty() {
+                return &self.user_path;
+            }
+            return &self.correct_path;
         }
+        if cfg!(windows) {
+            if !self.correct_path.exists() {
+                self.correct_path();
+                if !self.correct_path.to_str().unwrap().is_empty() && self.update_path {
+                    let temp = self.request_items.pop();
+                    let last: String;
+                    if self.request_items.last().unwrap() != ".\\"
+                        && !self.request_items.last().unwrap().contains(":\\")
+                        && !self.request_items.last().unwrap().contains("..\\")
+                    {
+                        last = format!(
+                            "{}\\{}",
+                            self.request_items.pop().unwrap(),
+                            self.file_name.to_str().unwrap()
+                        );
+                    } else {
+                        last = temp.unwrap();
+                    }
+                    self.correct_path = PathBuf::from(last);
+                    return &self.correct_path;
+                }
+            }
+            if !self.correct_path.to_str().unwrap().is_empty() {
+                if self.update_path {
+                    self.correct_path();
+                }
+                return &self.correct_path;
+            }
+            return &self.user_path;
+        }
+        panic!("{}", OsPathError::SystemNotDefined);
     }
 
     /// returns the real path (`&str`) if the real path is found
@@ -324,7 +313,7 @@ impl<'a> QFilePath<'a> {
         }
     }
 }
-impl<'a> Drop for QFilePath<'a> {
+impl Drop for QFilePath {
     fn drop(&mut self) {}
 }
 fn return_file(path: &str) -> Result<File, io::Error> {
