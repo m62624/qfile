@@ -1,20 +1,27 @@
-use std::{collections::HashMap, env, error::Error, path::PathBuf};
+use std::{collections::HashMap, env, error::Error};
 use unicase::UniCase;
 
-use self::custom_errors::QPathError;
+use self::{
+    custom_errors::QPathError,
+    traits::{PathPattern, PathPatternAsync},
+};
 mod custom_errors;
 mod default;
 mod drop;
-mod read;
-mod write;
+mod traits;
 //=========================
 static mut OS_QFILE: &str = env::consts::OS;
-static mut OS_status: OS<&str> = OS::KnownOS;
 #[derive(Debug)]
 enum OptionCodeFile {
     SCFile(std::fs::File),
     ACFile(async_std::fs::File),
     UnknownStatusFile,
+}
+#[derive(Debug)]
+enum OptionCodePathBuf {
+    SCPathBuf(std::path::PathBuf),
+    ACPathBuf(async_std::path::PathBuf),
+    UnknownStatusPathBuf,
 }
 
 #[derive(Debug)]
@@ -26,16 +33,16 @@ pub enum Flag {
 
 #[derive(Debug)]
 enum OS<T: AsRef<str>> {
-    UserSelectedOS(T),
-    KnownOS,
+    NewPattern(T),
+    DefaultPattern,
 }
 #[derive(Debug)]
 pub struct QFilePath<'a> {
     request_items: HashMap<UniCase<&'a String>, String>,
     only_file: OptionCodeFile,
-    user_path: PathBuf,
-    file_name: PathBuf,
-    correct_path: PathBuf,
+    user_path: OptionCodePathBuf,
+    file_name: OptionCodePathBuf,
+    correct_path: OptionCodePathBuf,
     flag: Flag,
     update_path: bool,
 }
@@ -45,35 +52,31 @@ impl<'a> QFilePath<'a> {
             OS_QFILE = name_os;
         }
     }
-    pub fn new<T: AsRef<str>>(path: T) -> Result<Self, Box<dyn Error>> {
-        Self {
+    pub fn new<T: AsRef<str>>(path_file: T) -> Result<Self, Box<dyn Error>> {
+        Ok(Self {
             request_items: Default::default(),
             only_file: Default::default(),
-            user_path: init_path(path)?,
+            user_path: QFilePath::init_user_path(path_file)?,
             file_name: Default::default(),
             correct_path: Default::default(),
             flag: Default::default(),
             update_path: false,
-        }
+        })
+    }
+    pub async fn async_new<T: AsRef<str> + std::marker::Send>(
+        path_file: T,
+    ) -> Result<QFilePath<'a>, Box<dyn Error>> {
+        Ok(Self {
+            request_items: Default::default(),
+            only_file: Default::default(),
+            user_path: QFilePath::async_init_user_path(path_file).await?,
+            file_name: Default::default(),
+            correct_path: Default::default(),
+            flag: Default::default(),
+            update_path: false,
+        })
     }
     pub fn change_path(&mut self) {}
-}
-
-fn init_path<'a, T: AsRef<str>>(path: T) -> Result<T, Box<dyn Error>> {
-    match unsafe { OS_status } {
-        OS::UserSelectedOS(_) | OS::KnownOS => {
-            if path.as_ref().is_empty() {
-                return Err(Box::new(QPathError::PathIsEmpty));
-            }
-            if cfg!(windows) {
-                return Ok();
-            }
-            if cfg!(unix) {
-                return Ok();
-            };
-        }
-    }
-    Err(Box::new(QPathError::SystemNotDefined))
 }
 
 #[cfg(test)]

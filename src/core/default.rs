@@ -1,4 +1,4 @@
-use super::{Flag, OptionCodeFile, QFilePath, OS_QFILE};
+use super::{Flag, OptionCodeFile, OptionCodePathBuf, QFilePath};
 impl Default for OptionCodeFile {
     fn default() -> Self {
         OptionCodeFile::UnknownStatusFile
@@ -9,19 +9,16 @@ impl Default for Flag {
         Flag::Auto
     }
 }
+impl Default for OptionCodePathBuf {
+    fn default() -> Self {
+        OptionCodePathBuf::UnknownStatusPathBuf
+    }
+}
 impl<'a> Default for QFilePath<'a> {
     fn default() -> Self {
         QFilePath {
-            request_items: Default::default(),
-            only_file: Default::default(),
-            user_path: Default::default(),
-            file_name: Default::default(),
-            correct_path: Default::default(),
-            flag: Default::default(),
             update_path: false,
+            ..Default::default()
         }
     }
-    
 }
-
-
