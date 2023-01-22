@@ -6,11 +6,11 @@ pub trait PathPattern {
         if path_file.as_ref().is_empty() {
             return Err(Box::new(QPathError::PathIsEmpty));
         }
-        if cfg!(unix) {
+        if cfg!(target_family = "unix") {
             if path_file.as_ref().contains("\\") {
                 return Err(Box::new(QPathError::UnixPathIsIncorrect));
             }
-        } else if cfg!(windows) {
+        } else if cfg!(target_family = "windows") {
             if path_file.as_ref().contains("/") {
                 return Err(Box::new(QPathError::WindowsPathIsIncorrect));
             }
@@ -21,6 +21,8 @@ pub trait PathPattern {
             path_file.as_ref(),
         )));
     }
+    fn correct_path(&mut self) {}
+    
 }
 #[async_trait]
 pub trait PathPatternAsync {
@@ -30,11 +32,11 @@ pub trait PathPatternAsync {
         if path_file.as_ref().is_empty() {
             return Err(Box::new(QPathError::PathIsEmpty));
         }
-        if cfg!(unix) {
+        if cfg!(target_family = "unix") {
             if path_file.as_ref().contains("\\") {
                 return Err(Box::new(QPathError::UnixPathIsIncorrect));
             }
-        } else if cfg!(windows) {
+        } else if cfg!(target_family = "windows") {
             if path_file.as_ref().contains("/") {
                 return Err(Box::new(QPathError::WindowsPathIsIncorrect));
             }
@@ -45,6 +47,7 @@ pub trait PathPatternAsync {
             async_std::path::PathBuf::from(path_file.as_ref()),
         ));
     }
+    async fn async_correct_path(&mut self) {}
 }
 
 impl<'a> PathPattern for QFilePath<'a> {}
