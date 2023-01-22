@@ -22,7 +22,4 @@
 //! - [`get_path_buf`](<struct.QFilePath.html#method.get_path_buf>) - Get the true path (`PathBuf`)
 //! - [`get_path_str`](<struct.QFilePath.html#method.get_path_str>) - Get the true path (`&str`)
 mod core;
-mod dpds_path;
-pub use crate::core::OsPathError;
-pub use crate::core::Permissions;
 pub use crate::core::QFilePath;

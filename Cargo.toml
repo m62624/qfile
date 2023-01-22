@@ -13,6 +13,9 @@ license = "MIT"
 [dependencies]
 regex = "1.7.0"
 lazy_static = "1.4.0"
+async-std = "1.12.0"
+unicase = "2.6.0"
+thiserror = "1.0.38"
 [dev-dependencies]
 rand="0.8.5"
 [lib]
