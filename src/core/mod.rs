@@ -7,7 +7,9 @@ use unicase::UniCase;
 mod custom_errors;
 mod default;
 mod drop;
+mod read;
 mod traits;
+mod write;
 //=========================
 #[derive(Debug)]
 pub enum OptionCodeFile {
