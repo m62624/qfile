@@ -1,4 +1,4 @@
 use super::QFilePath;
-impl<'a> Drop for QFilePath<'a> {
+impl Drop for QFilePath {
     fn drop(&mut self) {}
 }

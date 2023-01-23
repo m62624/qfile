@@ -1,4 +1,6 @@
-use super::{Flag, OptionCodeFile, OptionCodePathBuf, QFilePath, QPatternPath};
+use super::{
+    Flag, OptionCodeFile, OptionCodePathBuf, OptionCodeRequestItems, QFilePath, QPatternPath,
+};
 impl Default for OptionCodeFile {
     fn default() -> Self {
         OptionCodeFile::UnknownStatusFile
@@ -19,7 +21,12 @@ impl Default for QPatternPath {
         QPatternPath::DefaultPattern
     }
 }
-impl<'a> Default for QFilePath<'a> {
+impl Default for OptionCodeRequestItems {
+    fn default() -> Self {
+        OptionCodeRequestItems::UnknownStatusRequestItems
+    }
+}
+impl Default for QFilePath {
     fn default() -> Self {
         Self {
             request_items: Default::default(),
