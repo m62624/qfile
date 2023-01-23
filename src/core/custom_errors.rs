@@ -13,3 +13,10 @@ pub enum QPathError {
     #[error("The path is incorrect")]
     PathIsIncorrect,
 }
+#[derive(Error, Debug)]
+pub enum QOptionCode {
+    #[error("called async call for synchronous code")]
+    IncompatibleModeForSync,
+    #[error("called synchronous call for asynchronous code")]
+    IncompatibleModeForAsync,
+}

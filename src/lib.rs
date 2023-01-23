@@ -23,3 +23,9 @@
 //! - [`get_path_str`](<struct.QFilePath.html#method.get_path_str>) - Get the true path (`&str`)
 mod core;
 pub use crate::core::QFilePath;
+pub use crate::core::{
+    r#async::{async_ext, async_trait::PathPatternAsync},
+    r#sync,
+};
+pub use crate::core::{OptionCodeFile, OptionCodePathBuf, OptionCodeRequestItems};
+pub use async_std;
