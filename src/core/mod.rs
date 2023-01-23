@@ -1,65 +1,51 @@
-use self::custom_errors::{QOptionCode, QPathError};
-use async_std::sync::Mutex as ACMutex;
+use self::custom_errors::QPathError;
+use async_std::path as AsyncPath;
+use async_std::sync::Arc as AsyncArc;
+use async_std::sync::Mutex as AsyncMutex;
 mod custom_errors;
-mod default;
 mod drop;
-mod read;
-mod write;
+mod getters;
+
+use async_trait as async_trait_crate;
 //=========================
 pub mod r#async;
 pub mod r#sync;
 //=========================
-#[derive(Debug)]
-pub enum OptionCodeRequestItems {
-    SyncRequestItems(Vec<String>),
-    AsyncRequestItems(ACMutex<Vec<String>>),
-    UnknownStatusRequestItems,
-}
-#[derive(Debug)]
-pub enum OptionCodeFile {
-    SyncFile(std::fs::File),
-    AsyncFile(ACMutex<async_std::fs::File>),
-    UnknownStatusFile,
-}
-#[derive(Debug)]
-pub enum OptionCodePathBuf {
-    SyncPathBuf(std::path::PathBuf),
-    AsyncPathBuf(ACMutex<async_std::path::PathBuf>),
-    UnknownStatusPathBuf,
-}
-#[derive(Debug)]
-pub enum OptionCodeFlag {
-    SyncFlag(Flag),
-    AsyncFlag(ACMutex<Flag>),
-    UnknownStatusFlag,
-}
-#[derive(Debug)]
-pub enum OptionCodeUpdatePath {
-    SyncUpdatePath(bool),
-    AsyncUpdatePath(ACMutex<bool>),
-    UnknownStatusUpdatePath,
-}
-
 #[derive(Debug, Clone, Copy)]
+
 pub enum Flag {
-    New,
-    Auto,
     Old,
+    Auto,
+    New,
+}
+#[derive(Debug)]
+pub enum CodeStatus {
+    SyncCode(SyncPack),
+    AsyncCode(AsyncPack),
 }
 
-#[derive(Debug)]
-pub enum QPatternPath {
-    NewPattern,
-    DefaultPattern,
+#[derive(Debug, Clone)]
+pub struct AsyncPack {
+    request_items: Vec<String>,
+    only_file: Option<async_std::fs::File>,
+    user_path: async_std::path::PathBuf,
+    file_name: async_std::path::PathBuf,
+    correct_path: async_std::path::PathBuf,
+    flag: Flag,
+    update_path: bool,
 }
+#[derive(Debug)]
+pub struct SyncPack {
+    request_items: Vec<String>,
+    only_file: Option<std::fs::File>,
+    user_path: std::path::PathBuf,
+    file_name: std::path::PathBuf,
+    correct_path: std::path::PathBuf,
+    flag: Flag,
+    update_path: bool,
+}
+
 #[derive(Debug)]
 pub struct QFilePath {
-    request_items: OptionCodeRequestItems,
-    only_file: OptionCodeFile,
-    user_path: OptionCodePathBuf,
-    file_name: OptionCodePathBuf,
-    correct_path: OptionCodePathBuf,
-    flag: OptionCodeFlag,
-    update_path: OptionCodeUpdatePath,
-    pattern: QPatternPath,
+    Context: CodeStatus,
 }
