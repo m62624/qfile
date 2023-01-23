@@ -17,7 +17,7 @@ pub enum OptionCodeFile {
     ACFile(async_std::fs::File),
     UnknownStatusFile,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum OptionCodePathBuf {
     SCPathBuf(std::path::PathBuf),
     ACPathBuf(async_std::path::PathBuf),

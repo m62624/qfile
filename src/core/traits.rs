@@ -1,9 +1,11 @@
 use super::{OptionCodePathBuf, QFilePath, QPathError};
 use async_trait::async_trait;
-use std::error::Error;
+use lazy_static::lazy_static;
+use regex::Regex;
+use std::{error::Error, sync::Arc};
 pub trait PathPattern {
     fn init_user_path<T: AsRef<str>>(path_file: T) -> Result<OptionCodePathBuf, Box<dyn Error>>;
-    fn correct_path(&mut self);
+    // fn correct_path(&mut self);
 }
 #[async_trait]
 pub trait PathPatternAsync {
@@ -56,5 +58,32 @@ impl<'a> PathPatternAsync for QFilePath<'a> {
         return Ok(OptionCodePathBuf::ACPathBuf(
             async_std::path::PathBuf::from(path_file.as_ref()),
         ));
+    }
+    async fn async_correct_path(&mut self) {
+        let first_slash = || async move {
+            if let OptionCodePathBuf::ACPathBuf(value) = self.user_path.clone() {
+                let temp = value.to_str().unwrap().to_string();
+                if cfg!(unix) {
+                    lazy_static! {
+                        static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
+                    }
+                    if !SL.is_match(&temp) {
+                        self.user_path = OptionCodePathBuf::ACPathBuf(
+                            async_std::path::PathBuf::from(format!("./{}", value.display())),
+                        );
+                    }
+                }
+                if cfg!(windows) {
+                    lazy_static! {
+                        static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
+                    }
+                    if !SL.is_match(&temp) {
+                        self.user_path = OptionCodePathBuf::ACPathBuf(
+                            async_std::path::PathBuf::from(format!(".\\{}", value.display())),
+                        );
+                    }
+                }
+            }
+        };
     }
 }
