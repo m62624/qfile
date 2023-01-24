@@ -1,11 +1,9 @@
-use self::custom_errors::QPathError;
+pub use self::custom_errors::QPackError;
+use async_std::fs as AsyncFS;
 use async_std::path as AsyncPath;
 use async_std::sync::Arc as AsyncArc;
 use async_std::sync::Mutex as AsyncMutex;
 mod custom_errors;
-mod drop;
-mod getters;
-
 use async_trait as async_trait_crate;
 //=========================
 pub mod r#async;
@@ -48,4 +46,8 @@ pub struct SyncPack {
 #[derive(Debug)]
 pub struct QFilePath {
     Context: CodeStatus,
+}
+
+impl Drop for QFilePath {
+    fn drop(&mut self) {}
 }
