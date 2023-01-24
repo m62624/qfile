@@ -6,7 +6,7 @@ use std::error::Error;
 impl QFilePath {
     /// ASYNC AUTO WRITE
     #[async_recursion]
-    pub async fn async_auto_write<T: AsRef<str> + std::marker::Send>(
+    pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
         self: &mut Self,
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -93,5 +93,24 @@ impl QFilePath {
         }
         Ok(())
     }
-    
+    #[async_recursion]
+    pub async fn async_write_only_new<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+        &mut self,
+        text: T,
+    ) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.Context.get_pack_mut().flag = Flag::New;
+        if let Err(err) = self.async_auto_write(&text).await {
+            if let Ok(err) = err.downcast::<async_std::io::Error>() {
+                match err.kind() {
+                    _ => {
+                        let async_dir = QFilePath::async_dir_create(self, err.kind());
+                        async_dir.await?;
+
+                        self.async_auto_write(&text).await?;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
 }
