@@ -7,6 +7,7 @@ use std::error::Error;
 pub mod async_read;
 pub mod async_trait;
 pub mod async_write;
+use super::Flag;
 // pub mod unpack_error {
 //     use super::{AsyncArc, AsyncMutex, AsyncPath, QFilePath, QPackError};
 //     use crate::core::r#async::async_trait::AsyncQPackTrait;
@@ -139,5 +140,30 @@ impl QFilePath {
             }
         }
         return files;
+    }
+    async fn dir_create(&mut self, err: async_std::io::ErrorKind) -> Result<(), Box<dyn Error>> {
+        match err {
+            async_std::io::ErrorKind::NotFound => {
+                let fullpath = QFilePath::async_get_path_buf(self).await?;
+                let filename = fullpath.file_name().unwrap().to_str().unwrap();
+                let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;
+                {
+                    self.Context.get_async_pack_mut().await.user_path =
+                        AsyncPath::PathBuf::from(path_without_file);
+                    self.Context.get_async_pack_mut().await.update_path = true;
+                    self.Context.get_async_pack_mut().await.file_name =
+                        AsyncPath::PathBuf::from(filename);
+                    self.Context.get_async_pack_mut().await.flag = Flag::New;
+                }
+                AsyncFS::DirBuilder::new()
+                    .recursive(true)
+                    .create(path_without_file)
+                    .await?;
+                Ok(())
+            }
+            _ => Err(Box::new(QPackError::AsyncIOError(
+                super::custom_errors::AsyncIO::IO(err.into()),
+            ))),
+        }
     }
 }
