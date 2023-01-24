@@ -9,12 +9,20 @@ pub mod async_trait;
 pub mod async_write;
 use super::Flag;
 impl QFilePath {
-    pub async fn async_get_path_str(&mut self) -> Result<String, Box<dyn Error + Send + Sync>> {
+    pub async fn async_get_path_string(&mut self) -> Result<String, Box<dyn Error + Send + Sync>> {
         Ok(QFilePath::async_get_path_buf(self)
             .await?
             .to_str()
             .unwrap()
             .to_owned())
+    }
+    pub async fn async_directory_create(
+        self: &mut Self,
+    ) -> Result<(), Box<dyn Error + Send + Sync>> {
+        Ok(AsyncFS::DirBuilder::new()
+            .recursive(true)
+            .create(self.async_get_path_buf().await?)
+            .await?)
     }
 }
 impl QFilePath {

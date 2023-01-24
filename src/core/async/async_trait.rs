@@ -5,17 +5,21 @@ use super::super::{
 use std::error::Error;
 #[async_trait]
 pub trait AsyncQPackTrait {
-    fn new_for_async<T: AsRef<str> + std::marker::Send>(
+    fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
         path_file: T,
     ) -> Result<AsyncArc<AsyncMutex<Self>>, Box<dyn Error + Send + Sync>>;
     async fn async_correct_path(self: &mut Self) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn async_get_path_buf(
         self: &mut Self,
     ) -> Result<AsyncPath::PathBuf, Box<dyn Error + Send + Sync>>;
+    async fn async_change_path<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+        self: &mut Self,
+        path: T,
+    ) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 #[async_trait]
 impl AsyncQPackTrait for QFilePath {
-    fn new_for_async<T: AsRef<str> + std::marker::Send>(
+    fn add_path_for_async<T: AsRef<str> + std::marker::Send>(
         path_file: T,
     ) -> Result<AsyncArc<AsyncMutex<Self>>, Box<dyn Error + Send + Sync>> {
         if path_file.as_ref().is_empty() {
@@ -45,7 +49,12 @@ impl AsyncQPackTrait for QFilePath {
             }),
         })))
     }
-
+    async fn async_change_path<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+        self: &mut Self,
+        path: T,
+    ) -> Result<(), Box<dyn Error + Send + Sync>> {
+        Ok(self.Context.get_pack_mut().user_path = AsyncPath::PathBuf::from(path.as_ref()))
+    }
     async fn async_get_path_buf(
         self: &mut Self,
     ) -> Result<AsyncPath::PathBuf, Box<dyn Error + Send + Sync>> {
