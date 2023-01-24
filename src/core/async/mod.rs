@@ -31,9 +31,8 @@ pub fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>
     }
     Ok(async_trait::AsyncArc::new(async_trait::AsyncMutex::new(
         QFilePath {
-            Context: CodeStatus::AsyncCode(AsyncPack {
+            context: CodeStatus::AsyncCode(AsyncPack {
                 request_items: Default::default(),
-                only_file: None,
                 user_path: AsyncPath::PathBuf::from(path_file.to_owned()),
                 file_name: Default::default(),
                 correct_path: Default::default(),
@@ -46,23 +45,23 @@ pub fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>
 //===============================================================
 pub async fn async_correct_path(slf: &mut QFilePath) -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut counter = 0;
-    if slf.Context.get_pack().request_items.is_empty() {
+    if slf.context.get_async_pack().request_items.is_empty() {
         slf.async_way_step_by_step().await;
     }
-    for user_i in 0..slf.Context.get_pack().request_items.len() {
+    for user_i in 0..slf.context.get_async_pack().request_items.len() {
         let mut possible_directories = QFilePath::async_directory_contents(
-            slf.Context.get_pack().request_items[user_i].as_str(),
+            slf.context.get_async_pack().request_items[user_i].as_str(),
         )
         .await;
         for pos_j in 0..possible_directories.len() {
             if slf
-                .Context
-                .get_pack()
+                .context
+                .get_async_pack()
                 .request_items
                 .get(user_i + 1)
                 .unwrap_or(
-                    &slf.Context
-                        .get_pack()
+                    &slf.context
+                        .get_async_pack()
                         .request_items
                         .get(user_i)
                         .unwrap()
@@ -71,34 +70,34 @@ pub async fn async_correct_path(slf: &mut QFilePath) -> Result<(), Box<dyn Error
                 .to_lowercase()
                 == possible_directories[pos_j].to_lowercase()
             {
-                slf.Context.get_pack_mut().request_items[user_i + 1] =
+                slf.context.get_async_pack_mut().request_items[user_i + 1] =
                     possible_directories.remove(pos_j);
                 counter += 1;
                 break;
             }
         }
     }
-    if AsyncPath::Path::new(slf.Context.get_pack().request_items.last().unwrap())
+    if AsyncPath::Path::new(slf.context.get_async_pack().request_items.last().unwrap())
         .exists()
         .await
     {
-        slf.Context.get_pack_mut().correct_path =
-            AsyncPath::PathBuf::from(slf.Context.get_pack().request_items.last().unwrap());
+        slf.context.get_async_pack_mut().correct_path =
+            AsyncPath::PathBuf::from(slf.context.get_async_pack().request_items.last().unwrap());
     } else if cfg!(unix) {
-        if AsyncPath::Path::new(&slf.Context.get_pack().request_items[counter])
+        if AsyncPath::Path::new(&slf.context.get_async_pack().request_items[counter])
             .exists()
             .await
             && counter != 0
         {
-            slf.Context.get_pack_mut().correct_path = AsyncPath::PathBuf::from(format!(
+            slf.context.get_async_pack_mut().correct_path = AsyncPath::PathBuf::from(format!(
                 "{}{}",
-                slf.Context.get_pack().request_items[counter],
-                slf.Context
-                    .get_pack()
+                slf.context.get_async_pack().request_items[counter],
+                slf.context
+                    .get_async_pack()
                     .request_items
                     .last()
                     .unwrap()
-                    .split_at(slf.Context.get_pack().request_items[counter].len())
+                    .split_at(slf.context.get_async_pack().request_items[counter].len())
                     .1
             ));
         }
@@ -110,77 +109,77 @@ pub async fn async_get_path_buf(
     slf: &mut QFilePath,
 ) -> Result<AsyncPath::PathBuf, Box<dyn Error + Send + Sync>> {
     if cfg!(unix) {
-        if slf.Context.get_pack().user_path.exists().await {
+        if slf.context.get_async_pack().user_path.exists().await {
             if !slf
-                .Context
-                .get_pack()
+                .context
+                .get_async_pack()
                 .correct_path
                 .to_str()
                 .unwrap()
                 .is_empty()
             {
                 return Ok(AsyncPath::PathBuf::from(
-                    slf.Context.get_pack().correct_path.to_path_buf(),
+                    slf.context.get_async_pack().correct_path.to_path_buf(),
                 ));
             }
             return Ok(AsyncPath::PathBuf::from(
-                slf.Context.get_pack_mut().user_path.to_path_buf(),
+                slf.context.get_async_pack_mut().user_path.to_path_buf(),
             ));
         }
-        if !slf.Context.get_pack().update_path
+        if !slf.context.get_async_pack().update_path
             && slf
-                .Context
-                .get_pack()
+                .context
+                .get_async_pack()
                 .correct_path
                 .to_str()
                 .unwrap()
                 .is_empty()
-            && slf.Context.get_pack().user_path.to_str().unwrap()
-                != slf.Context.get_pack().correct_path.to_str().unwrap()
+            && slf.context.get_async_pack().user_path.to_str().unwrap()
+                != slf.context.get_async_pack().correct_path.to_str().unwrap()
         {
             async_correct_path(slf).await?;
         }
         if slf
-            .Context
-            .get_pack()
+            .context
+            .get_async_pack()
             .correct_path
             .to_str()
             .unwrap()
             .is_empty()
         {
             return Ok(AsyncPath::PathBuf::from(
-                slf.Context.get_pack().user_path.to_path_buf(),
+                slf.context.get_async_pack().user_path.to_path_buf(),
             ));
         }
         return Ok(AsyncPath::PathBuf::from(
-            slf.Context.get_pack().correct_path.to_path_buf(),
+            slf.context.get_async_pack().correct_path.to_path_buf(),
         ));
     }
     if cfg!(windows) {
-        if !slf.Context.get_pack().correct_path.exists().await {
+        if !slf.context.get_async_pack().correct_path.exists().await {
             async_correct_path(slf).await?;
             if !slf
-                .Context
-                .get_pack()
+                .context
+                .get_async_pack()
                 .correct_path
                 .to_str()
                 .unwrap()
                 .is_empty()
-                && slf.Context.get_pack().update_path
+                && slf.context.get_async_pack().update_path
             {
-                let temp = slf.Context.get_pack_mut().request_items.pop();
+                let temp = slf.context.get_async_pack_mut().request_items.pop();
                 let last: String;
-                if slf.Context.get_pack().request_items.last().unwrap() != ".\\"
+                if slf.context.get_async_pack().request_items.last().unwrap() != ".\\"
                     && !slf
-                        .Context
-                        .get_pack()
+                        .context
+                        .get_async_pack()
                         .request_items
                         .last()
                         .unwrap()
                         .contains(":\\")
                     && !slf
-                        .Context
-                        .get_pack()
+                        .context
+                        .get_async_pack()
                         .request_items
                         .last()
                         .unwrap()
@@ -188,35 +187,39 @@ pub async fn async_get_path_buf(
                 {
                     last = format!(
                         "{}\\{}",
-                        slf.Context.get_pack_mut().request_items.pop().unwrap(),
-                        slf.Context.get_pack().file_name.to_str().unwrap()
+                        slf.context
+                            .get_async_pack_mut()
+                            .request_items
+                            .pop()
+                            .unwrap(),
+                        slf.context.get_async_pack().file_name.to_str().unwrap()
                     );
                 } else {
                     last = temp.unwrap();
                 }
-                slf.Context.get_pack_mut().correct_path = AsyncPath::PathBuf::from(last);
+                slf.context.get_async_pack_mut().correct_path = AsyncPath::PathBuf::from(last);
                 return Ok(AsyncPath::PathBuf::from(
-                    slf.Context.get_pack().correct_path.to_path_buf(),
+                    slf.context.get_async_pack().correct_path.to_path_buf(),
                 ));
             }
         }
         if !slf
-            .Context
-            .get_pack()
+            .context
+            .get_async_pack()
             .correct_path
             .to_str()
             .unwrap()
             .is_empty()
         {
-            if slf.Context.get_pack().update_path {
+            if slf.context.get_async_pack().update_path {
                 async_correct_path(slf).await?;
             }
             return Ok(AsyncPath::PathBuf::from(
-                slf.Context.get_pack().correct_path.to_path_buf(),
+                slf.context.get_async_pack().correct_path.to_path_buf(),
             ));
         }
         return Ok(AsyncPath::PathBuf::from(
-            slf.Context.get_pack().user_path.to_path_buf(),
+            slf.context.get_async_pack().user_path.to_path_buf(),
         ));
     }
     return Err(Box::new(QPackError::SystemNotDefined));
@@ -244,7 +247,7 @@ pub async fn async_directory_create(
 impl QFilePath {
     async fn async_way_step_by_step(&mut self) {
         async fn first_slash(sl: &mut QFilePath) {
-            let slf = sl.Context.get_pack_mut();
+            let slf = sl.context.get_async_pack_mut();
             let temp = slf.user_path.display().to_string();
             if cfg!(unix) {
                 lazy_static! {
@@ -266,7 +269,7 @@ impl QFilePath {
             }
         }
         first_slash(self).await;
-        let slf = self.Context.get_pack_mut();
+        let slf = self.context.get_async_pack_mut();
         slf.request_items = slf
             .user_path
             .ancestors()
@@ -327,11 +330,12 @@ impl QFilePath {
                 let filename = fullpath.file_name().unwrap().to_str().unwrap();
                 let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;
                 {
-                    self.Context.get_pack_mut().user_path =
+                    self.context.get_async_pack_mut().user_path =
                         AsyncPath::PathBuf::from(path_without_file);
-                    self.Context.get_pack_mut().update_path = true;
-                    self.Context.get_pack_mut().file_name = AsyncPath::PathBuf::from(filename);
-                    self.Context.get_pack_mut().flag = Flag::New;
+                    self.context.get_async_pack_mut().update_path = true;
+                    self.context.get_async_pack_mut().file_name =
+                        AsyncPath::PathBuf::from(filename);
+                    self.context.get_async_pack_mut().flag = Flag::New;
                 }
                 AsyncFS::DirBuilder::new()
                     .recursive(true)

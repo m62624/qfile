@@ -10,21 +10,21 @@ pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::S
     text: T,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     //=======================================================
-    let sl = slf.Context.get_pack();
+    let sl = slf.context.get_async_pack();
     //=======================================================
     if sl.update_path {
         if cfg!(unix) {
-            slf.Context.get_pack_mut().correct_path = AsyncPath::PathBuf::from(format!(
+            slf.context.get_async_pack_mut().correct_path = AsyncPath::PathBuf::from(format!(
                 "{}{}",
                 sl.user_path.to_str().unwrap(),
                 sl.file_name.to_str().unwrap()
             ))
         }
         //=======================================================
-        let sl = slf.Context.get_pack();
+        let sl = slf.context.get_async_pack();
         //=======================================================
         if cfg!(windows) {
-            slf.Context.get_pack_mut().correct_path = AsyncPath::PathBuf::from(format!(
+            slf.context.get_async_pack_mut().correct_path = AsyncPath::PathBuf::from(format!(
                 "{}{}",
                 sl.user_path.to_str().unwrap(),
                 sl.file_name.to_str().unwrap()
@@ -32,12 +32,12 @@ pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::S
         }
     }
     //=======================================================
-    let sl = slf.Context.get_pack();
+    let sl = slf.context.get_async_pack();
     //=======================================================
     match sl.flag {
         crate::core::Flag::Old => {
             let async_temp = QFilePath::async_get_path_buf(slf).await?;
-            slf.Context.get_pack_mut().flag = Flag::Auto;
+            slf.context.get_async_pack_mut().flag = Flag::Auto;
             let mut async_temp = AsyncFS::OpenOptions::new()
                 .append(true)
                 .open(async_temp)
@@ -52,8 +52,8 @@ pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::S
             match async_file {
                 Ok(_) => {
                     let async_temp = QFilePath::async_get_path_buf(slf).await?;
-                    slf.Context.get_pack_mut().update_path = false;
-                    slf.Context.get_pack_mut().flag = Flag::Auto;
+                    slf.context.get_async_pack_mut().update_path = false;
+                    slf.context.get_async_pack_mut().flag = Flag::Auto;
                     let mut async_temp = AsyncFS::OpenOptions::new()
                         .write(true)
                         .create(true)
@@ -73,7 +73,7 @@ pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::S
                 QFilePath::async_return_file(&async_path.to_str().unwrap()).await;
             match async_file {
                 Ok(_) => {
-                    slf.Context.get_pack_mut().flag = Flag::Old;
+                    slf.context.get_async_pack_mut().flag = Flag::Old;
                     async_auto_write(slf, text).await?;
                 }
                 Err(err) => {
@@ -97,7 +97,7 @@ pub async fn async_write_only_new<T: AsRef<str> + std::marker::Send + std::marke
     slf: &mut QFilePath,
     text: T,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
-    slf.Context.get_pack_mut().flag = Flag::New;
+    slf.context.get_async_pack_mut().flag = Flag::New;
     if let Err(err) = async_auto_write(slf, &text).await {
         if let Ok(err) = err.downcast::<async_std::io::Error>() {
             match err.kind() {

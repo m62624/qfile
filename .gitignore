@@ -2,6 +2,7 @@
 /Cargo.lock
 /Polygon
 /.Polygon
+/.polygon
 /polygon
 /.vscode
 /src/main.rs

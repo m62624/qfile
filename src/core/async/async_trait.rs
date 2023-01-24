@@ -6,6 +6,7 @@ use super::{
 };
 pub use async_std::sync::{Arc as AsyncArc, Mutex as AsyncMutex};
 use std::error::Error;
+//======================================================================
 #[async_trait]
 pub trait AsyncQPack {
     fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
@@ -30,6 +31,7 @@ pub trait AsyncQPack {
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn async_directory_create(&mut self) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
+//======================================================================
 #[async_trait]
 impl AsyncQPack for QFilePath {
     async fn async_directory_create(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -62,7 +64,7 @@ impl AsyncQPack for QFilePath {
         self: &mut Self,
         path: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
-        Ok(self.Context.get_pack_mut().user_path = AsyncPath::PathBuf::from(path.as_ref()))
+        Ok(self.context.get_async_pack_mut().user_path = AsyncPath::PathBuf::from(path.as_ref()))
     }
     async fn async_get_path_buf(
         self: &mut Self,
