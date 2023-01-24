@@ -32,16 +32,16 @@ pub enum SyncIO {
     IO(#[from] std::io::Error),
 }
 
-impl From<Box<dyn std::error::Error>> for QPackError {
-    fn from(value: Box<dyn std::error::Error>) -> Self {
+impl From<Box<dyn std::error::Error + Send + Sync>> for QPackError {
+    fn from(value: Box<dyn std::error::Error + Send + Sync>) -> Self {
         if let Ok(unpacked_value) = value.downcast::<QPackError>() {
             return *unpacked_value;
         }
         QPackError::NotQPackError
     }
 }
-impl From<Result<AsyncArc<AsyncMutex<QFilePath>>, Box<dyn Error>>> for QPackError {
-    fn from(value: Result<AsyncArc<AsyncMutex<QFilePath>>, Box<dyn Error>>) -> Self {
+impl From<Result<AsyncArc<AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>>> for QPackError {
+    fn from(value: Result<AsyncArc<AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>>) -> Self {
         QPackError::from(value.err().unwrap())
     }
 }

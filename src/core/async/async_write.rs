@@ -1,143 +1,97 @@
-use super::{AsyncFS, AsyncPack, AsyncPath, CodeStatus, QFilePath};
-use crate::{core::Flag, AsyncQPackTrait, QPackError};
+use super::{AsyncFS, AsyncPath, QFilePath};
+use crate::{core::Flag, AsyncQPackTrait};
 use async_recursion::async_recursion;
 use async_std::io::WriteExt;
 use std::error::Error;
 impl QFilePath {
+    /// ASYNC AUTO WRITE
     #[async_recursion]
-    pub async fn auto_write<T: AsRef<str> + std::marker::Send>(
-        &mut self,
+    pub async fn async_auto_write<T: AsRef<str> + std::marker::Send>(
+        self: &mut Self,
         text: T,
-    ) -> Result<(), Box<dyn Error>> {
-        if self.Context.get_async_pack().await.update_path {
+    ) -> Result<(), Box<dyn Error + Send + Sync>> {
+        //=======================================================
+        let sl = self.Context.get_pack();
+        //=======================================================
+        if sl.update_path {
             if cfg!(unix) {
-                self.Context.get_async_pack_mut().await.correct_path =
-                    AsyncPath::PathBuf::from(format!(
-                        "{}{}",
-                        self.Context
-                            .get_async_pack()
-                            .await
-                            .user_path
-                            .to_str()
-                            .unwrap(),
-                        self.Context
-                            .get_async_pack()
-                            .await
-                            .file_name
-                            .to_str()
-                            .unwrap()
-                    ))
+                self.Context.get_pack_mut().correct_path = AsyncPath::PathBuf::from(format!(
+                    "{}{}",
+                    sl.user_path.to_str().unwrap(),
+                    sl.file_name.to_str().unwrap()
+                ))
             }
+            //=======================================================
+            let sl = self.Context.get_pack();
+            //=======================================================
             if cfg!(windows) {
-                self.Context.get_async_pack_mut().await.correct_path =
-                    AsyncPath::PathBuf::from(format!(
-                        "{}{}",
-                        self.Context
-                            .get_async_pack()
-                            .await
-                            .user_path
-                            .to_str()
-                            .unwrap(),
-                        self.Context
-                            .get_async_pack()
-                            .await
-                            .file_name
-                            .to_str()
-                            .unwrap()
-                    ))
+                self.Context.get_pack_mut().correct_path = AsyncPath::PathBuf::from(format!(
+                    "{}{}",
+                    sl.user_path.to_str().unwrap(),
+                    sl.file_name.to_str().unwrap()
+                ))
             }
         }
-        match self.Context.get_async_pack().await.flag {
+        //=======================================================
+        let sl = self.Context.get_pack();
+        //=======================================================
+        match sl.flag {
             crate::core::Flag::Old => {
-                // ASYNC AWAIT SEND
-                let temp = QFilePath::async_get_path_buf(self).await?;
-                self.Context.get_async_pack_mut().await.flag = Flag::Auto;
-                AsyncFS::OpenOptions::new()
+                let async_temp = QFilePath::async_get_path_buf(self).await?;
+                self.Context.get_pack_mut().flag = Flag::Auto;
+                let mut async_temp = AsyncFS::OpenOptions::new()
                     .append(true)
-                    .open(temp)
+                    .open(async_temp)
                     .await
-                    .unwrap()
-                    .write_all(text.as_ref().as_bytes());
+                    .unwrap();
+                let async_temp = async_temp.write_all(text.as_ref().as_bytes());
+                async_temp.await.unwrap();
             }
-            Flag::Auto => todo!(),
-            Flag::New => todo!(),
+            Flag::New => {
+                let async_path = QFilePath::async_get_path_buf(self).await?;
+                let async_file = AsyncFS::File::create(async_path).await;
+                match async_file {
+                    Ok(_) => {
+                        let async_temp = QFilePath::async_get_path_buf(self).await?;
+                        self.Context.get_pack_mut().update_path = false;
+                        self.Context.get_pack_mut().flag = Flag::Auto;
+                        let mut async_temp = AsyncFS::OpenOptions::new()
+                            .write(true)
+                            .create(true)
+                            .open(async_temp)
+                            .await?;
+                        let async_temp = async_temp.write_all(text.as_ref().as_bytes());
+                        async_temp.await.unwrap();
+                    }
+                    Err(err) => {
+                        return Err(Box::new(err) as Box<dyn Error + Send + Sync>);
+                    }
+                };
+            }
+            Flag::Auto => {
+                let async_path = QFilePath::async_get_path_buf(self).await?;
+                let async_file: Result<AsyncFS::File, Box<dyn Error + Send + Sync>> =
+                    QFilePath::async_return_file(&async_path.to_str().unwrap()).await;
+                match async_file {
+                    Ok(_) => {
+                        self.Context.get_pack_mut().flag = Flag::Old;
+                        QFilePath::async_auto_write(self, text).await?;
+                    }
+                    Err(err) => {
+                        if let Ok(err) = err.downcast::<async_std::io::Error>() {
+                            match err.kind() {
+                                _ => {
+                                    let async_dir = QFilePath::async_dir_create(self, err.kind());
+                                    async_dir.await.unwrap();
+                                    self.async_auto_write(text).await?;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         Ok(())
     }
+    
 }
-/*
-pub fn auto_write(&mut self, text: &str) -> Result<(), io::Error> {
-        if self.update_path {
-            if cfg!(unix) {
-                self.correct_path = PathBuf::from(format!(
-                    "{}{}",
-                    self.user_path.to_str().unwrap(),
-                    self.file_name.to_str().unwrap()
-                ))
-            }
-            if cfg!(windows) {
-                self.correct_path = PathBuf::from(format!(
-                    "{}{}",
-                    self.user_path.to_str().unwrap(),
-                    self.file_name.to_str().unwrap()
-                ))
-            }
-        }
-        match self.flag {
-            Flag::Auto => match return_file(self.get_path_buf().to_str().unwrap()) {
-                Ok(_) => {
-                    self.flag = Flag::Old;
-                    return self.auto_write(text);
-                }
-                Err(err) => match err.kind() {
-                    _ => {
-                        self.dir_create(err.kind()).unwrap();
-                        return self.auto_write(text);
-                    }
-                },
-            },
-
-            Flag::New => match File::create(self.get_path_buf()) {
-                Ok(_) => {
-                    self.update_path = false;
-                    self.flag = Flag::Auto;
-                    OpenOptions::new()
-                        .write(true)
-                        .create(true)
-                        .open(self.get_path_buf())
-                        .unwrap()
-                        .write_all(text.as_bytes())
-                }
-                Err(err) => return Err(err),
-            },
-            Flag::Old => {
-                self.flag = Flag::Auto;
-                OpenOptions::new()
-                    .append(true)
-                    .open(self.get_path_buf())
-                    .unwrap()
-                    .write_all(text.as_bytes())
-            }
-        }
-    }
-    fn dir_create(&mut self, err: ErrorKind) -> Result<(), std::io::Error> {
-        match err {
-            ErrorKind::NotFound => {
-                let fullpath = self.get_path_buf().clone();
-                let filename = fullpath.file_name().unwrap().to_str().unwrap();
-                let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;
-                {
-                    self.user_path = PathBuf::from(path_without_file);
-                    self.update_path = true;
-                    self.file_name = PathBuf::from(filename);
-                    self.flag = Flag::New;
-                }
-                DirBuilder::new()
-                    .recursive(true)
-                    .create(path_without_file)
-                    .unwrap();
-                Ok(())
-            }
-            _ => Err(err.into()),
-        }
-    } */

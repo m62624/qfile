@@ -23,4 +23,6 @@
 //! - [`get_path_str`](<struct.QFilePath.html#method.get_path_str>) - Get the true path (`&str`)
 mod core;
 pub use crate::core::QFilePath;
-pub use crate::core::{r#async::AsyncQPackTrait, sync::SyncQPackTrait, QPackError};
+pub use crate::core::{
+    r#async::AsyncQPackTrait, sync::SyncQPackTrait, AsyncArc, AsyncMutex, QPackError,
+};

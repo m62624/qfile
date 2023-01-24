@@ -1,8 +1,8 @@
 pub use self::custom_errors::QPackError;
 use async_std::fs as AsyncFS;
 use async_std::path as AsyncPath;
-use async_std::sync::Arc as AsyncArc;
-use async_std::sync::Mutex as AsyncMutex;
+pub use async_std::sync::Arc as AsyncArc;
+pub use async_std::sync::Mutex as AsyncMutex;
 mod custom_errors;
 use async_trait as async_trait_crate;
 //=========================
@@ -21,7 +21,22 @@ pub enum CodeStatus {
     SyncCode(SyncPack),
     AsyncCode(AsyncPack),
 }
-
+impl CodeStatus {
+    pub fn get_pack_mut(&mut self) -> &mut AsyncPack {
+        if let Self::AsyncCode(value) = self {
+            value
+        } else {
+            panic!("AsyncPack - `get_pack_mut`")
+        }
+    }
+    pub fn get_pack(&self) -> &AsyncPack {
+        if let Self::AsyncCode(value) = self {
+            value
+        } else {
+            panic!("AsyncPack - `get_pack`")
+        }
+    }
+}
 #[derive(Debug, Clone)]
 pub struct AsyncPack {
     request_items: Vec<String>,
