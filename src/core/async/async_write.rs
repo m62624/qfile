@@ -39,10 +39,9 @@ pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::S
             let mut async_temp = AsyncFS::OpenOptions::new()
                 .append(true)
                 .open(async_temp)
-                .await
-                .unwrap();
+                .await?;
             let async_temp = async_temp.write_all(text.as_ref().as_bytes());
-            async_temp.await.unwrap();
+            async_temp.await?;
         }
         Flag::New => {
             let async_path = QFilePath::async_get_path_buf(slf).await?;
@@ -58,7 +57,7 @@ pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::S
                         .open(async_temp)
                         .await?;
                     let async_temp = async_temp.write_all(text.as_ref().as_bytes());
-                    async_temp.await.unwrap();
+                    async_temp.await?;
                 }
                 Err(err) => {
                     return Err(Box::new(err) as Box<dyn Error + Send + Sync>);

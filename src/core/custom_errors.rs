@@ -1,5 +1,4 @@
 use super::{Arc, AsyncMutex, QFilePath};
-use std::error::Error;
 use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum QPackError {
@@ -40,8 +39,12 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for QPackError {
         QPackError::NotQPackError
     }
 }
-impl From<Result<Arc<AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>>> for QPackError {
-    fn from(value: Result<Arc<AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>>) -> Self {
+impl From<Result<Arc<AsyncMutex<QFilePath>>, Box<dyn std::error::Error + Send + Sync>>>
+    for QPackError
+{
+    fn from(
+        value: Result<Arc<AsyncMutex<QFilePath>>, Box<dyn std::error::Error + Send + Sync>>,
+    ) -> Self {
         QPackError::from(value.err().unwrap())
     }
 }
