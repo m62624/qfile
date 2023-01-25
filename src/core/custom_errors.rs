@@ -1,4 +1,4 @@
-use super::{AsyncArc, AsyncMutex, QFilePath};
+use super::{Arc, AsyncMutex, QFilePath};
 use std::error::Error;
 use thiserror::Error;
 #[derive(Error, Debug)]
@@ -40,8 +40,8 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for QPackError {
         QPackError::NotQPackError
     }
 }
-impl From<Result<AsyncArc<AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>>> for QPackError {
-    fn from(value: Result<AsyncArc<AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>>) -> Self {
+impl From<Result<Arc<AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>>> for QPackError {
+    fn from(value: Result<Arc<AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>>) -> Self {
         QPackError::from(value.err().unwrap())
     }
 }

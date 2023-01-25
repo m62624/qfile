@@ -1,8 +1,8 @@
 pub use self::custom_errors::QPackError;
-use async_std::fs as AsyncFS;
-use async_std::path as AsyncPath;
-use async_std::sync::Arc as AsyncArc;
-use async_std::sync::Mutex as AsyncMutex;
+use async_std::{
+    fs as AsyncFS, path as AsyncPath,
+    sync::{Arc, Mutex as AsyncMutex},
+};
 mod custom_errors;
 use async_trait as async_trait_crate;
 //=========================
@@ -15,7 +15,7 @@ pub enum Flag {
     Auto,
     New,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CodeStatus {
     SyncCode(SyncPack),
     AsyncCode(AsyncPack),
@@ -39,14 +39,14 @@ impl CodeStatus {
         if let Self::SyncCode(value) = self {
             value
         } else {
-            panic!("AsyncPack - `get_pack_mut`")
+            panic!("SyncPack - `get_pack_mut`")
         }
     }
     pub fn get_sync_pack(&self) -> &SyncPack {
         if let Self::SyncCode(value) = self {
             value
         } else {
-            panic!("AsyncPack - `get_pack`")
+            panic!("SyncPack - `get_pack`")
         }
     }
 }
@@ -59,7 +59,7 @@ pub struct AsyncPack {
     flag: Flag,
     update_path: bool,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SyncPack {
     request_items: Vec<String>,
     user_path: std::path::PathBuf,
@@ -69,7 +69,7 @@ pub struct SyncPack {
     update_path: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct QFilePath {
     context: CodeStatus,
 }

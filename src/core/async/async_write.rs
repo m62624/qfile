@@ -1,9 +1,7 @@
-use super::{AsyncFS, AsyncPath, QFilePath};
-use crate::core::{r#async::async_trait::AsyncQPack, Flag};
+use super::{AsyncFS, AsyncPath, Error, QFilePath};
+use crate::core::{r#async::async_trait::QFileAsync, Flag};
 use async_recursion::async_recursion;
 use async_std::io::WriteExt;
-use std::error::Error;
-/// ASYNC AUTO WRITE
 #[async_recursion]
 pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
     slf: &mut QFilePath,

@@ -1,21 +1,29 @@
 use super::{
     super::{async_trait_crate::async_trait, AsyncPath, QFilePath},
-    add_path_for_async, async_directory_create, async_get_path_buf, async_get_path_string,
-    async_read::*,
+    add_path_for_async, async_directory_create, async_get_path_buf,
+    async_read::async_read,
     async_write::{async_auto_write, async_write_only_new},
+    Arc, Error,
 };
-pub use async_std::sync::{Arc as AsyncArc, Mutex as AsyncMutex};
-use std::error::Error;
-//======================================================================
+pub use async_std::sync::Mutex as AsyncMutex;
+
 #[async_trait]
-pub trait AsyncQPack {
+pub trait QFileAsync {
     fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
         path_file: T,
-    ) -> Result<AsyncArc<AsyncMutex<Self>>, Box<dyn Error + Send + Sync>>;
+    ) -> Result<Arc<AsyncMutex<Self>>, Box<dyn Error + Send + Sync>>;
     async fn async_get_path_buf(
         self: &mut Self,
     ) -> Result<AsyncPath::PathBuf, Box<dyn Error + Send + Sync>>;
-    async fn async_get_path_string(&mut self) -> Result<String, Box<dyn Error + Send + Sync>>;
+    async fn async_get_path_string(&mut self) -> Result<String, Box<dyn Error + Send + Sync>> {
+        Ok(self
+            .async_get_path_buf()
+            .await?
+            .to_str()
+            .unwrap()
+            .to_owned())
+    }
+    #[allow(unused_variables)]
     async fn async_change_path<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
         self: &mut Self,
         path: T,
@@ -31,14 +39,11 @@ pub trait AsyncQPack {
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn async_directory_create(&mut self) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
-//======================================================================
+
 #[async_trait]
-impl AsyncQPack for QFilePath {
+impl QFileAsync for QFilePath {
     async fn async_directory_create(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
         Ok(async_directory_create(self).await?)
-    }
-    async fn async_get_path_string(&mut self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        Ok(async_get_path_string(self).await?)
     }
     async fn async_read(&mut self) -> Result<String, Box<dyn Error + Send + Sync>> {
         Ok(async_read(self).await?)
@@ -57,7 +62,7 @@ impl AsyncQPack for QFilePath {
     }
     fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
         path_file: T,
-    ) -> Result<AsyncArc<AsyncMutex<Self>>, Box<dyn Error + Send + Sync>> {
+    ) -> Result<Arc<AsyncMutex<Self>>, Box<dyn Error + Send + Sync>> {
         Ok(add_path_for_async(path_file)?)
     }
     async fn async_change_path<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
