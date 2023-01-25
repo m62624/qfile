@@ -1,4 +1,5 @@
 use super::add_path;
+use super::get_path::get_path_buf;
 use crate::QFilePath;
 use std::error::Error;
 use std::path::PathBuf;
@@ -31,5 +32,8 @@ pub trait SyncQPack {
 impl SyncQPack for QFilePath {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
         Ok(add_path(path_file)?)
+    }
+    fn get_path_buf(self: &mut Self) -> Result<PathBuf, Box<dyn Error>> {
+        Ok(get_path_buf(self)?)
     }
 }

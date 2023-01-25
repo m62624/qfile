@@ -1,11 +1,19 @@
 mod sync_read;
 pub mod sync_trait;
 mod sync_write;
-use crate::{QFilePath, QPackError};
+use super::custom_errors::SyncIO;
+use crate::{
+    core::{sync::sync_trait::SyncQPack, Flag},
+    QFilePath, QPackError,
+};
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::{error::Error, fs::File, path::PathBuf};
-mod get_path;
+use std::{
+    error::Error,
+    fs::{self, File},
+    path::PathBuf,
+};
+pub mod get_path;
 impl QFilePath {
     fn way_step_by_step(&mut self) {
         fn first_slash(sl: &mut QFilePath) {
@@ -66,6 +74,7 @@ impl QFilePath {
             Err(err) => Err(Box::new(err)),
         }
     }
+
     fn directory_contents(path: &str) -> Vec<String> {
         let mut files: Vec<String> = Vec::new();
         if let Ok(mut paths) = std::fs::read_dir(path) {
@@ -81,6 +90,33 @@ impl QFilePath {
         }
         return files;
     }
+
+    fn dir_create(self: &mut Self, err: std::io::ErrorKind) -> Result<(), Box<dyn Error>> {
+        match err {
+            std::io::ErrorKind::NotFound => {
+                let fullpath = QFilePath::get_path_buf(self)?;
+                let filename = fullpath.file_name().unwrap().to_str().unwrap();
+                let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;
+                {
+                    self.context.get_sync_pack_mut().user_path = PathBuf::from(path_without_file);
+                    self.context.get_sync_pack_mut().update_path = true;
+                    self.context.get_sync_pack_mut().file_name = PathBuf::from(filename);
+                    self.context.get_sync_pack_mut().flag = Flag::New;
+                }
+                std::fs::DirBuilder::new()
+                    .recursive(true)
+                    .create(path_without_file)?;
+                Ok(())
+            }
+            _ => Err(Box::new(QPackError::SyncIOError(SyncIO::IO(err.into())))),
+        }
+    }
+}
+
+pub fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
+    Ok(fs::DirBuilder::new()
+        .recursive(true)
+        .create(slf.get_path_buf()?)?)
 }
 
 pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {

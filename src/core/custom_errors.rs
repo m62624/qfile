@@ -17,7 +17,7 @@ pub enum QPackError {
     #[error("Async context error")]
     AsyncIOError(AsyncIO),
     #[error("Sync context error")]
-    SyncIOError(AsyncIO),
+    SyncIOError(SyncIO),
     #[error("Not covered error")]
     NotQPackError,
 }
