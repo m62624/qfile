@@ -1,7 +1,7 @@
 use super::{Error, QFilePath};
 use crate::core::{sync::sync_trait::SyncQPack, Flag};
 use std::io::Write;
-use std::{fs, path, path::PathBuf};
+use std::{fs, path::PathBuf};
 pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box<dyn Error>> {
     //=======================================================
     let sl = slf.context.get_sync_pack();
@@ -72,6 +72,20 @@ pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+pub fn write_only_new<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box<dyn Error>> {
+    slf.context.get_sync_pack_mut().flag = Flag::New;
+    if let Err(err) = auto_write(slf, &text) {
+        if let Ok(err) = err.downcast::<std::io::Error>() {
+            match err.kind() {
+                _ => {
+                    QFilePath::dir_create(slf, err.kind())?;
+                    auto_write(slf, &text)?;
                 }
             }
         }
