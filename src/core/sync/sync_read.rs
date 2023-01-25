@@ -1,6 +1,5 @@
-use super::QFilePath;
-use crate::core::sync::sync_trait::SyncQPack;
-use std::error::Error;
+use super::{Error, QFilePath};
+use crate::core::sync::sync_trait::QFileSync;
 use std::io::Read;
 pub fn read(slf: &mut QFilePath) -> Result<String, Box<dyn Error>> {
     let mut text = String::new();

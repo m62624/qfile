@@ -1,10 +1,9 @@
 use super::{
     super::{async_trait_crate::async_trait, AsyncPath, QFilePath},
-    add_path_for_async, async_directory_create, async_get_path_buf,
-    async_read::async_read,
     async_write::{async_auto_write, async_write_only_new},
-    Arc, Error,
+    Arc, Error, *,
 };
+use crate::core::r#async::async_read::async_read;
 pub use async_std::sync::Mutex as AsyncMutex;
 
 #[async_trait]
@@ -23,7 +22,6 @@ pub trait QFileAsync {
             .unwrap()
             .to_owned())
     }
-    #[allow(unused_variables)]
     async fn async_change_path<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
         self: &mut Self,
         path: T,

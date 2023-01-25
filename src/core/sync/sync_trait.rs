@@ -1,39 +1,50 @@
 use super::add_path;
 use super::get_path::get_path_buf;
-use crate::QFilePath;
+use crate::{
+    core::sync::{
+        directory_create,
+        sync_read::read,
+        sync_write::{auto_write, write_only_new},
+    },
+    QFilePath,
+};
 use std::error::Error;
 use std::path::PathBuf;
-pub trait SyncQPack {
+pub trait QFileSync {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<Self, Box<dyn Error>>
     where
         Self: Sized;
-    fn get_path_buf(self: &mut Self) -> Result<PathBuf, Box<dyn Error>> {
-        todo!()
-    }
-    fn get_path_string(&mut self) -> Result<String, Box<dyn Error>> {
-        todo!()
-    }
-    fn change_path<T: AsRef<str>>(self: &mut Self, path: T) -> Result<(), Box<dyn Error>> {
-        todo!()
-    }
-    fn read(&mut self) -> Result<String, Box<dyn Error>> {
-        todo!()
-    }
-    fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
-        todo!()
-    }
-    fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
-        todo!()
-    }
-    fn directory_create(&mut self) -> Result<(), Box<dyn Error>> {
-        todo!()
-    }
+    fn get_path_buf(self: &mut Self) -> Result<PathBuf, Box<dyn Error>>;
+    fn get_path_string(&mut self) -> Result<String, Box<dyn Error>>;
+    fn change_path<T: AsRef<str>>(self: &mut Self, path: T) -> Result<(), Box<dyn Error>>;
+    fn read(&mut self) -> Result<String, Box<dyn Error>>;
+    fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>>;
+    fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>>;
+    fn directory_create(&mut self) -> Result<(), Box<dyn Error>>;
 }
-impl SyncQPack for QFilePath {
+impl QFileSync for QFilePath {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
         Ok(add_path(path_file)?)
     }
     fn get_path_buf(self: &mut Self) -> Result<PathBuf, Box<dyn Error>> {
         Ok(get_path_buf(self)?)
+    }
+    fn get_path_string(&mut self) -> Result<String, Box<dyn Error>> {
+        Ok(get_path_buf(self)?.to_str().unwrap().to_owned())
+    }
+    fn change_path<T: AsRef<str>>(self: &mut Self, path: T) -> Result<(), Box<dyn Error>> {
+        Ok(self.context.get_sync_pack_mut().user_path = PathBuf::from(path.as_ref()))
+    }
+    fn read(&mut self) -> Result<String, Box<dyn Error>> {
+        Ok(read(self)?)
+    }
+    fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
+        Ok(auto_write(self, text)?)
+    }
+    fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
+        Ok(write_only_new(self, text)?)
+    }
+    fn directory_create(&mut self) -> Result<(), Box<dyn Error>> {
+        Ok(directory_create(self)?)
     }
 }

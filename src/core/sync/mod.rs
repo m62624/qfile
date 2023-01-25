@@ -3,7 +3,7 @@ pub mod sync_trait;
 mod sync_write;
 use super::custom_errors::SyncIO;
 use crate::{
-    core::{sync::sync_trait::SyncQPack, Flag},
+    core::{sync::sync_trait::QFileSync, Flag},
     QFilePath, QPackError,
 };
 use lazy_static::lazy_static;

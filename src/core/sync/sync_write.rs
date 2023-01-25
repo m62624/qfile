@@ -1,5 +1,5 @@
 use super::{Error, QFilePath};
-use crate::core::{sync::sync_trait::SyncQPack, Flag};
+use crate::core::{sync::sync_trait::QFileSync, Flag};
 use std::io::Write;
 use std::{fs, path::PathBuf};
 pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box<dyn Error>> {
@@ -32,9 +32,10 @@ pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box
         crate::core::Flag::Old => {
             let temp = QFilePath::get_path_buf(slf)?;
             slf.context.get_sync_pack_mut().flag = Flag::Auto;
-            let mut temp = fs::OpenOptions::new().append(true).open(temp).unwrap();
-            let temp = temp.write_all(text.as_ref().as_bytes());
-            temp.unwrap();
+            fs::OpenOptions::new()
+                .append(true)
+                .open(temp)?
+                .write_all(text.as_ref().as_bytes())?;
         }
         Flag::New => {
             let path = QFilePath::get_path_buf(slf)?;
@@ -44,12 +45,14 @@ pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box
                     let temp = QFilePath::get_path_buf(slf)?;
                     slf.context.get_sync_pack_mut().update_path = false;
                     slf.context.get_sync_pack_mut().flag = Flag::Auto;
-                    let mut temp = fs::OpenOptions::new().write(true).create(true).open(temp)?;
-                    let temp = temp.write_all(text.as_ref().as_bytes());
-                    temp.unwrap();
+                    fs::OpenOptions::new()
+                        .write(true)
+                        .create(true)
+                        .open(temp)?
+                        .write_all(text.as_ref().as_bytes())?;
                 }
                 Err(err) => {
-                    return Err(Box::new(err) as Box<dyn Error + Send + Sync>);
+                    return Err(Box::new(err) as Box<dyn Error>);
                 }
             };
         }

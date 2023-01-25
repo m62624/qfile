@@ -1,5 +1,5 @@
-use super::{AsyncFS, AsyncPath, Error, QFilePath};
-use crate::core::{r#async::async_trait::QFileAsync, Flag};
+use super::{AsyncFS, AsyncPath, Error, Flag, QFilePath};
+use crate::core::r#async::async_trait::QFileAsync;
 use async_recursion::async_recursion;
 use async_std::io::WriteExt;
 #[async_recursion]
