@@ -1,10 +1,67 @@
 mod sync_read;
 pub mod sync_trait;
 mod sync_write;
+use crate::{QFilePath, QPackError};
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::error::Error;
 use std::path::PathBuf;
+impl QFilePath {
+    fn way_step_by_step(&mut self) {
+        fn first_slash(sl: &mut QFilePath) {
+            let slf = sl.context.get_sync_pack_mut();
+            let temp = slf.user_path.display().to_string();
+            if cfg!(unix) {
+                lazy_static! {
+                    static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
+                }
+                if !SL.is_match(&temp) {
+                    slf.user_path =
+                        PathBuf::from(format!("./{}", slf.user_path.display()));
+                }
+            }
+            if cfg!(windows) {
+                lazy_static! {
+                    static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
+                }
+                if !SL.is_match(&temp) {
+                    slf.user_path =
+                        PathBuf::from(format!(".\\{}", slf.user_path.display()));
+                }
+            }
+        }
+        first_slash(self);
+        let slf = self.context.get_sync_pack_mut();
+        slf.request_items = slf
+            .user_path
+            .ancestors()
+            .map(|element| element.display().to_string())
+            .collect();
+        if slf.request_items.last().unwrap().eq("") {
+            slf.request_items.pop();
 
-use crate::{QFilePath, QPackError};
+            if let Some(value) = slf.request_items.last_mut() {
+                if cfg!(unix) {
+                    if value.eq(&mut ".") {
+                        *value = String::from("./")
+                    }
+                    if value.eq(&mut "..") {
+                        *value = String::from("../")
+                    }
+                }
+                if cfg!(windows) {
+                    if value.eq(&mut ".") {
+                        *value = String::from(".\\")
+                    }
+                    if value.eq(&mut "..") {
+                        *value = String::from("..\\")
+                    }
+                }
+            }
+        }
+        slf.request_items.reverse();
+    }
+}
 pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
     if path_file.as_ref().to_string().is_empty() {
         return Err(Box::new(QPackError::PathIsEmpty));
