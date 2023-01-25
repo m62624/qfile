@@ -5,6 +5,7 @@ use crate::{QFilePath, QPackError};
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{error::Error, fs::File, path::PathBuf};
+mod get_path;
 impl QFilePath {
     fn way_step_by_step(&mut self) {
         fn first_slash(sl: &mut QFilePath) {
@@ -65,8 +66,24 @@ impl QFilePath {
             Err(err) => Err(Box::new(err)),
         }
     }
+    fn directory_contents(path: &str) -> Vec<String> {
+        let mut files: Vec<String> = Vec::new();
+        if let Ok(mut paths) = std::fs::read_dir(path) {
+            loop {
+                if let Some(item) = paths.next() {
+                    if let Ok(items) = item {
+                        files.push(items.path().display().to_string());
+                    };
+                } else {
+                    break;
+                }
+            }
+        }
+        return files;
+    }
 }
-pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error + Send + Sync>> {
+
+pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
     if path_file.as_ref().to_string().is_empty() {
         return Err(Box::new(QPackError::PathIsEmpty));
     }
