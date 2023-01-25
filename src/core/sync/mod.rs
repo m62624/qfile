@@ -4,8 +4,7 @@ mod sync_write;
 use crate::{QFilePath, QPackError};
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::error::Error;
-use std::path::PathBuf;
+use std::{error::Error, fs::File, path::PathBuf};
 impl QFilePath {
     fn way_step_by_step(&mut self) {
         fn first_slash(sl: &mut QFilePath) {
@@ -16,8 +15,7 @@ impl QFilePath {
                     static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
                 }
                 if !SL.is_match(&temp) {
-                    slf.user_path =
-                        PathBuf::from(format!("./{}", slf.user_path.display()));
+                    slf.user_path = PathBuf::from(format!("./{}", slf.user_path.display()));
                 }
             }
             if cfg!(windows) {
@@ -25,8 +23,7 @@ impl QFilePath {
                     static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
                 }
                 if !SL.is_match(&temp) {
-                    slf.user_path =
-                        PathBuf::from(format!(".\\{}", slf.user_path.display()));
+                    slf.user_path = PathBuf::from(format!(".\\{}", slf.user_path.display()));
                 }
             }
         }
@@ -61,8 +58,15 @@ impl QFilePath {
         }
         slf.request_items.reverse();
     }
+
+    fn return_file(path: &str) -> Result<File, Box<dyn Error>> {
+        match File::open(path) {
+            Ok(file) => Ok(file),
+            Err(err) => Err(Box::new(err)),
+        }
+    }
 }
-pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
+pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error + Send + Sync>> {
     if path_file.as_ref().to_string().is_empty() {
         return Err(Box::new(QPackError::PathIsEmpty));
     }
