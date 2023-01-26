@@ -118,6 +118,13 @@ pub fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
         .recursive(true)
         .create(slf.get_path_buf()?)?)
 }
+pub fn get_file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
+    let path = slf.get_path_string()?;
+    match QFilePath::return_file(&path) {
+        Ok(file) => return Ok(file),
+        Err(err) => return Err(err),
+    }
+}
 
 pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
     if path_file.as_ref().to_string().is_empty() {

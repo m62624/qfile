@@ -45,7 +45,6 @@ impl QFilePath {
             .collect();
         if slf.request_items.last().unwrap().eq("") {
             slf.request_items.pop();
-
             if let Some(value) = slf.request_items.last_mut() {
                 if cfg!(unix) {
                     if value.eq(&mut ".") {

@@ -1,5 +1,5 @@
-use super::add_path;
 use super::get_path::get_path_buf;
+use super::{add_path, get_file};
 use crate::{
     core::sync::{
         directory_create,
@@ -21,6 +21,7 @@ pub trait QFileSync {
     fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>>;
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>>;
     fn directory_create(&mut self) -> Result<(), Box<dyn Error>>;
+    fn get_file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>>;
 }
 impl QFileSync for QFilePath {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
@@ -46,5 +47,8 @@ impl QFileSync for QFilePath {
     }
     fn directory_create(&mut self) -> Result<(), Box<dyn Error>> {
         Ok(directory_create(self)?)
+    }
+    fn get_file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
+        Ok(get_file(slf)?)
     }
 }
