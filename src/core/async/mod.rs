@@ -112,7 +112,7 @@ impl QFilePath {
                 Ok(())
             }
             _ => Err(Box::new(QPackError::AsyncIOError(
-                super::custom_errors::AsyncIO::IO(Arc::new(err.into())),
+                super::custom_errors::AsyncIO::IO(err.into()),
             ))),
         }
     }

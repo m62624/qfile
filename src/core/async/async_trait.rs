@@ -68,7 +68,11 @@ impl QFileAsync for QFilePath {
         self: &mut Self,
         path: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
-        Ok(self.context.get_async_pack_mut().user_path = AsyncPath::PathBuf::from(path.as_ref()))
+        Ok({
+            self.context.get_async_pack_mut().user_path = AsyncPath::PathBuf::from(path.as_ref());
+            self.context.get_async_pack_mut().correct_path = Default::default();
+            self.context.get_async_pack_mut().request_items.clear();
+        })
     }
     async fn async_get_path_buf(
         self: &mut Self,

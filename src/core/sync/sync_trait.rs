@@ -34,7 +34,11 @@ impl QFileSync for QFilePath {
         Ok(get_path_buf(self)?.to_str().unwrap().to_owned())
     }
     fn change_path<T: AsRef<str>>(self: &mut Self, path: T) -> Result<(), Box<dyn Error>> {
-        Ok(self.context.get_sync_pack_mut().user_path = PathBuf::from(path.as_ref()))
+        Ok({
+            self.context.get_sync_pack_mut().user_path = PathBuf::from(path.as_ref());
+            self.context.get_sync_pack_mut().correct_path = Default::default();
+            self.context.get_sync_pack_mut().request_items.clear();
+        })
     }
     fn read(&mut self) -> Result<String, Box<dyn Error>> {
         Ok(read(self)?)

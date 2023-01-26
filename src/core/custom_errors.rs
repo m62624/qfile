@@ -32,7 +32,7 @@ pub enum QPackError {
 #[derive(Error, Debug)]
 pub enum AsyncIO {
     #[error("Async Error from IO")]
-    IO(#[from] Arc<async_std::io::Error>),
+    IO(#[from] async_std::io::Error),
 }
 #[derive(Error, Debug)]
 pub enum SyncIO {
