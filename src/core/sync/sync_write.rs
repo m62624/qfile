@@ -69,7 +69,7 @@ pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box
                     if let Ok(err) = err.downcast::<std::io::Error>() {
                         match err.kind() {
                             _ => {
-                                let dir = QFilePath::dir_create(slf, err.kind());
+                                let dir = QFilePath::path_create(slf, err.kind());
                                 dir.unwrap();
                                 auto_write(slf, text)?;
                             }
@@ -87,7 +87,7 @@ pub fn write_only_new<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(),
         if let Ok(err) = err.downcast::<std::io::Error>() {
             match err.kind() {
                 _ => {
-                    QFilePath::dir_create(slf, err.kind())?;
+                    QFilePath::path_create(slf, err.kind())?;
                     auto_write(slf, &text)?;
                 }
             }

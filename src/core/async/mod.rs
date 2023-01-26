@@ -73,6 +73,7 @@ impl QFilePath {
             Err(err) => Err(Box::new(err)),
         }
     }
+
     async fn async_directory_contents(path: &str) -> Vec<String> {
         let mut files: Vec<String> = Vec::new();
         if let Ok(mut paths) = async_std::fs::read_dir(path).await {
@@ -88,7 +89,7 @@ impl QFilePath {
         }
         return files;
     }
-    async fn async_dir_create(
+    async fn async_path_create(
         self: &mut Self,
         err: async_std::io::ErrorKind,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -125,6 +126,15 @@ pub async fn async_directory_create(
         .recursive(true)
         .create(slf.async_get_path_buf().await?)
         .await?)
+}
+pub async fn async_get_file(
+    slf: &mut QFilePath,
+) -> Result<AsyncFS::File, Box<dyn Error + Send + Sync>> {
+    let path = slf.async_get_path_string().await?;
+    match QFilePath::async_return_file(&path).await {
+        Ok(file) => return Ok(file),
+        Err(err) => return Err(err),
+    }
 }
 
 pub fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>(

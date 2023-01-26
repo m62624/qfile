@@ -36,6 +36,7 @@ pub trait QFileAsync {
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn async_directory_create(&mut self) -> Result<(), Box<dyn Error + Send + Sync>>;
+    async fn async_get_file(&mut self) -> Result<AsyncFS::File, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
@@ -73,5 +74,8 @@ impl QFileAsync for QFilePath {
         self: &mut Self,
     ) -> Result<AsyncPath::PathBuf, Box<dyn Error + Send + Sync>> {
         Ok(async_get_path_buf(self).await?)
+    }
+    async fn async_get_file(&mut self) -> Result<AsyncFS::File, Box<dyn Error + Send + Sync>> {
+        Ok(async_get_file(self).await?)
     }
 }

@@ -91,7 +91,7 @@ impl QFilePath {
         return files;
     }
 
-    fn dir_create(self: &mut Self, err: std::io::ErrorKind) -> Result<(), Box<dyn Error>> {
+    fn path_create(self: &mut Self, err: std::io::ErrorKind) -> Result<(), Box<dyn Error>> {
         match err {
             std::io::ErrorKind::NotFound => {
                 let fullpath = QFilePath::get_path_buf(self)?;
