@@ -3,7 +3,7 @@ use crate::core::r#async::async_trait::QFileAsync;
 use async_recursion::async_recursion;
 use async_std::io::WriteExt;
 #[async_recursion]
-pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+pub async fn async_auto_write<T: AsRef<str> + Send + Sync>(
     slf: &mut QFilePath,
     text: T,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -89,7 +89,7 @@ pub async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::S
     Ok(())
 }
 #[async_recursion]
-pub async fn async_write_only_new<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+pub async fn async_write_only_new<T: AsRef<str> + Send + Sync>(
     slf: &mut QFilePath,
     text: T,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {

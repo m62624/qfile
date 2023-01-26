@@ -8,7 +8,7 @@ pub use async_std::sync::Mutex as AsyncMutex;
 
 #[async_trait]
 pub trait QFileAsync {
-    fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+    fn add_path_for_async<T: AsRef<str> + Send + Sync>(
         path_file: T,
     ) -> Result<Arc<AsyncMutex<Self>>, Box<dyn Error + Send + Sync>>;
     async fn async_get_path_buf(
@@ -22,16 +22,16 @@ pub trait QFileAsync {
             .unwrap()
             .to_owned())
     }
-    async fn async_change_path<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+    async fn async_change_path<T: AsRef<str> + Send + Sync>(
         self: &mut Self,
         path: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn async_read(&mut self) -> Result<String, Box<dyn Error + Send + Sync>>;
-    async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+    async fn async_auto_write<T: AsRef<str> + Send + Sync>(
         &mut self,
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
-    async fn async_write_only_new<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+    async fn async_write_only_new<T: AsRef<str> + Send + Sync>(
         &mut self,
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
@@ -47,24 +47,24 @@ impl QFileAsync for QFilePath {
     async fn async_read(&mut self) -> Result<String, Box<dyn Error + Send + Sync>> {
         Ok(async_read(self).await?)
     }
-    async fn async_auto_write<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+    async fn async_auto_write<T: AsRef<str> + Send + Sync>(
         &mut self,
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
         Ok(async_auto_write(self, text).await?)
     }
-    async fn async_write_only_new<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+    async fn async_write_only_new<T: AsRef<str> + Send + Sync>(
         &mut self,
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
         Ok(async_write_only_new(self, text).await?)
     }
-    fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+    fn add_path_for_async<T: AsRef<str> + Send + Sync>(
         path_file: T,
     ) -> Result<Arc<AsyncMutex<Self>>, Box<dyn Error + Send + Sync>> {
         Ok(add_path_for_async(path_file)?)
     }
-    async fn async_change_path<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+    async fn async_change_path<T: AsRef<str> + Send + Sync>(
         self: &mut Self,
         path: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {

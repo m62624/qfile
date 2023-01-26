@@ -112,7 +112,7 @@ impl QFilePath {
                 Ok(())
             }
             _ => Err(Box::new(QPackError::AsyncIOError(
-                super::custom_errors::AsyncIO::IO(err.into()),
+                super::custom_errors::AsyncIO::IO(Arc::new(err.into())),
             ))),
         }
     }
@@ -136,7 +136,7 @@ pub async fn async_get_file(
     }
 }
 
-pub fn add_path_for_async<T: AsRef<str> + std::marker::Send + std::marker::Sync>(
+pub fn add_path_for_async<T: AsRef<str> + Send + Sync>(
     path_file: T,
 ) -> Result<Arc<async_trait::AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>> {
     if path_file.as_ref().is_empty() {

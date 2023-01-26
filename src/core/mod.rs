@@ -9,7 +9,7 @@ use async_trait as async_trait_crate;
 pub mod r#async;
 pub mod r#sync;
 //=========================
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Flag {
     Old,
     Auto,
@@ -25,28 +25,28 @@ impl CodeStatus {
         if let Self::AsyncCode(value) = self {
             value
         } else {
-            panic!("AsyncPack - `get_pack_mut`")
+            panic!("{}", QPackError::AsyncCallFromSync);
         }
     }
     pub fn get_async_pack(&self) -> &AsyncPack {
         if let Self::AsyncCode(value) = self {
             value
         } else {
-            panic!("AsyncPack - `get_pack`")
+            panic!("{}", QPackError::AsyncCallFromSync);
         }
     }
     pub fn get_sync_pack_mut(&mut self) -> &mut SyncPack {
         if let Self::SyncCode(value) = self {
             value
         } else {
-            panic!("SyncPack - `get_pack_mut`")
+            panic!("{}", QPackError::SyncCallFromAsync)
         }
     }
     pub fn get_sync_pack(&self) -> &SyncPack {
         if let Self::SyncCode(value) = self {
             value
         } else {
-            panic!("SyncPack - `get_pack`")
+            panic!("{}", QPackError::SyncCallFromAsync)
         }
     }
 }

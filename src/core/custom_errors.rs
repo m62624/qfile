@@ -24,11 +24,15 @@ pub enum QPackError {
     /// Returns an error if you try to get `QPackError` from `Box<dyn Error>` that contains error != `QPackError`.
     #[error("Not covered error")]
     NotQPackError,
+    #[error("Asynchronous call from SyncPack (use a similar function from SyncPack)")]
+    AsyncCallFromSync,
+    #[error("Synchronous call from AsyncPack (use a similar function from SyncPack)")]
+    SyncCallFromAsync,
 }
 #[derive(Error, Debug)]
 pub enum AsyncIO {
     #[error("Async Error from IO")]
-    IO(#[from] async_std::io::Error),
+    IO(#[from] Arc<async_std::io::Error>),
 }
 #[derive(Error, Debug)]
 pub enum SyncIO {
@@ -44,6 +48,7 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for QPackError {
         QPackError::NotQPackError
     }
 }
+
 impl From<Box<dyn std::error::Error>> for QPackError {
     fn from(value: Box<dyn std::error::Error>) -> Self {
         if let Ok(unpacked_value) = value.downcast::<QPackError>() {
@@ -58,22 +63,19 @@ impl From<Result<Arc<AsyncMutex<QFilePath>>, Box<dyn std::error::Error + Send + 
 {
     fn from(
         value: Result<Arc<AsyncMutex<QFilePath>>, Box<dyn std::error::Error + Send + Sync>>,
-    ) -> Self {
-        QPackError::from(value.err().unwrap())
-    }
-}
-impl From<Result<QFilePath, Box<dyn std::error::Error>>> for QPackError {
-    fn from(value: Result<QFilePath, Box<dyn std::error::Error>>) -> Self {
-        QPackError::from(value.err().unwrap())
-    }
-}
-//===========================================================================
-
-impl<'a> From<&'a Box<dyn std::error::Error>> for &'a QPackError {
-    fn from(value: &Box<dyn std::error::Error>) -> &QPackError {
-        if let Some(unpacked_value) = value.downcast_ref::<QPackError>() {
-            return unpacked_value;
+    ) -> QPackError {
+        if let Some(x) = value.err() {
+            return x.into();
         }
-        &QPackError::NotQPackError
+        QPackError::NotQPackError
+    }
+}
+
+impl From<Result<QFilePath, Box<dyn std::error::Error>>> for QPackError {
+    fn from(value: Result<QFilePath, Box<dyn std::error::Error>>) -> QPackError {
+        if let Some(x) = value.err() {
+            return x.into();
+        }
+        QPackError::NotQPackError
     }
 }
