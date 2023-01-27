@@ -42,8 +42,8 @@ pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box
             let file = fs::File::create(path);
             match file {
                 Ok(_) => {
-                    let temp = QFilePath::get_path_buf(slf)?;
                     slf.context.get_sync_pack_mut().update_path = false;
+                    let temp = QFilePath::get_path_buf(slf)?;
                     slf.context.get_sync_pack_mut().flag = Flag::Auto;
                     fs::OpenOptions::new()
                         .write(true)

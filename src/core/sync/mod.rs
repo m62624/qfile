@@ -137,7 +137,7 @@ pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>
         }
     } else if cfg!(windows) {
         if path_file.to_str().unwrap().contains("/") {
-            return Err(Box::new(QPackError::UnixPathIsIncorrect));
+            return Err(Box::new(QPackError::WindowsPathIsIncorrect));
         }
     } else {
         return Err(Box::new(QPackError::SystemNotDefined));

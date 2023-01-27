@@ -309,7 +309,7 @@ mod r#async {
         #[async_std::test]
         #[should_panic(expected = "PermissionDenied")]
         async fn read_error() {
-            QFilePath::add_path_for_async("C:\\Windows\\System32\\winrm.vbs")
+            QFilePath::add_path_for_async("C:\\Windows\\Temp")
                 .unwrap()
                 .lock()
                 .await
@@ -563,7 +563,7 @@ mod r#sync {
         #[async_std::test]
         #[should_panic(expected = "PermissionDenied")]
         async fn read_error() {
-            QFilePath::add_path("C:\\Windows\\System32\\winrm.vbs")
+            QFilePath::add_path("C:\\Windows\\Temp")
                 .unwrap()
                 .read()
                 .unwrap();

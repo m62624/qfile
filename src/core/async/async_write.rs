@@ -45,8 +45,8 @@ pub async fn async_auto_write<T: AsRef<str> + Send + Sync>(
             let async_file = AsyncFS::File::create(QFilePath::async_get_path_buf(slf).await?).await;
             match async_file {
                 Ok(_) => {
-                    let async_temp = QFilePath::async_get_path_buf(slf).await?;
                     slf.context.get_async_pack_mut().update_path = false;
+                    let async_temp = QFilePath::async_get_path_buf(slf).await?;
                     slf.context.get_async_pack_mut().flag = Flag::Auto;
                     let mut async_temp = AsyncFS::OpenOptions::new()
                         .write(true)
