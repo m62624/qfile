@@ -7,11 +7,11 @@ use async_std::stream::StreamExt;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::error::Error;
+pub mod async_find;
 mod async_read;
 pub mod async_trait;
 pub mod async_write;
 pub mod get_path;
-
 impl QFilePath {
     async fn async_way_step_by_step(&mut self) {
         async fn first_slash(sl: &mut QFilePath) {
@@ -73,21 +73,6 @@ impl QFilePath {
         }
     }
 
-    async fn async_directory_contents(path: &str) -> Vec<String> {
-        let mut files: Vec<String> = Vec::new();
-        if let Ok(mut paths) = async_std::fs::read_dir(path).await {
-            loop {
-                if let Some(item) = paths.next().await {
-                    if let Ok(items) = item {
-                        files.push(items.path().display().to_string());
-                    };
-                } else {
-                    break;
-                }
-            }
-        }
-        return files;
-    }
     async fn async_path_create(
         self: &mut Self,
         err: async_std::io::ErrorKind,
@@ -164,4 +149,19 @@ pub fn add_path_for_async<T: AsRef<str> + Send + Sync>(
             update_path: false,
         }),
     })))
+}
+pub async fn async_directory_contents(path: &str) -> Vec<String> {
+    let mut files: Vec<String> = Vec::new();
+    if let Ok(mut paths) = async_std::fs::read_dir(path).await {
+        loop {
+            if let Some(item) = paths.next().await {
+                if let Ok(items) = item {
+                    files.push(items.path().display().to_string());
+                };
+            } else {
+                break;
+            }
+        }
+    }
+    return files;
 }

@@ -20,6 +20,10 @@ pub enum CodeStatus {
     SyncCode(SyncPack),
     AsyncCode(AsyncPack),
 }
+pub enum RootDirectory<T: AsRef<str> + Send + Sync> {
+    ThisPlace(T),
+    Everywhere,
+}
 impl CodeStatus {
     pub fn get_async_pack_mut(&mut self) -> &mut AsyncPack {
         if let Self::AsyncCode(value) = self {

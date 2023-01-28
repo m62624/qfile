@@ -1,3 +1,4 @@
+use super::super::{sync::sync_find::find_paths, RootDirectory};
 use super::get_path::get_path_buf;
 use super::{add_path, get_file};
 use crate::{
@@ -10,6 +11,7 @@ use crate::{
 };
 use std::error::Error;
 use std::path::PathBuf;
+
 pub trait QFileSync {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<Self, Box<dyn Error>>
     where
@@ -22,6 +24,11 @@ pub trait QFileSync {
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>>;
     fn directory_create(&mut self) -> Result<(), Box<dyn Error>>;
     fn get_file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>>;
+    fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
+        sender: std::sync::mpsc::Sender<Option<Vec<std::path::PathBuf>>>,
+        place: RootDirectory<T>,
+        file_name: T,
+    ) -> Result<(), std::sync::mpsc::SendError<Option<Vec<std::path::PathBuf>>>>;
 }
 impl QFileSync for QFilePath {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
@@ -54,5 +61,12 @@ impl QFileSync for QFilePath {
     }
     fn get_file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
         Ok(get_file(slf)?)
+    }
+    fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
+        sender: std::sync::mpsc::Sender<Option<Vec<std::path::PathBuf>>>,
+        place: RootDirectory<T>,
+        file_name: T,
+    ) -> Result<(), std::sync::mpsc::SendError<Option<Vec<std::path::PathBuf>>>> {
+        find_paths(sender, place, file_name)
     }
 }

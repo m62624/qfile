@@ -1,4 +1,4 @@
-use super::{AsyncPath, Error, QFilePath, QPackError};
+use super::{async_directory_contents, AsyncPath, Error, QFilePath, QPackError};
 
 pub async fn async_correct_path(slf: &mut QFilePath) -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut counter = 0;
@@ -6,10 +6,9 @@ pub async fn async_correct_path(slf: &mut QFilePath) -> Result<(), Box<dyn Error
         slf.async_way_step_by_step().await;
     }
     for user_i in 0..slf.context.get_async_pack().request_items.len() {
-        let mut possible_directories = QFilePath::async_directory_contents(
-            slf.context.get_async_pack().request_items[user_i].as_str(),
-        )
-        .await;
+        let mut possible_directories =
+            async_directory_contents(slf.context.get_async_pack().request_items[user_i].as_str())
+                .await;
         for pos_j in 0..possible_directories.len() {
             if slf
                 .context

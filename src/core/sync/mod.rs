@@ -2,6 +2,7 @@ mod sync_read;
 pub mod sync_trait;
 mod sync_write;
 use super::custom_errors::SyncIO;
+pub mod sync_find;
 use crate::{
     core::{sync::sync_trait::QFileSync, Flag},
     QFilePath, QPackError,

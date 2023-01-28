@@ -1,11 +1,12 @@
+pub use super::super::RootDirectory;
 use super::{
     super::{async_trait_crate::async_trait, AsyncPath, QFilePath},
+    async_find::async_find_paths,
     async_write::{async_auto_write, async_write_only_new},
     Arc, Error, *,
 };
 use crate::core::r#async::async_read::async_read;
 pub use async_std::sync::Mutex as AsyncMutex;
-
 #[async_trait]
 pub trait QFileAsync {
     fn add_path_for_async<T: AsRef<str> + Send + Sync>(
@@ -37,6 +38,11 @@ pub trait QFileAsync {
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn async_directory_create(&mut self) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn async_get_file(&mut self) -> Result<AsyncFS::File, Box<dyn Error + Send + Sync>>;
+    async fn async_find_paths<T: AsRef<str> + Send + Sync>(
+        place: RootDirectory<T>,
+        file_name: T,
+        symlink: bool,
+    ) -> Option<Vec<async_std::path::PathBuf>>;
 }
 
 #[async_trait]
@@ -81,5 +87,12 @@ impl QFileAsync for QFilePath {
     }
     async fn async_get_file(&mut self) -> Result<AsyncFS::File, Box<dyn Error + Send + Sync>> {
         Ok(async_get_file(self).await?)
+    }
+    async fn async_find_paths<T: AsRef<str> + Send + Sync>(
+        place: RootDirectory<T>,
+        file_name: T,
+        symlink: bool,
+    ) -> Option<Vec<async_std::path::PathBuf>> {
+        async_find_paths(place, file_name, symlink).await
     }
 }
