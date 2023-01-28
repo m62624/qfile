@@ -1,19 +1,22 @@
+pub mod sync_qfile;
 mod sync_read;
-pub mod sync_trait;
 mod sync_write;
 use super::custom_errors::SyncIO;
 pub mod sync_find;
+
 use crate::{
-    core::{sync::sync_trait::QFileSync, Flag},
+    core::{sync::sync_qfile::TraitQFileSync, Flag},
     QFilePath, QPackError,
 };
 use lazy_static::lazy_static;
 use regex::Regex;
+
 use std::{
     error::Error,
     fs::{self, File},
     path::PathBuf,
 };
+
 pub mod get_path;
 impl QFilePath {
     fn way_step_by_step(&mut self) {

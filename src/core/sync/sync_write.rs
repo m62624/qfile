@@ -1,5 +1,5 @@
 use super::{Error, QFilePath};
-use crate::core::{sync::sync_trait::QFileSync, Flag};
+use crate::core::{sync::sync_qfile::TraitQFileSync, Flag};
 use std::io::Write;
 use std::{fs, path::PathBuf};
 pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box<dyn Error>> {

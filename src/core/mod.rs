@@ -20,8 +20,8 @@ pub enum CodeStatus {
     SyncCode(SyncPack),
     AsyncCode(AsyncPack),
 }
-pub enum RootDirectory<T: AsRef<str> + Send + Sync> {
-    ThisPlace(T),
+pub enum Directory {
+    ThisPlace(String),
     Everywhere,
 }
 impl CodeStatus {

@@ -1,5 +1,5 @@
 use super::{Error, QFilePath};
-use crate::core::r#async::async_trait::QFileAsync;
+use crate::core::r#async::async_qfile::TraitQFileAsync;
 use async_std::io::ReadExt;
 pub async fn async_read(slf: &mut QFilePath) -> Result<String, Box<dyn Error + Send + Sync>> {
     let mut text = String::new();

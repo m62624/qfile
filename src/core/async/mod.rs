@@ -1,17 +1,19 @@
 use super::{Arc, AsyncFS, AsyncPath, Flag, QFilePath, QPackError};
 use crate::core::{
-    r#async::{async_trait::QFileAsync, get_path::async_get_path_buf},
+    r#async::{async_qfile::TraitQFileAsync, get_path::async_get_path_buf},
     AsyncPack, CodeStatus,
 };
+// use std::error::Error;
 use async_std::stream::StreamExt;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::error::Error;
-pub mod async_find;
+mod async_find;
 mod async_read;
-pub mod async_trait;
+pub mod async_qfile;
 pub mod async_write;
 pub mod get_path;
+
 impl QFilePath {
     async fn async_way_step_by_step(&mut self) {
         async fn first_slash(sl: &mut QFilePath) {
@@ -123,7 +125,7 @@ pub async fn async_get_file(
 
 pub fn add_path_for_async<T: AsRef<str> + Send + Sync>(
     path_file: T,
-) -> Result<Arc<async_trait::AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>> {
+) -> Result<Arc<async_qfile::AsyncMutex<QFilePath>>, Box<dyn Error + Send + Sync>> {
     if path_file.as_ref().is_empty() {
         return Err(Box::new(QPackError::PathIsEmpty));
     }
@@ -139,7 +141,7 @@ pub fn add_path_for_async<T: AsRef<str> + Send + Sync>(
     } else {
         return Err(Box::new(QPackError::SystemNotDefined));
     }
-    Ok(Arc::new(async_trait::AsyncMutex::new(QFilePath {
+    Ok(Arc::new(async_qfile::AsyncMutex::new(QFilePath {
         context: CodeStatus::AsyncCode(AsyncPack {
             request_items: Default::default(),
             user_path: AsyncPath::PathBuf::from(path_file.to_owned()),

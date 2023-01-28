@@ -1,6 +1,9 @@
-use super::super::{sync::sync_find::find_paths, RootDirectory};
-use super::get_path::get_path_buf;
-use super::{add_path, get_file};
+use super::{
+    super::Directory,
+    add_path, get_file,
+    get_path::get_path_buf,
+    sync_find::{find_paths, find_regex_paths},
+};
 use crate::{
     core::sync::{
         directory_create,
@@ -9,10 +12,12 @@ use crate::{
     },
     QFilePath,
 };
+
+use regex::Regex;
 use std::error::Error;
 use std::path::PathBuf;
-
-pub trait QFileSync {
+use std::sync::mpsc::{SendError, Sender};
+pub trait TraitQFileSync {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<Self, Box<dyn Error>>
     where
         Self: Sized;
@@ -25,17 +30,24 @@ pub trait QFileSync {
     fn directory_create(&mut self) -> Result<(), Box<dyn Error>>;
     fn get_file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>>;
     fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
-        sender: std::sync::mpsc::Sender<Option<Vec<std::path::PathBuf>>>,
-        place: RootDirectory<T>,
-        file_name: T,
-    ) -> Result<(), std::sync::mpsc::SendError<Option<Vec<std::path::PathBuf>>>>;
+        place: Directory,
+        name: T,
+        follow_link: bool,
+        sender: Sender<std::path::PathBuf>,
+    ) -> Result<(), SendError<std::path::PathBuf>>;
+    fn find_regex_paths(
+        place: Directory,
+        name: Regex,
+        follow_link: bool,
+        sender: Sender<std::path::PathBuf>,
+    ) -> Result<(), SendError<std::path::PathBuf>>;
 }
-impl QFileSync for QFilePath {
+impl TraitQFileSync for QFilePath {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
-        Ok(add_path(path_file)?)
+        add_path(path_file)
     }
     fn get_path_buf(self: &mut Self) -> Result<PathBuf, Box<dyn Error>> {
-        Ok(get_path_buf(self)?)
+        get_path_buf(self)
     }
     fn get_path_string(&mut self) -> Result<String, Box<dyn Error>> {
         Ok(get_path_buf(self)?.to_str().unwrap().to_owned())
@@ -48,25 +60,34 @@ impl QFileSync for QFilePath {
         })
     }
     fn read(&mut self) -> Result<String, Box<dyn Error>> {
-        Ok(read(self)?)
+        read(self)
     }
     fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
-        Ok(auto_write(self, text)?)
+        auto_write(self, text)
     }
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
-        Ok(write_only_new(self, text)?)
+        write_only_new(self, text)
     }
     fn directory_create(&mut self) -> Result<(), Box<dyn Error>> {
-        Ok(directory_create(self)?)
+        directory_create(self)
     }
     fn get_file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
-        Ok(get_file(slf)?)
+        get_file(slf)
     }
     fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
-        sender: std::sync::mpsc::Sender<Option<Vec<std::path::PathBuf>>>,
-        place: RootDirectory<T>,
-        file_name: T,
-    ) -> Result<(), std::sync::mpsc::SendError<Option<Vec<std::path::PathBuf>>>> {
-        find_paths(sender, place, file_name)
+        place: Directory,
+        name: T,
+        follow_link: bool,
+        sender: Sender<std::path::PathBuf>,
+    ) -> Result<(), SendError<std::path::PathBuf>> {
+        find_paths(place, name, follow_link, sender)
+    }
+    fn find_regex_paths(
+        place: Directory,
+        name: Regex,
+        follow_link: bool,
+        sender: Sender<std::path::PathBuf>,
+    ) -> Result<(), SendError<std::path::PathBuf>> {
+        find_regex_paths(place, name, follow_link, sender)
     }
 }

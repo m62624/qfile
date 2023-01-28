@@ -1,5 +1,5 @@
 use async_std::task;
-use qfile::{async_trait::*, sync_trait::*, QFilePath, QPackError};
+use qfile::{async_qfile::*, sync_qfile::*, QFilePath, QPackError};
 use rand::Rng;
 use std::{error::Error, fs, iter};
 pub struct TestFolder {
