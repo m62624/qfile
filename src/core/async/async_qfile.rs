@@ -8,6 +8,7 @@ use super::{
 use crate::core::r#async::async_read::async_read;
 pub use async_std::channel as AsyncChannel;
 use async_std::channel::{SendError, Sender};
+pub use async_std::path as AsyncPathModule;
 use async_std::path::PathBuf;
 pub use async_std::sync::Mutex as AsyncMutex;
 #[async_trait]
