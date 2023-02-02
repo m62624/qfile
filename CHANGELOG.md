@@ -1,4 +1,9 @@
 # Changelog
+## [2.2.3] - 2023.02.02
+### Fixed
+Return `io::Error` instead of `panic` to catch the error (changes on [crates.io](https://crates.io/crates/qfile)): 
+- `auto_write`
+- `write_only_new`
 ## [2.2.2] - 2023.01.21
 ### Changed
 - The operating system definition was changed
