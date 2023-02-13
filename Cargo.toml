@@ -6,19 +6,15 @@ description = "Crate for accessing a file by path, case insensitive. Automatic d
 repository="https://github.com/m62624/qfile"
 categories = ["filesystem"]
 keywords = ["file","async-io","auto-path", "case-insensitive"]
-
 license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 regex = "1.7.0"
 lazy_static = "1.4.0"
-async-std = {version="1.12.0",features = ["attributes"]}
 thiserror = "1.0.38"
 async-trait = "0.1.62"
 async-recursion = "1.0.2"
 walkdir = "2.3.2"
-futures = "0.3.25"
 [dev-dependencies]
 rand="0.8.5"
 [lib]
