@@ -90,6 +90,21 @@ impl QFilePath {
         }
         self.request_items.reverse();
     }
+    fn directory_contents(path: &str) -> Vec<String> {
+        let mut files: Vec<String> = Vec::new();
+        if let Ok(mut paths) = std::fs::read_dir(path) {
+            loop {
+                if let Some(item) = paths.next() {
+                    if let Ok(items) = item {
+                        files.push(items.path().display().to_string());
+                    };
+                } else {
+                    break;
+                }
+            }
+        }
+        return files;
+    }
 }
 
 impl Drop for QFilePath {
