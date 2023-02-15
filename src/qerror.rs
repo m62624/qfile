@@ -28,21 +28,3 @@ pub enum QPackError {
     #[error("Error from IO")]
     IoError(#[from] std::io::Error),
 }
-impl QFilePath {
-    fn check_status_code(&self, status: CodeStatus) -> Result<(), QPackError> {
-        match self.status_mod {
-            CodeStatus::SyncStatus => {
-                if self.status_mod == status {
-                    return Ok(());
-                }
-                return Err(QPackError::AsyncCallFromSync);
-            }
-            CodeStatus::AsyncStatus => {
-                if self.status_mod == status {
-                    return Ok(());
-                }
-                return Err(QPackError::SyncCallFromAsync);
-            }
-        }
-    }
-}

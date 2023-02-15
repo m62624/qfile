@@ -29,6 +29,7 @@ pub enum Directory {
 pub enum CodeStatus {
     SyncStatus,
     AsyncStatus,
+    UncertainState,
 }
 
 #[derive(Debug, Clone)]
@@ -39,7 +40,6 @@ pub struct QFilePath {
     correct_path: PathBuf,
     flag: Flag,
     update_path: bool,
-    status_mod: CodeStatus,
 }
 
 impl QFilePath {
@@ -108,27 +108,10 @@ impl QFilePath {
         }
         return files;
     }
-    pub fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
-        Ok(fs::DirBuilder::new()
-            .recursive(true)
-            .create(get_path_buf(slf)?)?)
-    }
     fn return_file(path: &str) -> Result<fs::File, Box<dyn Error>> {
         match fs::File::open(path) {
             Ok(file) => Ok(file),
             Err(err) => Err(Box::new(err)),
-        }
-    }
-    pub fn file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
-        let path = get_path_buf(slf)?;
-        match path.to_str() {
-            Some(str) => match QFilePath::return_file(str) {
-                Ok(file) => return Ok(file),
-                Err(err) => return Err(err),
-            },
-            None => {
-                return Err(Box::new(QPackError::PathIsIncorrect));
-            }
         }
     }
     fn path_create(self: &mut Self, err: std::io::ErrorKind) -> Result<(), Box<dyn Error>> {
@@ -151,6 +134,48 @@ impl QFilePath {
             _ => Err(Box::new(QPackError::IoError(err.into()))),
         }
     }
+}
+pub fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
+    Ok(fs::DirBuilder::new()
+        .recursive(true)
+        .create(get_path_buf(slf)?)?)
+}
+pub fn file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
+    let path = get_path_buf(slf)?;
+    match path.to_str() {
+        Some(str) => match QFilePath::return_file(str) {
+            Ok(file) => return Ok(file),
+            Err(err) => return Err(err),
+        },
+        None => {
+            return Err(Box::new(QPackError::PathIsIncorrect));
+        }
+    }
+}
+pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
+    if path_file.as_ref().to_string().is_empty() {
+        return Err(Box::new(QPackError::PathIsEmpty));
+    }
+    let path_file = PathBuf::from(path_file.as_ref());
+    if cfg!(unix) {
+        if path_file.to_str().unwrap().contains("\\") {
+            return Err(Box::new(QPackError::UnixPathIsIncorrect));
+        }
+    } else if cfg!(windows) {
+        if path_file.to_str().unwrap().contains("/") {
+            return Err(Box::new(QPackError::WindowsPathIsIncorrect));
+        }
+    } else {
+        return Err(Box::new(QPackError::SystemNotDefined));
+    }
+    Ok(QFilePath {
+        request_items: Default::default(),
+        user_path: path_file,
+        file_name: Default::default(),
+        correct_path: Default::default(),
+        flag: Flag::Auto,
+        update_path: false,
+    })
 }
 impl Drop for QFilePath {
     fn drop(&mut self) {}
