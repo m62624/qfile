@@ -2,11 +2,14 @@
 //!
 //!  Crate for accessing a file by path, case insensitive. Automatic detection, create a path with a new file or open an existing file.
 mod r#async;
+mod get_path;
 mod qerror;
 mod sync;
 use lazy_static::lazy_static;
 pub use qerror::QPackError;
 use regex::Regex;
+use std::error::Error;
+use std::fs;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -22,7 +25,7 @@ pub enum Directory {
     Everywhere,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum CodeStatus {
     SyncStatus,
     AsyncStatus,
@@ -106,7 +109,6 @@ impl QFilePath {
         return files;
     }
 }
-
 impl Drop for QFilePath {
     fn drop(&mut self) {}
 }

@@ -1,3 +1,5 @@
+use super::CodeStatus;
+use super::QFilePath;
 use thiserror::Error;
 #[derive(Error, Debug)]
 /// Error type for handling QFilePath cases
@@ -21,4 +23,22 @@ pub enum QPackError {
     AsyncCallFromSync,
     #[error("Synchronous call from AsyncPack (use a similar function from SyncPack)")]
     SyncCallFromAsync,
+}
+impl QFilePath {
+    fn check_status_code(&self, status: CodeStatus) -> Result<(), QPackError> {
+        match self.status_mod {
+            CodeStatus::SyncStatus => {
+                if self.status_mod == status {
+                    return Ok(());
+                }
+                return Err(QPackError::AsyncCallFromSync);
+            }
+            CodeStatus::AsyncStatus => {
+                if self.status_mod == status {
+                    return Ok(());
+                }
+                return Err(QPackError::SyncCallFromAsync);
+            }
+        }
+    }
 }
