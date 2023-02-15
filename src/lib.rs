@@ -5,13 +5,13 @@ mod r#async;
 mod get_path;
 mod qerror;
 mod sync;
+use get_path::get_path_buf;
 use lazy_static::lazy_static;
 pub use qerror::QPackError;
 use regex::Regex;
 use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
-
 #[derive(Debug, Clone)]
 pub enum Flag {
     Old,
@@ -107,6 +107,49 @@ impl QFilePath {
             }
         }
         return files;
+    }
+    pub fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
+        Ok(fs::DirBuilder::new()
+            .recursive(true)
+            .create(get_path_buf(slf)?)?)
+    }
+    fn return_file(path: &str) -> Result<fs::File, Box<dyn Error>> {
+        match fs::File::open(path) {
+            Ok(file) => Ok(file),
+            Err(err) => Err(Box::new(err)),
+        }
+    }
+    pub fn file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
+        let path = get_path_buf(slf)?;
+        match path.to_str() {
+            Some(str) => match QFilePath::return_file(str) {
+                Ok(file) => return Ok(file),
+                Err(err) => return Err(err),
+            },
+            None => {
+                return Err(Box::new(QPackError::PathIsIncorrect));
+            }
+        }
+    }
+    fn path_create(self: &mut Self, err: std::io::ErrorKind) -> Result<(), Box<dyn Error>> {
+        match err {
+            std::io::ErrorKind::NotFound => {
+                let fullpath = get_path_buf(self)?;
+                let filename = fullpath.file_name().unwrap().to_str().unwrap();
+                let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;
+                {
+                    self.user_path = PathBuf::from(path_without_file);
+                    self.update_path = true;
+                    self.file_name = PathBuf::from(filename);
+                    self.flag = Flag::New;
+                }
+                std::fs::DirBuilder::new()
+                    .recursive(true)
+                    .create(path_without_file)?;
+                Ok(())
+            }
+            _ => Err(Box::new(QPackError::IoError(err.into()))),
+        }
     }
 }
 impl Drop for QFilePath {

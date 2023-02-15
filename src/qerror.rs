@@ -16,6 +16,8 @@ pub enum QPackError {
     /// Returns an error if you specify an empty path
     #[error("The path is empty")]
     PathIsEmpty,
+    #[error("The path is incorrect")]
+    PathIsIncorrect,
     /// Returns an error if you try to get `QPackError` from `Box<dyn Error>` that contains error != `QPackError`.
     #[error("Not covered error")]
     NotQPackError,
@@ -23,6 +25,8 @@ pub enum QPackError {
     AsyncCallFromSync,
     #[error("Synchronous call from AsyncPack (use a similar function from SyncPack)")]
     SyncCallFromAsync,
+    #[error("Error from IO")]
+    IoError(#[from] std::io::Error),
 }
 impl QFilePath {
     fn check_status_code(&self, status: CodeStatus) -> Result<(), QPackError> {
