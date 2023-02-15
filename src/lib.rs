@@ -4,8 +4,7 @@
 mod r#async;
 mod qerror;
 mod sync;
-mod systems;
-use lazy_static;
+use lazy_static::lazy_static;
 pub use qerror::QPackError;
 use regex::Regex;
 use std::path::PathBuf;
@@ -40,7 +39,58 @@ pub struct QFilePath {
     status_mod: CodeStatus,
 }
 
-impl QFilePath {}
+impl QFilePath {
+    fn way_step_by_step(&mut self) {
+        fn first_slash(sl: &mut QFilePath) {
+            let temp = sl.user_path.display().to_string();
+            if cfg!(unix) {
+                lazy_static! {
+                    static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
+                }
+                if !SL.is_match(&temp) {
+                    sl.user_path = PathBuf::from(format!("./{}", sl.user_path.display()));
+                }
+            }
+            if cfg!(windows) {
+                lazy_static! {
+                    static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
+                }
+                if !SL.is_match(&temp) {
+                    sl.user_path = PathBuf::from(format!(".\\{}", sl.user_path.display()));
+                }
+            }
+        }
+        first_slash(self);
+        self.request_items = self
+            .user_path
+            .ancestors()
+            .map(|element| element.display().to_string())
+            .collect();
+        if self.request_items.last().unwrap().eq("") {
+            self.request_items.pop();
+
+            if let Some(value) = self.request_items.last_mut() {
+                if cfg!(unix) {
+                    if value.eq(&mut ".") {
+                        *value = String::from("./")
+                    }
+                    if value.eq(&mut "..") {
+                        *value = String::from("../")
+                    }
+                }
+                if cfg!(windows) {
+                    if value.eq(&mut ".") {
+                        *value = String::from(".\\")
+                    }
+                    if value.eq(&mut "..") {
+                        *value = String::from("..\\")
+                    }
+                }
+            }
+        }
+        self.request_items.reverse();
+    }
+}
 
 impl Drop for QFilePath {
     fn drop(&mut self) {}
