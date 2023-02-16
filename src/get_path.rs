@@ -91,6 +91,6 @@ pub fn get_path_buf(slf: &mut QFilePath) -> Result<PathBuf, Box<dyn Error>> {
     }
     return Err(Box::new(QPackError::SystemNotDefined));
 }
-fn get_path_string(slf: &mut QFilePath) -> Result<String, Box<dyn Error>> {
+pub fn get_path_string(slf: &mut QFilePath) -> Result<String, Box<dyn Error>> {
     Ok(get_path_buf(slf)?.display().to_string())
 }
