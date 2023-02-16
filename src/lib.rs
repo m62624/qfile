@@ -149,50 +149,51 @@ impl QFilePath {
             _ => Err(Box::new(QPackError::IoError(err.into()))),
         }
     }
-}
-fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
-    Ok(fs::DirBuilder::new()
-        .recursive(true)
-        .create(get_path_buf(slf)?)?)
-}
-fn file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
-    let path = get_path_buf(slf)?;
-    match path.to_str() {
-        Some(str) => match QFilePath::return_file(str) {
-            Ok(file) => return Ok(file),
-            Err(err) => return Err(err),
-        },
-        None => {
-            return Err(Box::new(QPackError::PathIsIncorrect));
+    fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
+        Ok(fs::DirBuilder::new()
+            .recursive(true)
+            .create(get_path_buf(slf)?)?)
+    }
+    fn file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
+        let path = get_path_buf(slf)?;
+        match path.to_str() {
+            Some(str) => match QFilePath::return_file(str) {
+                Ok(file) => return Ok(file),
+                Err(err) => return Err(err),
+            },
+            None => {
+                return Err(Box::new(QPackError::PathIsIncorrect));
+            }
         }
     }
-}
-fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
-    if path_file.as_ref().to_string().is_empty() {
-        return Err(Box::new(QPackError::PathIsEmpty));
-    }
-    let path_file = PathBuf::from(path_file.as_ref());
-    if cfg!(unix) {
-        if path_file.to_str().unwrap().contains("\\") {
-            return Err(Box::new(QPackError::UnixPathIsIncorrect));
+    fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
+        if path_file.as_ref().to_string().is_empty() {
+            return Err(Box::new(QPackError::PathIsEmpty));
         }
-    } else if cfg!(windows) {
-        if path_file.to_str().unwrap().contains("/") {
-            return Err(Box::new(QPackError::WindowsPathIsIncorrect));
+        let path_file = PathBuf::from(path_file.as_ref());
+        if cfg!(unix) {
+            if path_file.to_str().unwrap().contains("\\") {
+                return Err(Box::new(QPackError::UnixPathIsIncorrect));
+            }
+        } else if cfg!(windows) {
+            if path_file.to_str().unwrap().contains("/") {
+                return Err(Box::new(QPackError::WindowsPathIsIncorrect));
+            }
+        } else {
+            return Err(Box::new(QPackError::SystemNotDefined));
         }
-    } else {
-        return Err(Box::new(QPackError::SystemNotDefined));
+        Ok(QFilePath {
+            request_items: Default::default(),
+            user_path: path_file,
+            file_name: Default::default(),
+            correct_path: Default::default(),
+            flag: Flag::Auto,
+            update_path: false,
+            status: CodeStatus::SyncStatus,
+        })
     }
-    Ok(QFilePath {
-        request_items: Default::default(),
-        user_path: path_file,
-        file_name: Default::default(),
-        correct_path: Default::default(),
-        flag: Flag::Auto,
-        update_path: false,
-        status: CodeStatus::SyncStatus,
-    })
 }
+
 impl Drop for QFilePath {
     fn drop(&mut self) {}
 }
