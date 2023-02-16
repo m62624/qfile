@@ -6,14 +6,15 @@ use self::{
     sync_write::{auto_write, write_only_new},
 };
 use super::CodeStatus;
+use super::{Directory, Error, QFilePath};
+use crate::get_path::{get_path_buf, get_path_string};
+use crossbeam::channel::{SendError, Sender};
 use regex::Regex;
 use std::path::PathBuf;
-// use super::{add_path, Error, QFilePath};
-use super::{Directory, Error, QFilePath};
-use crossbeam::channel::{SendError, Sender};
-// use crate::{directory_create, file};
 use sync_read::read;
 pub trait TraitQFileSync {
+    fn get_path_buf(&mut self) -> Result<PathBuf, Box<dyn Error>>;
+    fn get_path_string(&mut self) -> Result<String, Box<dyn Error>>;
     fn read(&mut self) -> Result<String, Box<dyn Error>>;
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>>;
     fn directory_create(&mut self) -> Result<(), Box<dyn Error>>;
@@ -36,6 +37,12 @@ pub trait TraitQFileSync {
 impl TraitQFileSync for QFilePath {
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
         QFilePath::add_path(path_file)
+    }
+    fn get_path_buf(&mut self) -> Result<PathBuf, Box<dyn Error>> {
+        get_path_buf(self)
+    }
+    fn get_path_string(&mut self) -> Result<String, Box<dyn Error>> {
+        get_path_string(self)
     }
     fn directory_create(&mut self) -> Result<(), Box<dyn Error>> {
         self.check_status_code(CodeStatus::SyncStatus)?;
