@@ -1,9 +1,13 @@
 mod sync_find;
 mod sync_read;
 mod sync_write;
-use self::sync_write::{auto_write, write_only_new};
+use self::{
+    sync_find::find_paths,
+    sync_write::{auto_write, write_only_new},
+};
 // use super::{add_path, Error, QFilePath};
-use super::{Error, QFilePath};
+use super::{Directory, Error, QFilePath};
+use std::sync::mpsc::{SendError, Sender};
 // use crate::{directory_create, file};
 use sync_read::read;
 pub trait TraitQFileSync {
@@ -13,6 +17,12 @@ pub trait TraitQFileSync {
     fn file(&mut self) -> Result<std::fs::File, Box<dyn Error>>;
     fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>>;
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>>;
+    fn find_paths<T: AsRef<str> + Send + Sync + Copy + 'static>(
+        place: Directory,
+        name: T,
+        follow_link: bool,
+        sender: Sender<std::path::PathBuf>,
+    ) -> Result<(), SendError<std::path::PathBuf>>;
 }
 impl TraitQFileSync for QFilePath {
     fn read(&mut self) -> Result<String, Box<dyn Error>> {
@@ -32,5 +42,13 @@ impl TraitQFileSync for QFilePath {
     }
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
         write_only_new(self, text)
+    }
+    fn find_paths<T: AsRef<str> + Send + Sync + Copy + 'static>(
+        place: Directory,
+        name: T,
+        follow_link: bool,
+        sender: Sender<std::path::PathBuf>,
+    ) -> Result<(), SendError<std::path::PathBuf>> {
+        find_paths(place, name, follow_link, sender)
     }
 }
