@@ -44,6 +44,44 @@ pub struct QFilePath {
 }
 
 impl QFilePath {
+    fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
+        if path_file.as_ref().to_string().is_empty() {
+            return Err(Box::new(QPackError::PathIsEmpty));
+        }
+        let path_file = PathBuf::from(path_file.as_ref());
+        if cfg!(unix) {
+            if path_file.to_str().unwrap().contains("\\") {
+                return Err(Box::new(QPackError::UnixPathIsIncorrect));
+            }
+        } else if cfg!(windows) {
+            if path_file.to_str().unwrap().contains("/") {
+                return Err(Box::new(QPackError::WindowsPathIsIncorrect));
+            }
+        } else {
+            return Err(Box::new(QPackError::SystemNotDefined));
+        }
+        Ok(QFilePath {
+            request_items: Default::default(),
+            user_path: path_file,
+            file_name: Default::default(),
+            correct_path: Default::default(),
+            flag: Flag::Auto,
+            update_path: false,
+            status: CodeStatus::SyncStatus,
+        })
+    }
+    fn check_status_code(&self, status: CodeStatus) -> Result<(), QPackError> {
+        let check = |err_st: QPackError| -> Result<(), QPackError> {
+            if self.status == status {
+                return Ok(());
+            }
+            return Err(err_st);
+        };
+        match self.status {
+            CodeStatus::SyncStatus => check(QPackError::AsyncCallFromSync),
+            CodeStatus::AsyncStatus => check(QPackError::SyncCallFromAsync),
+        }
+    }
     fn way_step_by_step(&mut self) {
         fn first_slash(sl: &mut QFilePath) {
             let temp = sl.user_path.display().to_string();
@@ -165,32 +203,6 @@ impl QFilePath {
                 return Err(Box::new(QPackError::PathIsIncorrect));
             }
         }
-    }
-    fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
-        if path_file.as_ref().to_string().is_empty() {
-            return Err(Box::new(QPackError::PathIsEmpty));
-        }
-        let path_file = PathBuf::from(path_file.as_ref());
-        if cfg!(unix) {
-            if path_file.to_str().unwrap().contains("\\") {
-                return Err(Box::new(QPackError::UnixPathIsIncorrect));
-            }
-        } else if cfg!(windows) {
-            if path_file.to_str().unwrap().contains("/") {
-                return Err(Box::new(QPackError::WindowsPathIsIncorrect));
-            }
-        } else {
-            return Err(Box::new(QPackError::SystemNotDefined));
-        }
-        Ok(QFilePath {
-            request_items: Default::default(),
-            user_path: path_file,
-            file_name: Default::default(),
-            correct_path: Default::default(),
-            flag: Flag::Auto,
-            update_path: false,
-            status: CodeStatus::SyncStatus,
-        })
     }
 }
 

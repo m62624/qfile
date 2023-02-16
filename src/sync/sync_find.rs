@@ -54,3 +54,47 @@ pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
     drop(sender);
     Ok(())
 }
+
+pub fn find_paths_regex(
+    place: Directory,
+    pattern: Regex,
+    follow_link: bool,
+    sender: Sender<PathBuf>,
+) -> Result<(), SendError<PathBuf>> {
+    let mut paths: Vec<String> = Default::default();
+    match place {
+        Directory::ThisPlace(root_d) => {
+            paths.push(root_d);
+        }
+        Directory::Everywhere => {
+            if cfg!(unix) {
+                paths.push("/".to_string());
+            }
+            if cfg!(windows) {
+                for disk in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect::<Vec<char>>() {
+                    let temp = format!("{}:\\", disk);
+                    if std::path::PathBuf::from(&temp).exists() {
+                        paths.push(temp.to_string());
+                    }
+                }
+            }
+        }
+    }
+    for element in paths {
+        WalkDir::new(element)
+            .follow_links(follow_link)
+            .into_iter()
+            .filter_map(|e| e.ok())
+            .collect::<Vec<_>>()
+            .par_iter()
+            .for_each_with(sender.clone(), |sender, entry| {
+                if pattern.is_match(&entry.path().display().to_string()) {
+                    if let Err(err) = sender.send(entry.path().to_path_buf().into()) {
+                        panic!("{}", err);
+                    }
+                }
+            });
+    }
+    drop(sender);
+    Ok(())
+}

@@ -2,13 +2,15 @@ mod sync_find;
 mod sync_read;
 mod sync_write;
 use self::{
-    sync_find::find_paths,
+    sync_find::{find_paths, find_paths_regex},
     sync_write::{auto_write, write_only_new},
 };
+use super::CodeStatus;
+use regex::Regex;
 use std::path::PathBuf;
 // use super::{add_path, Error, QFilePath};
 use super::{Directory, Error, QFilePath};
-use crossbeam::channel::{unbounded, SendError, Sender};
+use crossbeam::channel::{SendError, Sender};
 // use crate::{directory_create, file};
 use sync_read::read;
 pub trait TraitQFileSync {
@@ -24,25 +26,35 @@ pub trait TraitQFileSync {
         follow_link: bool,
         sender: Sender<std::path::PathBuf>,
     ) -> Result<(), SendError<std::path::PathBuf>>;
+    fn find_paths_regex(
+        place: Directory,
+        pattern: Regex,
+        follow_link: bool,
+        sender: Sender<PathBuf>,
+    ) -> Result<(), SendError<PathBuf>>;
 }
 impl TraitQFileSync for QFilePath {
-    fn read(&mut self) -> Result<String, Box<dyn Error>> {
-        read(self)
-    }
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
         QFilePath::add_path(path_file)
     }
     fn directory_create(&mut self) -> Result<(), Box<dyn Error>> {
+        self.check_status_code(CodeStatus::SyncStatus)?;
         QFilePath::directory_create(self)
     }
     fn file(&mut self) -> Result<std::fs::File, Box<dyn Error>> {
         QFilePath::file(self)
     }
     fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
+        self.check_status_code(CodeStatus::SyncStatus)?;
         auto_write(self, text)
     }
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), Box<dyn Error>> {
+        self.check_status_code(CodeStatus::SyncStatus)?;
         write_only_new(self, text)
+    }
+    fn read(&mut self) -> Result<String, Box<dyn Error>> {
+        self.check_status_code(CodeStatus::SyncStatus)?;
+        read(self)
     }
     fn find_paths<T: AsRef<str> + Send + Sync + Copy + 'static>(
         place: Directory,
@@ -51,5 +63,13 @@ impl TraitQFileSync for QFilePath {
         sender: Sender<PathBuf>,
     ) -> Result<(), SendError<PathBuf>> {
         find_paths(place, name, follow_link, sender)
+    }
+    fn find_paths_regex(
+        place: Directory,
+        pattern: Regex,
+        follow_link: bool,
+        sender: Sender<PathBuf>,
+    ) -> Result<(), SendError<PathBuf>> {
+        find_paths_regex(place, pattern, follow_link, sender)
     }
 }
