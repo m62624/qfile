@@ -46,21 +46,33 @@ impl QFilePath {
     fn way_step_by_step(&mut self) {
         fn first_slash(sl: &mut QFilePath) {
             let temp = sl.user_path.display().to_string();
-            if cfg!(unix) {
-                lazy_static! {
-                    static ref SL: Regex = Regex::new(r"^/|^\.\./|^\./").unwrap();
-                }
-                if !SL.is_match(&temp) {
-                    sl.user_path = PathBuf::from(format!("./{}", sl.user_path.display()));
-                }
+            lazy_static! {
+                static ref SL: Regex = {
+                    #[cfg(unix)]
+                    {
+                        Regex::new(r"^/|^\.\./|^\./").unwrap()
+                    }
+                    #[cfg(windows)]
+                    {
+                        Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap()
+                    }
+                };
             }
-            if cfg!(windows) {
-                lazy_static! {
-                    static ref SL: Regex = Regex::new(r"^.:\\|^\.\.\\|^\.\\").unwrap();
-                }
-                if !SL.is_match(&temp) {
-                    sl.user_path = PathBuf::from(format!(".\\{}", sl.user_path.display()));
-                }
+            if !SL.is_match(&temp) {
+                sl.user_path = PathBuf::from(format!(
+                    "{}{}",
+                    {
+                        #[cfg(unix)]
+                        {
+                            "./"
+                        }
+                        #[cfg(windows)]
+                        {
+                            ".\\"
+                        }
+                    },
+                    sl.user_path.display()
+                ));
             }
         }
         first_slash(self);
@@ -73,7 +85,8 @@ impl QFilePath {
             self.request_items.pop();
 
             if let Some(value) = self.request_items.last_mut() {
-                if cfg!(unix) {
+                #[cfg(unix)]
+                {
                     if value.eq(&mut ".") {
                         *value = String::from("./")
                     }
@@ -81,7 +94,8 @@ impl QFilePath {
                         *value = String::from("../")
                     }
                 }
-                if cfg!(windows) {
+                #[cfg(windows)]
+                {
                     if value.eq(&mut ".") {
                         *value = String::from(".\\")
                     }
