@@ -3,24 +3,12 @@ use std::io::Write;
 use std::{fs, path::PathBuf};
 pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box<dyn Error>> {
     if slf.update_path {
-        #[cfg(unix)]
-        {
-            slf.correct_path = PathBuf::from(format!(
-                "{}{}",
-                slf.user_path.to_str().unwrap(),
-                slf.file_name.to_str().unwrap()
-            ))
-        }
-        #[cfg(windows)]
-        {
-            slf.correct_path = PathBuf::from(format!(
-                "{}{}",
-                slf.user_path.to_str().unwrap(),
-                slf.file_name.to_str().unwrap()
-            ))
-        }
+        slf.correct_path = PathBuf::from(format!(
+            "{}{}",
+            slf.user_path.to_str().unwrap(),
+            slf.file_name.to_str().unwrap()
+        ))
     }
-
     match slf.flag {
         Flag::Old => {
             let temp = get_path_buf(slf)?;

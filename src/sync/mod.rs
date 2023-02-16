@@ -5,9 +5,10 @@ use self::{
     sync_find::find_paths,
     sync_write::{auto_write, write_only_new},
 };
+use std::path::PathBuf;
 // use super::{add_path, Error, QFilePath};
 use super::{Directory, Error, QFilePath};
-use std::sync::mpsc::{SendError, Sender};
+use crossbeam::channel::{unbounded, SendError, Sender};
 // use crate::{directory_create, file};
 use sync_read::read;
 pub trait TraitQFileSync {
@@ -47,8 +48,8 @@ impl TraitQFileSync for QFilePath {
         place: Directory,
         name: T,
         follow_link: bool,
-        sender: Sender<std::path::PathBuf>,
-    ) -> Result<(), SendError<std::path::PathBuf>> {
+        sender: Sender<PathBuf>,
+    ) -> Result<(), SendError<PathBuf>> {
         find_paths(place, name, follow_link, sender)
     }
 }
