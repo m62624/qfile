@@ -4,14 +4,16 @@ use std::io::Write;
 use std::{fs, path::PathBuf};
 pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), Box<dyn Error>> {
     if slf.update_path {
-        if cfg!(unix) {
+        #[cfg(unix)]
+        {
             slf.correct_path = PathBuf::from(format!(
                 "{}{}",
                 slf.user_path.to_str().unwrap(),
                 slf.file_name.to_str().unwrap()
             ))
         }
-        if cfg!(windows) {
+        #[cfg(windows)]
+        {
             slf.correct_path = PathBuf::from(format!(
                 "{}{}",
                 slf.user_path.to_str().unwrap(),

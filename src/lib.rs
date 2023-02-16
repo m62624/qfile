@@ -12,8 +12,9 @@ use regex::Regex;
 use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
+pub use sync::TraitQFileSync;
 #[derive(Debug, Clone)]
-pub enum Flag {
+enum Flag {
     Old,
     Auto,
     New,
@@ -26,10 +27,9 @@ pub enum Directory {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum CodeStatus {
+enum CodeStatus {
     SyncStatus,
     AsyncStatus,
-    UncertainState,
 }
 
 #[derive(Debug, Clone)]
@@ -40,6 +40,7 @@ pub struct QFilePath {
     correct_path: PathBuf,
     flag: Flag,
     update_path: bool,
+    status: CodeStatus,
 }
 
 impl QFilePath {
@@ -149,12 +150,12 @@ impl QFilePath {
         }
     }
 }
-pub fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
+fn directory_create(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
     Ok(fs::DirBuilder::new()
         .recursive(true)
         .create(get_path_buf(slf)?)?)
 }
-pub fn file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
+fn file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
     let path = get_path_buf(slf)?;
     match path.to_str() {
         Some(str) => match QFilePath::return_file(str) {
@@ -166,7 +167,7 @@ pub fn file(slf: &mut QFilePath) -> Result<std::fs::File, Box<dyn Error>> {
         }
     }
 }
-pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
+fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
     if path_file.as_ref().to_string().is_empty() {
         return Err(Box::new(QPackError::PathIsEmpty));
     }
@@ -189,6 +190,7 @@ pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>
         correct_path: Default::default(),
         flag: Flag::Auto,
         update_path: false,
+        status: CodeStatus::SyncStatus,
     })
 }
 impl Drop for QFilePath {
