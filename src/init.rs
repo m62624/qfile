@@ -210,13 +210,6 @@ pub mod correct_path {
         }
         Ok(())
     }
-    // fn _core(slf: &mut QFilePath, status: CodeStatus) -> Result<(), Box<dyn Error>> {
-    //     let mut counter = 0;
-    //     if slf.request_items.is_empty() {
-    //         way_step_by_step(slf);
-    //     }
-
-    // }
     pub fn correct_path(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
         let mut counter = 0;
         if slf.request_items.is_empty() {
