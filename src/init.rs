@@ -6,7 +6,7 @@ use futures_lite::stream::StreamExt;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::{error::Error, fs, path::Path};
-mod constructor {
+pub mod constructor {
     use super::*;
     fn core<T: AsRef<str>>(path_file: T, status: CodeStatus) -> Result<QFilePath, Box<dyn Error>> {
         if path_file.as_ref().to_string().is_empty() {
@@ -42,7 +42,7 @@ mod constructor {
     }
 }
 
-mod path_separation {
+pub mod path_separation {
     use super::*;
     fn core(slf: &mut QFilePath) {
         fn first_slash(sl: &mut QFilePath) {
@@ -116,7 +116,7 @@ mod path_separation {
     }
 }
 
-mod work_with_elements {
+pub mod work_with_elements {
     use super::*;
     pub fn directory_contents(path: &str) -> Vec<String> {
         let mut files: Vec<String> = Vec::new();
@@ -162,7 +162,7 @@ mod work_with_elements {
     }
 }
 
-mod correct_path {
+pub mod correct_path {
     use super::path_separation::*;
     use super::work_with_elements::*;
     use super::*;
