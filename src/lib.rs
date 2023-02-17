@@ -34,6 +34,20 @@ pub struct QFilePath {
     update_path: bool,
     status: CodeStatus,
 }
+impl QFilePath {
+    fn check_status_code(&self, status: CodeStatus) -> Result<(), QPackError> {
+        let check = |err_st: QPackError| -> Result<(), QPackError> {
+            if self.status == status {
+                return Ok(());
+            }
+            return Err(err_st);
+        };
+        match self.status {
+            CodeStatus::SyncStatus => check(QPackError::AsyncCallFromSync),
+            CodeStatus::AsyncStatus => check(QPackError::SyncCallFromAsync),
+        }
+    }
+}
 impl Drop for QFilePath {
     fn drop(&mut self) {}
 }
