@@ -1,5 +1,3 @@
-// use self::constructor::add_path;
-
 use super::{CodeStatus, Flag, PathBuf, QFilePath, QPackError};
 use async_fs;
 use futures_lite::stream::StreamExt;
@@ -244,6 +242,50 @@ pub mod correct_path {
             )?;
         }
         Ok(())
+    }
+}
+
+pub mod path_for_write {
+    use super::*;
+    use crate::paths::get_path::*;
+    fn core(slf: &mut QFilePath, fullpath: PathBuf) -> String {
+        let filename = fullpath.file_name().unwrap().to_str().unwrap();
+        let path_without_file = fullpath.to_str().unwrap().rsplit_once(filename).unwrap().0;
+        {
+            slf.user_path = PathBuf::from(path_without_file);
+            slf.update_path = true;
+            slf.file_name = PathBuf::from(filename);
+            slf.flag = Flag::New;
+        };
+        path_without_file.to_string()
+    }
+    pub fn path_create(slf: &mut QFilePath, err: std::io::ErrorKind) -> Result<(), Box<dyn Error>> {
+        match err {
+            std::io::ErrorKind::NotFound => {
+                let fullpath = get_path_buf(slf)?;
+                std::fs::DirBuilder::new()
+                    .recursive(true)
+                    .create(core(slf, fullpath))?;
+                Ok(())
+            }
+            _ => Err(Box::new(QPackError::IoError(err.into()))),
+        }
+    }
+    pub async fn async_path_create(
+        slf: &mut QFilePath,
+        err: std::io::ErrorKind,
+    ) -> Result<(), Box<dyn Error>> {
+        match err {
+            std::io::ErrorKind::NotFound => {
+                let fullpath = async_get_path_buf(slf).await?;
+                async_fs::DirBuilder::new()
+                    .recursive(true)
+                    .create(core(slf, fullpath))
+                    .await?;
+                Ok(())
+            }
+            _ => Err(Box::new(QPackError::IoError(err.into()))),
+        }
     }
 }
 #[test]

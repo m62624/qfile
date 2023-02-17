@@ -5,6 +5,7 @@ mod init;
 mod paths;
 mod qerror;
 mod read;
+// mod write;
 pub use qerror::QPackError;
 use std::path::PathBuf;
 #[derive(Debug, Clone)]
