@@ -3,24 +3,24 @@ use async_fs;
 use futures_lite::stream::StreamExt;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::{error::Error, fs, path::Path};
+use std::{fs, path::Path};
 pub mod constructor {
     use super::*;
-    fn core<T: AsRef<str>>(path_file: T, status: CodeStatus) -> Result<QFilePath, Box<dyn Error>> {
+    fn core<T: AsRef<str>>(path_file: T, status: CodeStatus) -> Result<QFilePath, QPackError> {
         if path_file.as_ref().to_string().is_empty() {
-            return Err(Box::new(QPackError::PathIsEmpty));
+            return Err(QPackError::PathIsEmpty);
         }
         let path_file = PathBuf::from(path_file.as_ref());
         if cfg!(unix) {
             if path_file.to_str().unwrap().contains("\\") {
-                return Err(Box::new(QPackError::UnixPathIsIncorrect));
+                return Err(QPackError::UnixPathIsIncorrect);
             }
         } else if cfg!(windows) {
             if path_file.to_str().unwrap().contains("/") {
-                return Err(Box::new(QPackError::WindowsPathIsIncorrect));
+                return Err(QPackError::WindowsPathIsIncorrect);
             }
         } else {
-            return Err(Box::new(QPackError::SystemNotDefined));
+            return Err(QPackError::SystemNotDefined);
         }
         Ok(QFilePath {
             request_items: Default::default(),
@@ -32,10 +32,10 @@ pub mod constructor {
             status,
         })
     }
-    pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
+    pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError> {
         core(path_file, CodeStatus::SyncStatus)
     }
-    pub async fn async_add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, Box<dyn Error>> {
+    pub async fn async_add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError> {
         core(path_file, CodeStatus::AsyncStatus)
     }
 }
@@ -146,16 +146,16 @@ pub mod work_with_elements {
         }
         return files;
     }
-    pub fn return_file(path: &str) -> Result<fs::File, Box<dyn Error>> {
+    pub fn return_file(path: &str) -> Result<fs::File, QPackError> {
         match fs::File::open(path) {
             Ok(file) => Ok(file),
-            Err(err) => Err(Box::new(err)),
+            Err(err) => Err(QPackError::IoError(err)),
         }
     }
-    pub async fn async_return_file(path: &str) -> Result<async_fs::File, Box<dyn Error>> {
+    pub async fn async_return_file(path: &str) -> Result<async_fs::File, QPackError> {
         match async_fs::File::open(path).await {
             Ok(file) => Ok(file),
-            Err(err) => Err(Box::new(err)),
+            Err(err) => Err(QPackError::IoError(err)),
         }
     }
 }
@@ -170,7 +170,7 @@ pub mod correct_path {
         user_i: usize,
         counter: &mut usize,
         len: usize,
-    ) -> Result<(), Box<dyn Error>> {
+    ) {
         // let mut counter = 0;
         // for user_i in 0..slf.request_items.len() {
         let mut possible_directories = directory_cnt;
@@ -206,9 +206,8 @@ pub mod correct_path {
                 }
             }
         }
-        Ok(())
     }
-    pub fn correct_path(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
+    pub fn correct_path(slf: &mut QFilePath) {
         let mut counter = 0;
         if slf.request_items.is_empty() {
             way_step_by_step(slf);
@@ -221,12 +220,11 @@ pub mod correct_path {
                 user_i,
                 &mut counter,
                 len,
-            )?;
+            );
         }
-        Ok(())
         // core(slf, CodeStatus::SyncStatus)
     }
-    pub async fn async_correct_path(slf: &mut QFilePath) -> Result<(), Box<dyn Error>> {
+    pub async fn async_correct_path(slf: &mut QFilePath) {
         let mut counter = 0;
         if slf.request_items.is_empty() {
             async_way_step_by_step(slf).await;
@@ -239,9 +237,8 @@ pub mod correct_path {
                 user_i,
                 &mut counter,
                 len,
-            )?;
+            );
         }
-        Ok(())
     }
 }
 
@@ -259,7 +256,7 @@ pub mod path_for_write {
         };
         path_without_file.to_string()
     }
-    pub fn path_create(slf: &mut QFilePath, err: std::io::ErrorKind) -> Result<(), Box<dyn Error>> {
+    pub fn path_create(slf: &mut QFilePath, err: std::io::ErrorKind) -> Result<(), QPackError> {
         match err {
             std::io::ErrorKind::NotFound => {
                 let fullpath = get_path_buf(slf)?;
@@ -268,13 +265,13 @@ pub mod path_for_write {
                     .create(core(slf, fullpath))?;
                 Ok(())
             }
-            _ => Err(Box::new(QPackError::IoError(err.into()))),
+            _ => Err(QPackError::IoError(err.into())),
         }
     }
     pub async fn async_path_create(
         slf: &mut QFilePath,
         err: std::io::ErrorKind,
-    ) -> Result<(), Box<dyn Error>> {
+    ) -> Result<(), QPackError> {
         match err {
             std::io::ErrorKind::NotFound => {
                 let fullpath = async_get_path_buf(slf).await?;
@@ -284,13 +281,13 @@ pub mod path_for_write {
                     .await?;
                 Ok(())
             }
-            _ => Err(Box::new(QPackError::IoError(err.into()))),
+            _ => Err(QPackError::IoError(err.into())),
         }
     }
 }
 #[test]
 fn check_correct_path() {
     let mut qfile = self::constructor::add_path("SRC").unwrap();
-    self::correct_path::correct_path(&mut qfile).unwrap();
+    self::correct_path::correct_path(&mut qfile);
     dbg!(qfile);
 }
