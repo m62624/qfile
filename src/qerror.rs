@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use thiserror::Error;
 #[derive(Error, Debug)]
 /// Error type for handling QFilePath cases
@@ -25,4 +27,10 @@ pub enum QPackError {
     SyncCallFromAsync,
     #[error("Error from IO")]
     IoError(#[from] std::io::Error),
+}
+impl QPackError {
+    pub fn convert_sync_send(err: QPackError) -> Box<dyn Error + Send + Sync> {
+        let boxed: Box<dyn Error + Send + Sync> = Box::new(err);
+        boxed
+    }
 }
