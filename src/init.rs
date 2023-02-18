@@ -35,7 +35,9 @@ pub mod constructor {
     pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError> {
         core(path_file, CodeStatus::SyncStatus)
     }
-    pub async fn async_add_path<T: AsRef<str> + Send + Sync>(path_file: T) -> Result<QFilePath, QPackError> {
+    pub async fn async_add_path<T: AsRef<str> + Send + Sync>(
+        path_file: T,
+    ) -> Result<QFilePath, QPackError> {
         core(path_file, CodeStatus::AsyncStatus)
     }
 }
@@ -182,7 +184,6 @@ pub mod work_with_elements {
             .create(get_path_buf(slf)?)?)
     }
     pub async fn async_folder_create(slf: &mut QFilePath) -> Result<(), QPackError> {
-        let path = async_get_path_string(slf).await?;
         Ok(async_fs::DirBuilder::new()
             .recursive(true)
             .create(async_get_path_buf(slf).await?)

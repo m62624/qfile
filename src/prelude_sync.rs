@@ -1,4 +1,4 @@
-// use crate::find::pathfinder::find_paths;
+use crate::find::pathfinder::find_paths;
 use crate::init::{
     constructor::add_path,
     work_with_elements::{file, folder_create},
@@ -7,9 +7,9 @@ use crate::paths::get_path::{get_path_buf, get_path_string};
 use crate::read::read;
 use crate::write::write::{auto_write, write_only_new};
 use crate::CodeStatus;
-// use crate::Directory;
+use crate::Directory;
 use crate::{QFilePath, QPackError};
-// use std::sync::mpsc::{SendError, Sender};
+use std::sync::mpsc::{SendError, Sender};
 use std::{fs, path::PathBuf};
 pub trait QTraitSync {
     //================================================================
@@ -58,5 +58,16 @@ impl QTraitSync for QFilePath {
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), QPackError> {
         QFilePath::check_status_code(&self, CodeStatus::SyncStatus)?;
         write_only_new(self, text)
+    }
+}
+impl QFilePath {
+    pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
+        place: Directory<T>,
+        names: Vec<T>,
+        excluded_dirs: Option<Vec<T>>,
+        follow_link: bool,
+        sender: Sender<PathBuf>,
+    ) -> Result<(), SendError<PathBuf>> {
+        find_paths(place, names, excluded_dirs, follow_link, sender)
     }
 }

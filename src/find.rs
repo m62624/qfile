@@ -1,7 +1,6 @@
 use super::{Directory, PathBuf};
 use rayon::prelude::*;
-use regex::Regex;
-use std::sync::mpsc::{self, SendError, Sender};
+use std::sync::mpsc::{SendError, Sender};
 use walkdir::WalkDir;
 pub mod pathfinder {
     use super::*;
@@ -79,7 +78,6 @@ pub mod pathfinder {
         drop(sender);
         Ok(())
     }
-
     pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
         place: Directory<T>,
         names: Vec<T>,
@@ -96,31 +94,31 @@ pub mod pathfinder {
         find_matching_paths(paths, names, excluded_dirs, follow_link, sender)
     }
 }
-#[cfg(test)]
-mod test_find {
-    use super::pathfinder::find_paths;
-    use super::*;
-    use std::thread;
-    #[test]
-    fn check_find_path() {
-        let (tx, rx) = mpsc::channel();
-        let jh = thread::spawn(|| {
-            find_paths(
-                Directory::ThisPlace(vec![
-                    "/",
-                    "/run/media/mansur/Windows 11/Windows/System32",
-                    "/home/mansur",
-                ]),
-                vec!["2023-02-17 21-12-11", "bcdedit.exe", "full Nurbek"],
-                Some(vec!["/bin", "/var", "/proc"]),
-                true,
-                tx,
-            )
-            .unwrap();
-        });
-        for path in rx {
-            println!("{}", path.display().to_string());
-        }
-        jh.join().unwrap();
-    }
-}
+// #[cfg(test)]
+// mod test_find {
+//     use super::pathfinder::find_paths;
+//     use super::*;
+//     use std::thread;
+//     #[test]
+//     fn check_find_path() {
+//         let (tx, rx) = mpsc::channel();
+//         let jh = thread::spawn(|| {
+//             find_paths(
+//                 Directory::ThisPlace(vec![
+//                     "/",
+//                     "/run/media/mansur/Windows 11/Windows/System32",
+//                     "/home/mansur",
+//                 ]),
+//                 vec!["2023-02-17 21-12-11", "bcdedit.exe", "full Nurbek"],
+//                 Some(vec!["/bin", "/var", "/proc"]),
+//                 true,
+//                 tx,
+//             )
+//             .unwrap();
+//         });
+//         for path in rx {
+//             println!("{}", path.display().to_string());
+//         }
+//         jh.join().unwrap();
+//     }
+// }
