@@ -36,9 +36,9 @@ mod pathfinder {
             None => Vec::new(),
         }
     }
-    fn find_matching_paths<T: AsRef<str> + Send + Sync + 'static>(
+    fn find_matching_paths(
         paths: Vec<String>,
-        name: T,
+        names: Vec<String>,
         excluded_dirs: Vec<String>,
         follow_link: bool,
         sender: Sender<PathBuf>,
@@ -58,56 +58,69 @@ mod pathfinder {
                     .collect::<Vec<_>>()
                     .par_iter()
                     .for_each_with(sender.clone(), |sender, entry| {
-                        if entry
-                            .path()
-                            .display()
-                            .to_string()
-                            .to_lowercase()
-                            .contains(&name.as_ref().to_string().to_lowercase())
-                        {
-                            if let Err(err) = sender.send(entry.path().to_path_buf().into()) {
-                                panic!("{}", err);
-                            }
-                        }
+                        names
+                            .par_iter()
+                            .for_each_with(sender.clone(), |sender, name| {
+                                if entry
+                                    .path()
+                                    .display()
+                                    .to_string()
+                                    .to_lowercase()
+                                    .contains(&name.to_string().to_lowercase())
+                                {
+                                    if let Err(err) = sender.send(entry.path().to_path_buf().into())
+                                    {
+                                        panic!("{}", err);
+                                    }
+                                }
+                            })
                     });
             });
+        drop(sender);
         Ok(())
     }
 
-    pub fn find_paths<
-        T: AsRef<str> + Send + Sync + 'static,
-        E: AsRef<str> + Send + Sync + 'static,
-    >(
+    pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
         place: Directory<T>,
-        name: T,
-        excluded_dirs: Option<Vec<E>>,
+        names: Vec<T>,
+        excluded_dirs: Option<Vec<T>>,
         follow_link: bool,
         sender: Sender<PathBuf>,
     ) -> Result<(), SendError<PathBuf>> {
         let paths = get_paths(place);
         let excluded_dirs = get_excluded_dirs(excluded_dirs);
-        find_matching_paths(paths, name, excluded_dirs, follow_link, sender)
+        let names = names
+            .iter()
+            .map(|x| x.as_ref().to_owned())
+            .collect::<Vec<String>>();
+        find_matching_paths(paths, names, excluded_dirs, follow_link, sender)
     }
 }
 #[cfg(test)]
 mod test_find {
     use super::pathfinder::find_paths;
     use super::*;
-    use std::{thread, time};
+    use std::thread;
     #[test]
     fn check_find_path() {
         let (tx, rx) = mpsc::channel();
-        let excludedir = vec!["/bin"];
-        find_paths(
-            Directory::Everywhere,
-            "2023-02-17 21-12-11",
-            Some(excludedir),
-            false,
-            tx,
-        )
-        .unwrap();
+        let jh = thread::spawn(|| {
+            find_paths(
+                Directory::ThisPlace(vec![
+                    "/",
+                    "/run/media/mansur/Windows 11/Windows/System32",
+                    "/home/mansur",
+                ]),
+                vec!["2023-02-17 21-12-11", "bcdedit.exe", "full Nurbek"],
+                Some(vec!["/bin", "/var", "/proc"]),
+                false,
+                tx,
+            )
+            .unwrap();
+        });
         for path in rx {
             println!("{}", path.display().to_string());
         }
+        jh.join().unwrap();
     }
 }
