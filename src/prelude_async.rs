@@ -13,7 +13,7 @@ use async_trait::async_trait;
 use std::error::Error;
 use std::path::PathBuf;
 #[async_trait]
-pub trait QTraitSync {
+pub trait QTraitAsync {
     //================================================================
     async fn async_add_path<T: AsRef<str> + Send + Sync>(
         path_file: T,
@@ -35,7 +35,7 @@ pub trait QTraitSync {
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 #[async_trait]
-impl QTraitSync for QFilePath {
+impl QTraitAsync for QFilePath {
     //================================================================
     async fn async_add_path<T: AsRef<str> + Send + Sync>(
         path_file: T,
