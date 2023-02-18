@@ -42,16 +42,25 @@ pub mod pathfinder {
         follow_link: bool,
         sender: Sender<PathBuf>,
     ) -> Result<(), SendError<PathBuf>> {
+        let paths_nch = paths.clone();
         paths
             .par_iter()
             .for_each_with(sender.clone(), |sender, element| {
+                let paths_nch = paths_nch
+                    .iter()
+                    .filter(|x| x.to_owned() != element)
+                    .collect::<Vec<&String>>();
+                let mut excluded_dirs: Vec<&String> = excluded_dirs.iter().map(|x| x).collect();
+                excluded_dirs.extend(paths_nch);
+                // dbg!(&excluded_dirs);
+                //======================================
                 WalkDir::new(element)
                     .follow_links(follow_link)
                     .into_iter()
                     .filter_entry(|entry| {
                         !excluded_dirs
                             .iter()
-                            .any(|excl| entry.path().display().to_string().contains(excl))
+                            .any(|excl| entry.path().display().to_string() == excl.to_string())
                     })
                     .filter_map(|e| e.ok())
                     .collect::<Vec<_>>()
