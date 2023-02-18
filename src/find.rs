@@ -113,7 +113,7 @@ mod test_find {
                 ]),
                 vec!["2023-02-17 21-12-11", "bcdedit.exe", "full Nurbek"],
                 Some(vec!["/bin", "/var", "/proc"]),
-                false,
+                true,
                 tx,
             )
             .unwrap();

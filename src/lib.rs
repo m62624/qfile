@@ -9,6 +9,8 @@ mod read;
 mod write;
 pub use qerror::QPackError;
 use std::path::PathBuf;
+mod prelude_async;
+mod prelude_sync;
 #[derive(Debug, Clone)]
 enum Flag {
     Old,
