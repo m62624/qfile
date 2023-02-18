@@ -9,8 +9,8 @@ mod read;
 mod write;
 pub use qerror::QPackError;
 use std::path::PathBuf;
-pub mod prelude_async;
-pub mod prelude_sync;
+mod prelude_async;
+mod prelude_sync;
 pub use prelude_async::QTraitAsync;
 pub use prelude_sync::QTraitSync;
 
