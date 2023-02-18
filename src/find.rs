@@ -3,7 +3,7 @@ use rayon::prelude::*;
 use regex::Regex;
 use std::sync::mpsc::{self, SendError, Sender};
 use walkdir::WalkDir;
-mod pathfinder {
+pub mod pathfinder {
     use super::*;
     fn get_paths<T: AsRef<str> + Send + Sync + 'static>(place: Directory<T>) -> Vec<String> {
         match place {

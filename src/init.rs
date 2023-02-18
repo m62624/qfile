@@ -35,7 +35,7 @@ pub mod constructor {
     pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError> {
         core(path_file, CodeStatus::SyncStatus)
     }
-    pub async fn async_add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError> {
+    pub async fn async_add_path<T: AsRef<str> + Send + Sync>(path_file: T) -> Result<QFilePath, QPackError> {
         core(path_file, CodeStatus::AsyncStatus)
     }
 }

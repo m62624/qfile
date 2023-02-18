@@ -9,8 +9,8 @@ mod read;
 mod write;
 pub use qerror::QPackError;
 use std::path::PathBuf;
-mod prelude_async;
-mod prelude_sync;
+pub mod prelude_async;
+pub mod prelude_sync;
 pub use prelude_sync::QTraitSync;
 #[derive(Debug, Clone)]
 enum Flag {
