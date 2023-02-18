@@ -115,7 +115,9 @@ pub mod path_separation {
 }
 
 pub mod work_with_elements {
-    use crate::paths::get_path::{async_get_path_string, get_path_string};
+    use crate::paths::get_path::{
+        async_get_path_buf, async_get_path_string, get_path_buf, get_path_string,
+    };
 
     use super::*;
     pub fn directory_contents(path: &str) -> Vec<String> {
@@ -161,18 +163,30 @@ pub mod work_with_elements {
         }
     }
     pub fn file(slf: &mut QFilePath) -> Result<fs::File, QPackError> {
-        let path = get_path_string(slf)?;
-        match return_file(&path) {
+        // let path = ;
+        match return_file(&get_path_string(slf)?) {
             Ok(file) => Ok(file),
             Err(err) => Err(err),
         }
     }
     pub async fn async_file(slf: &mut QFilePath) -> Result<async_fs::File, QPackError> {
-        let path = async_get_path_string(slf).await?;
-        match async_return_file(&path).await {
+        // let path = ;
+        match async_return_file(&async_get_path_string(slf).await?).await {
             Ok(file) => Ok(file),
             Err(err) => Err(err),
         }
+    }
+    pub fn folder_create(slf: &mut QFilePath) -> Result<(), QPackError> {
+        Ok(fs::DirBuilder::new()
+            .recursive(true)
+            .create(get_path_buf(slf)?)?)
+    }
+    pub async fn async_folder_create(slf: &mut QFilePath) -> Result<(), QPackError> {
+        let path = async_get_path_string(slf).await?;
+        Ok(async_fs::DirBuilder::new()
+            .recursive(true)
+            .create(async_get_path_buf(slf).await?)
+            .await?)
     }
 }
 
