@@ -17,8 +17,8 @@ enum Flag {
 }
 
 #[derive(Debug, Clone)]
-pub enum Directory {
-    ThisPlace(String),
+pub enum Directory<T: AsRef<str> + Send + Sync + 'static> {
+    ThisPlace(Vec<T>),
     Everywhere,
 }
 

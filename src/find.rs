@@ -2,40 +2,38 @@ use super::{Directory, PathBuf};
 // use crossbeam::channel::{SendError, Sender};
 use rayon::prelude::*;
 use regex::Regex;
-use std::sync::mpsc::{self, Receiver, SendError, Sender};
+use std::sync::mpsc::{self, SendError, Sender};
 use walkdir::WalkDir;
 pub fn find_paths<T: AsRef<str> + Send + Sync + 'static, E: AsRef<str> + Send + Sync + 'static>(
-    place: Directory,
+    place: Directory<T>,
     name: T,
     excluded_dirs: Option<Vec<E>>,
     follow_link: bool,
     sender: Sender<PathBuf>,
 ) -> Result<(), SendError<PathBuf>> {
-    let mut paths: Vec<String> = Default::default();
-    match place {
-        Directory::ThisPlace(root_d) => {
-            paths.push(root_d);
-        }
-        Directory::Everywhere => {
-            if cfg!(unix) {
-                paths.push("/".to_string());
+    rayon::spawn(move || {
+        let mut paths: Vec<String> = Default::default();
+        match place {
+            Directory::ThisPlace(root_d) => {
+                paths = root_d
+                    .iter()
+                    .map(|x| x.as_ref().to_owned())
+                    .collect::<Vec<String>>()
             }
-            if cfg!(windows) {
-                for disk in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect::<Vec<char>>() {
-                    let temp = format!("{}:\\", disk);
-                    if std::path::PathBuf::from(&temp).exists() {
-                        paths.push(temp.to_string());
+            Directory::Everywhere => {
+                if cfg!(unix) {
+                    paths.push("/".to_string());
+                }
+                if cfg!(windows) {
+                    for disk in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect::<Vec<char>>() {
+                        let temp = format!("{}:\\", disk);
+                        if std::path::PathBuf::from(&temp).exists() {
+                            paths.push(temp.to_string());
+                        }
                     }
                 }
             }
         }
-    }
-    // let excluded_dirs: Vec<String> = excluded_dirs
-    //     .iter()
-    //     .map(|x| x.as_ref().to_owned())
-    //     .collect();
-
-    rayon::spawn(move || {
         let excluded_dirs = match excluded_dirs {
             Some(values) => values
                 .iter()
@@ -84,22 +82,15 @@ mod test_find {
         let (tx, rx) = mpsc::channel();
         let excludedir = vec!["/run/media", "/bin"];
         find_paths(
-            Directory::Everywhere,
-            "Снимок экрана от 2023-02-17 21-12-11",
+            Directory::ThisPlace(vec!["/"]),
+            "2023-02-17 21-12-11",
             Some(excludedir),
             false,
             tx,
         )
         .unwrap();
-        let thread1 = thread::spawn(|| {
-            for path in rx {
-                println!("{}", path.display().to_string());
-            }
-        });
-        for i in 0..10_000 {
-            thread::sleep(time::Duration::from_secs(1));
-            println!("main thread counter: {}", i);
+        for path in rx {
+            println!("{}", path.display().to_string());
         }
-        thread1.join().unwrap();
     }
 }
