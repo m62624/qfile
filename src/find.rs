@@ -4,9 +4,10 @@ use rayon::prelude::*;
 use regex::Regex;
 use std::sync::mpsc::{self, Receiver, SendError, Sender};
 use walkdir::WalkDir;
-pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
+pub fn find_paths<T: AsRef<str> + Send + Sync + 'static, E: AsRef<str> + Send + Sync + 'static>(
     place: Directory,
     name: T,
+    excluded_dirs: Option<Vec<E>>,
     follow_link: bool,
     sender: Sender<PathBuf>,
 ) -> Result<(), SendError<PathBuf>> {
@@ -29,16 +30,30 @@ pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
             }
         }
     }
-    // for element in paths {
-    // println!("{:#?}", &paths);
-    // println!("size parallel item:{:#?}", paths.par_iter());
+    // let excluded_dirs: Vec<String> = excluded_dirs
+    //     .iter()
+    //     .map(|x| x.as_ref().to_owned())
+    //     .collect();
+
     rayon::spawn(move || {
+        let excluded_dirs = match excluded_dirs {
+            Some(values) => values
+                .iter()
+                .map(|x| x.as_ref().to_owned())
+                .collect::<Vec<String>>(),
+            None => Default::default(),
+        };
         paths
             .par_iter()
             .for_each_with(sender.clone(), |sender, element| {
                 WalkDir::new(element)
                     .follow_links(follow_link)
                     .into_iter()
+                    .filter_entry(|entry| {
+                        !excluded_dirs
+                            .iter()
+                            .any(|excl| entry.path().display().to_string().contains(excl))
+                    })
                     .filter_map(|e| e.ok())
                     .collect::<Vec<_>>()
                     .par_iter()
@@ -59,6 +74,7 @@ pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
     });
     Ok(())
 }
+
 #[cfg(test)]
 mod test_find {
     use super::*;
@@ -66,7 +82,15 @@ mod test_find {
     #[test]
     fn check_find_path() {
         let (tx, rx) = mpsc::channel();
-        find_paths(Directory::Everywhere, "pagefile.sys", false, tx).unwrap();
+        let excludedir = vec!["/run/media", "/bin"];
+        find_paths(
+            Directory::Everywhere,
+            "Снимок экрана от 2023-02-17 21-12-11",
+            Some(excludedir),
+            false,
+            tx,
+        )
+        .unwrap();
         let thread1 = thread::spawn(|| {
             for path in rx {
                 println!("{}", path.display().to_string());
