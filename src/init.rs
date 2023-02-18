@@ -115,6 +115,8 @@ pub mod path_separation {
 }
 
 pub mod work_with_elements {
+    use crate::paths::get_path::{async_get_path_string, get_path_string};
+
     use super::*;
     pub fn directory_contents(path: &str) -> Vec<String> {
         let mut files: Vec<String> = Vec::new();
@@ -156,6 +158,20 @@ pub mod work_with_elements {
         match async_fs::File::open(path).await {
             Ok(file) => Ok(file),
             Err(err) => Err(QPackError::IoError(err)),
+        }
+    }
+    pub fn file(slf: &mut QFilePath) -> Result<fs::File, QPackError> {
+        let path = get_path_string(slf)?;
+        match return_file(&path) {
+            Ok(file) => Ok(file),
+            Err(err) => Err(err),
+        }
+    }
+    pub async fn async_file(slf: &mut QFilePath) -> Result<async_fs::File, QPackError> {
+        let path = async_get_path_string(slf).await?;
+        match async_return_file(&path).await {
+            Ok(file) => Ok(file),
+            Err(err) => Err(err),
         }
     }
 }

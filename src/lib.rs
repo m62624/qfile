@@ -11,6 +11,7 @@ pub use qerror::QPackError;
 use std::path::PathBuf;
 mod prelude_async;
 mod prelude_sync;
+pub use prelude_sync::QTratiSync;
 #[derive(Debug, Clone)]
 enum Flag {
     Old,
