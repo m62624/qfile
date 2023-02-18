@@ -4,6 +4,7 @@ use crate::init::{
 };
 use crate::paths::get_path::{get_path_buf, get_path_string};
 use crate::read::read;
+use crate::write::write::{auto_write, write_only_new};
 use crate::CodeStatus;
 use crate::{QFilePath, QPackError};
 use std::{fs, path::PathBuf};
@@ -17,6 +18,7 @@ pub trait QTraitSync {
     fn get_path_string(slf: &mut QFilePath) -> Result<String, QPackError>;
     //================================================================
     fn read(slf: &mut QFilePath) -> Result<String, QPackError>;
+    fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), QPackError>;
 }
 impl QTraitSync for QFilePath {
     //================================================================
@@ -44,5 +46,9 @@ impl QTraitSync for QFilePath {
     fn read(slf: &mut QFilePath) -> Result<String, QPackError> {
         QFilePath::check_status_code(&slf, CodeStatus::SyncStatus)?;
         read(slf)
+    }
+    fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), QPackError> {
+        QFilePath::check_status_code(&slf, CodeStatus::SyncStatus)?;
+        auto_write(slf, text)
     }
 }
