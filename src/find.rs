@@ -1,9 +1,12 @@
 use super::{Directory, PathBuf};
 use rayon::prelude::*;
+use std::collections::HashSet;
 use std::sync::mpsc::{SendError, Sender};
 use walkdir::WalkDir;
+
 pub mod pathfinder {
     use super::*;
+
     fn get_paths<T: AsRef<str> + Send + Sync + 'static>(place: Directory<T>) -> Vec<String> {
         match place {
             Directory::ThisPlace(root_d) => root_d
@@ -27,66 +30,68 @@ pub mod pathfinder {
             }
         }
     }
+
     fn get_excluded_dirs<E: AsRef<str> + Send + Sync + 'static>(
         excluded_dirs: Option<Vec<E>>,
-    ) -> Vec<String> {
+    ) -> HashSet<String> {
         match excluded_dirs {
             Some(values) => values.iter().map(|x| x.as_ref().to_owned()).collect(),
-            None => Vec::new(),
+            None => HashSet::new(),
         }
     }
+
     fn find_matching_paths(
         paths: Vec<String>,
         names: Vec<String>,
-        excluded_dirs: Vec<String>,
+        excluded_dirs: HashSet<String>,
         follow_link: bool,
         sender: Sender<PathBuf>,
     ) -> Result<(), SendError<PathBuf>> {
-        let paths_nch = paths.clone();
-        paths
-            .par_iter()
-            .for_each_with(sender.clone(), |sender, element| {
-                let paths_nch = paths_nch
-                    .iter()
-                    .filter(|x| x.to_owned() != element)
-                    .collect::<Vec<&String>>();
-                let mut excluded_dirs: Vec<&String> = excluded_dirs.iter().map(|x| x).collect();
-                excluded_dirs.extend(paths_nch);
-                // dbg!(&excluded_dirs);
-                //======================================
-                WalkDir::new(element)
-                    .follow_links(follow_link)
-                    .into_iter()
-                    .filter_entry(|entry| {
-                        !excluded_dirs
-                            .iter()
-                            .any(|excl| entry.path().display().to_string() == excl.to_string())
-                    })
-                    .filter_map(|e| e.ok())
-                    .collect::<Vec<_>>()
-                    .par_iter()
-                    .for_each_with(sender.clone(), |sender, entry| {
-                        names
-                            .par_iter()
-                            .for_each_with(sender.clone(), |sender, name| {
-                                if entry
-                                    .path()
-                                    .display()
-                                    .to_string()
-                                    .to_lowercase()
-                                    .contains(&name.to_string().to_lowercase())
-                                {
-                                    if let Err(err) = sender.send(entry.path().to_path_buf().into())
+        rayon::spawn(move || {
+            paths
+                .par_iter()
+                .for_each_with(sender.clone(), |sender, element| {
+                    let paths_nch = paths
+                        .iter()
+                        .filter(|x| **x != *element)
+                        .collect::<Vec<&String>>();
+                    let mut excluded_dirs: HashSet<&String> =
+                        excluded_dirs.iter().map(|x| x).collect();
+                    excluded_dirs.extend(paths_nch);
+                    WalkDir::new(element)
+                        .follow_links(follow_link)
+                        .into_iter()
+                        .filter_entry(|entry| {
+                            !excluded_dirs.contains(&entry.path().display().to_string())
+                        })
+                        .filter_map(|e| e.ok())
+                        .collect::<Vec<_>>()
+                        .par_iter()
+                        .for_each_with(sender.clone(), |sender, entry| {
+                            names
+                                .par_iter()
+                                .for_each_with(sender.clone(), |sender, name| {
+                                    if entry
+                                        .path()
+                                        .display()
+                                        .to_string()
+                                        .to_lowercase()
+                                        .contains(&name.to_string().to_lowercase())
                                     {
-                                        panic!("{}", err);
+                                        if let Err(err) =
+                                            sender.send(entry.path().to_path_buf().into())
+                                        {
+                                            panic!("{}", err);
+                                        }
                                     }
-                                }
-                            })
-                    });
-            });
-        drop(sender);
+                                })
+                        });
+                });
+        });
+
         Ok(())
     }
+
     pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
         place: Directory<T>,
         names: Vec<T>,
