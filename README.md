@@ -5,67 +5,89 @@
 
 # Qfile
 
+The Qfile crate provides functionality for accessing a file by path, case-insensitive, including automatic detection, creation of a path with a new file or opening an existing file. It includes several submodules to handle different aspects of file handling, such as initialization, reading, and writing. The crate also defines some custom errors related to file operations.
 
+> qfile is not the rust version of qfile from the QT framework
 
-
-Qfile is a file management crate. Supports synchronous and asynchronous file operations.
-
-- File search
-- Read, Write 
-
-Methods to read, write, get the right path are case insensitive
-
----
 # Paths syntax
 
-## Linux 
+## Unix format
   
 ```rust
-    let path1 = "File.txt";
-    let path2 = "./File.txt";
-    let path3 = "../../File.txt";
-    let path4 = String::from("Folder/Folder/File.txt");
+let path1 = "File.txt";
+let path2 = "./File.txt";
+let path3 = "../../File.txt";
+let path4 = String::from("Folder/Folder/File.txt");
 ```
 
-## Windows 
+## Windows format 
   
 ```rust
-    let path1 = "File.txt";
-    let path2 = ".\\File.txt";
-    let path3 = "..\\..\\File.txt";
-    let path4 = "D:\\Folder\\file.txt";
-    let path5 = r"D:\Folder\file.txt";
-    let path6 = String::from("D:\\Folder\\file.txt");
+let path1 = "File.txt";
+let path2 = ".\\File.txt";
+let path3 = "..\\..\\File.txt";
+let path4 = "D:\\Folder\\file.txt";
+let path5 = r"D:\Folder\file.txt";
+let path6 = String::from("D:\\Folder\\file.txt");
 ```
+> Methods to read, write, get the right path are case insensitive
 
 ---
-# Writing to a file
+# Paths finder
+This is the method that kicks off the directory search.
+It takes in the search location, names of files to search for, excluded directories, whether or not to follow symbolic links, and a channel to send the results back on.
 
-Creates or opens if a file exists (case insensitive)
+**It uses the [rayon](https://crates.io/crates/rayon) crate to parallelize the search over multiple threads for better performance.**
 
-### Example (Sync code)
+The algorithm first filters out the excluded directories, and then iterates through the remaining directories to find all the files that match the specified search criteria. If a match is found, the path of the file is sent to the Sender object.
+
 ```rust
-use qfile::{sync_qfile::TraitQFileSync, QFilePath};
-use std::error::Error;
-fn example() -> Result<(), Box<dyn Error>> {
-    QFilePath::add_path("Folder/File.txt")?.auto_write("text text text")
+use qfile::QFilePath;
+use std::sync::mpsc;
+
+let (tx, rx) = mpsc::channel();
+QFilePath::find_paths(
+    // specifies the directories to search from, where the search should start.
+    Directory::ThisPlace(vec!["src", "another_folder", "/home/user/my_project"]),
+    // names of items to search in the file system
+    vec!["main.rs", "lib.rs", "photo-1-2.jpg"],
+    // folders to exclude search
+    Some(vec!["src/tests", "another_folder/tmp"]),
+    // follow links
+    false,
+    // Sender channel
+    tx,
+)?;
+for path in rx {
+    println!("{}", path.display().to_string());
 }
 ```
 
-### Example (Async code)
-```rust
-use qfile::{async_qfile::TraitQFileAsync, QFilePath};
-use std::error::Error;
-async fn example() -> Result<(), Box<dyn Error + Send + Sync>> {
-    QFilePath::add_path_for_async("Folder/File.txt")?
-        .lock()
-        .await
-        .async_auto_write("text text text")
-        .await
-} 
+# Writing to a file
+The method for writing to a file depends on the current context, case insensitive
+* If the file exists - overwrites all the content with the new content
+* If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
 
+### Example (Sync Code)
+```rust
+ use qfile::{QFilePath, QTraitSync};
+
+ // real path : myFolder/file.txt
+ let mut file = QFilePath::add_path("MyFolder/file.TXT")?;
+ file.write_only_new("text1 text1 text1")?;
+ file.write_only_new("text2 text2 text2")?;
 ```
-### Linux & Windows
+
+### Example (Async code)
+```rust 
+use qfile::{QFilePath, QTraitAsync};
+// real path : myFolder/file.txt
+let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
+file.lock().await.auto_write("text1 text1 text1").await?;
+file.lock().await.auto_write("text2 text2 text2").await?;
+```
+
+### Unix & Windows
 
  - If the path exists, we work with the file
 
@@ -88,100 +110,26 @@ async fn example() -> Result<(), Box<dyn Error + Send + Sync>> {
 ---
 # Reading a file
 
-Gets the string from the file (case insensitive)
+ Method for reading the contents of a file (`String`), case insensitive
 
 ### Example (Sync code)
 ```rust
-use qfile::{sync_qfile::*,QFilePath};
-use std::error::Error;
-fn main() -> Result<(), Box<dyn Error>> {
-    let mut file = QFilePath::add_path("file.txt")?;
-    let text = file.read()?;
-    assert_eq!(text, ":D :D :D");
-    Ok(())
-}
+use qfile::{QFilePath, QTraitSync};
+    
+// real path : myFolder/file.txt
+let mut file = QFilePath::add_path("MyFolder/file.TXT")?;
+let text = file.read()?;
+println!("content: {}", text);
 ```
-
-### Example (Async code)
+### Example (Aync code)
 ```rust
-use qfile::{async_qfile::*, QFilePath};
-use std::sync::Arc;
-use std::thread;
-use futures::executor::block_on;
-fn main() {
-    let file = QFilePath::add_path_for_async("Folder/File.txt").unwrap();
-    // some code
-    let file_arc = Arc::clone(&file);
-    let joinhandle = thread::spawn(|| {
-        block_on(async move { file_arc.lock().await.async_read().await.unwrap() })
-    });
-    assert_eq!(joinhandle.join().unwrap(), ":D :D :D");
-}
+use qfile::{QFilePath, QTraitAsync};
+
+// real path : myFolder/file.txt
+let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
+file.lock().await.auto_write("text1 text1 text1").await?;
+file.lock().await.auto_write("text2 text2 text2").await?;
 ```
-
----
-# Paths finder
-
-If the full path is unknown, we can get a list of all matching paths (case insensitive)
-
-### Example (Sync code)
-```rust
-use std::sync::mpsc;
-use qfile::{sync_qfile::*,QFilePath};
-fn main() -> Result<(), Box<dyn Error>> {
-    let (tx, rx) = mpsc::channel();
-    QFilePath::find_paths(Directory::Everywhere, "file.txt", false, tx)?;
-    // some code
-    while let Ok(path) = rx.recv() {
-        println!("{}", path.display());
-    }
-    Ok(())
-}
-
-```
-Output:
-> - /home/userFolder/.local/share/Trash/files/FOLDER/new_folder/file.txt/file.txt
-> - /home/userFolder/.local/share/Trash/files/.56.Polygon/file.txt
-> - /home/userFolder/.local/share/Trash/files/.46.Polygon/file.txt
-> - /home/userFolder/.local/share/Trash/files/.10.Polygon/File.txt
-> - /home/userFolder/.local/share/Trash/files/.50.Polygon/file.txt
-
-### Exmple (Async code)
-```rust
-use futures::executor;
-use qfile::{
-    async_qfile::{
-        AsyncChannel::{self, SendError, Sender},
-        AsyncPathModule::PathBuf,
-        Directory, TraitQFileAsync,
-    },
-    QFilePath,
-};
-use std::thread;
-async fn example(sender: Sender<PathBuf>) -> Result<(), SendError<PathBuf>> {
-    QFilePath::async_find_paths(Directory::Everywhere, "main.rs", false, sender).await
-}
-
-fn main() {
-    let (tx, rx) = AsyncChannel::unbounded();
-    let jh = thread::spawn(move || {
-        executor::block_on(async {
-            if let Ok(_) = example(tx).await {
-                while let Ok(path) = rx.recv().await {
-                    println!("{}", path.display());
-                }
-            }
-        });
-        //some code
-    });
-    jh.join().unwrap();
-}
-```
-Output:
-> - /home/userFolder/.local/share/Trash/files/main.rs
-> - /home/userFolder/.local/share/Trash/info/main.rs.trashinfo
-> - /home/userFolder/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/backtrace/tests/accuracy/main.rs
-> - /home/userFolder/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/share/doc/rust/html/error_codes/main.rs
 
 ---
 

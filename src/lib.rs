@@ -59,8 +59,9 @@ enum CodeStatus {
     AsyncStatus,
 }
 
-// QFilePath: a struct that represents a file path and includes methods for manipulating it,
-// such as checking the current code execution status and updating the path if necessary
+/// QFilePath: a struct that represents a file path and includes methods for manipulating it,
+/// such as checking the current code execution status and updating the path if necessary.
+/// To use the methods, you need to import `QTraitSync` or `QTraitASync` or both.
 #[derive(Debug, Clone)]
 pub struct QFilePath {
     request_items: Vec<String>, // Vector of items requested by user

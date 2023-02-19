@@ -116,11 +116,6 @@ pub mod get_path {
             return Ok(PathBuf::from(slf.user_path.to_path_buf()));
         }
         return Err(QPackError::SystemNotDefined);
-        // .map_err(|err| {
-        //     let boxed: Box<dyn Error + Send + Sync> =
-        //         Box::new(*err.downcast::<QPackError>().unwrap());
-        //     boxed
-        // })
     }
     pub async fn async_get_path_string(slf: &mut QFilePath) -> Result<String, QPackError> {
         Ok(async_get_path_buf(slf).await?.display().to_string())
