@@ -1,5 +1,6 @@
 use super::{CodeStatus, Flag, PathBuf, QFilePath, QPackError};
 use async_fs;
+use async_mutex::Mutex;
 use futures_lite::stream::StreamExt;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -10,7 +11,7 @@ The core function is a helper function that takes a path and a status, checks if
  */
 pub mod constructor {
     use super::*;
-    fn core<T: AsRef<str>>(path_file: T, status: CodeStatus) -> Result<QFilePath, QPackError> {
+    fn core<T: AsRef<str>>(path_file: T, status: &CodeStatus) -> Result<(), QPackError> {
         // Check if the path_file is an empty string.
         if path_file.as_ref().to_string().is_empty() {
             return Err(QPackError::PathIsEmpty);
@@ -29,7 +30,15 @@ pub mod constructor {
         } else {
             return Err(QPackError::SystemNotDefined);
         }
+        Ok(())
         // Create and return a new QFilePath object with the given path_file and status parameters.
+    }
+    fn core_run_sync<T: AsRef<str>>(
+        path_file: T,
+        status: CodeStatus,
+    ) -> Result<QFilePath, QPackError> {
+        core(&path_file, &status)?;
+        let path_file = PathBuf::from(path_file.as_ref());
         Ok(QFilePath {
             request_items: Default::default(),
             user_path: path_file,
@@ -40,15 +49,31 @@ pub mod constructor {
             status,
         })
     }
+    async fn core_run_async<T: AsRef<str>>(
+        path_file: T,
+        status: CodeStatus,
+    ) -> Result<Mutex<QFilePath>, QPackError> {
+        core(&path_file, &status)?;
+        let path_file = PathBuf::from(path_file.as_ref());
+        Ok(Mutex::new(QFilePath {
+            request_items: Default::default(),
+            user_path: path_file,
+            file_name: Default::default(),
+            correct_path: Default::default(),
+            flag: Flag::Auto,
+            update_path: false,
+            status,
+        }))
+    }
     // The add_path function is a public synchronous function that calls the core function with a SyncStatus parameter.
     pub fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError> {
-        core(path_file, CodeStatus::SyncStatus)
+        core_run_sync(path_file, CodeStatus::SyncStatus)
     }
     // The async_add_path function is a public asynchronous function that calls the core function with an AsyncStatus parameter.
     pub async fn async_add_path<T: AsRef<str> + Send + Sync>(
         path_file: T,
-    ) -> Result<QFilePath, QPackError> {
-        core(path_file, CodeStatus::AsyncStatus)
+    ) -> Result<Mutex<QFilePath>, QPackError> {
+        core_run_async(path_file, CodeStatus::AsyncStatus).await
     }
 }
 /*

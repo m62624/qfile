@@ -15,7 +15,18 @@ use std::{fs, path::PathBuf};
 The prelude_sync module is a collection of frequently used items that are imported automatically when the QPack library is used. This module saves the user from having to import each item manually.
  */
 pub trait QTraitSync {
-    //================================================================
+    /// The add_path constructor from the qfile library allows you to create an object of type QFilePack that represents a file in a given path. (**Not case-sensitive**)
+    /// To create the object you must pass the path to the file in string format.
+    /// The path can be absolute or relative, and can also contain ... symbols to jump to a higher level in the folder hierarchy.
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QPackError, QTraitSync};
+    /// use std::error::Error;
+    /// fn main() -> Result<(), Box<dyn Error>> {
+    ///     let file = QFilePath::add_path("my_folder/my_file.txt")?;
+    ///     Ok(())
+    /// }
+    /// ```
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError>;
     fn file(&mut self) -> Result<fs::File, QPackError>;
     fn folder_create(&mut self) -> Result<(), QPackError>;

@@ -9,6 +9,7 @@ use crate::write::write::{async_auto_write, async_write_only_new};
 use crate::CodeStatus;
 use crate::{QFilePath, QPackError};
 use async_fs;
+use async_mutex::Mutex;
 use async_trait::async_trait;
 use std::error::Error;
 use std::path::PathBuf;
@@ -17,10 +18,25 @@ The prelude_async module is a collection of frequently used items that are impor
  */
 #[async_trait]
 pub trait QTraitAsync {
-    //================================================================
+    /// The add_path constructor from the qfile library allows to create an object of type Mutex<QFilePack>, asynchronous mutex is used.
+    /// To create an object, you must pass the path to the file in string format.
+    /// The path can be absolute or relative, and can also contain characters ... to jump to a higher level in the folder hierarchy. (**Not case-sensitive**)
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QPackError, QTraitAsync};
+    /// use futures_lite::future;
+    /// use std::error::Error;
+    /// fn main() -> Result<(), Box<dyn Error>> {
+    ///     let result: Result<(), Box<dyn Error>> = future::block_on(async {
+    ///         let file = QFilePath::async_add_path("my_folder/my_file.txt").await?;
+    ///         Ok(())
+    ///     });
+    ///     result
+    /// }
+    /// ```
     async fn async_add_path<T: AsRef<str> + Send + Sync>(
         path_file: T,
-    ) -> Result<QFilePath, QPackError>;
+    ) -> Result<Mutex<QFilePath>, QPackError>;
     async fn async_file(&mut self) -> Result<async_fs::File, QPackError>;
     async fn async_folder_create(&mut self) -> Result<(), QPackError>;
     //================================================================
@@ -42,7 +58,7 @@ impl QTraitAsync for QFilePath {
     //================================================================
     async fn async_add_path<T: AsRef<str> + Send + Sync>(
         path_file: T,
-    ) -> Result<QFilePath, QPackError> {
+    ) -> Result<Mutex<QFilePath>, QPackError> {
         async_add_path(path_file).await
     }
     async fn async_file(&mut self) -> Result<async_fs::File, QPackError> {
