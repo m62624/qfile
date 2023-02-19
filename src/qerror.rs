@@ -2,32 +2,40 @@ use std::error::Error;
 
 use thiserror::Error;
 #[derive(Error, Debug)]
-/// Error type for handling QFilePath cases
+/// This Rust code defines an error type QPackError for handling QFilePath cases, using the Error trait from the Rust standard library and the Error macro from the thiserror crate.
+/// 
+/// The QPackError type has several variants, each representing a different error condition that can arise while using the QFilePath library:
+
 pub enum QPackError {
-    /// Returns an error if you use a **non-unix** format for the path
+    /// - `UnixPathIsIncorrect`: Returns an error if you use a non-unix format for the path.
     #[error("You are using the windows path format for Unix. Use `unix` format for the path:\n> ./folder1/folder2/file.txt\n> ../folder2/file.txt\n> ./file.txt")]
     UnixPathIsIncorrect,
-    /// Returns an error if you use a **non-windows** format for the path
+    /// - `WindowsPathIsIncorrect`: Returns an error if you use a non-windows format for the path.
     #[error("You are using the unix path format for Windows. Use `windows` format for the path:\n> .\\folder1\\folder2\\file.txt\n> ..\\folder2\\file.txt\n> .\\file.txt")]
     WindowsPathIsIncorrect,
-    /// Returns an error if the library is not prepared for this operating system
+    /// - `SystemNotDefined`: Returns an error if the library is not prepared for this operating system.
     #[error("SystemNotDefined")]
     SystemNotDefined,
-    /// Returns an error if you specify an empty path
+    /// - `PathIsEmpty`: Returns an error if you specify an empty path.
     #[error("The path is empty")]
     PathIsEmpty,
+    /// - `PathIsIncorrect`: Returns an error if the path is incorrect.
     #[error("The path is incorrect")]
     PathIsIncorrect,
-    /// Returns an error if you try to get `QPackError` from `Box<dyn Error>` that contains error != `QPackError`.
+    /// - `NotQPackError`: Returns an error if you try to get QPackError from Box<dyn Error> that contains error != QPackError.
     #[error("Not covered error")]
     NotQPackError,
+    /// - `AsyncCallFromSync`: Returns an error if an asynchronous call is made from SyncPack (use a similar function from AsyncPack).
     #[error("Asynchronous call from SyncPack (use a similar function from SyncPack)")]
     AsyncCallFromSync,
+    /// - `SyncCallFromAsync`: Returns an error if a synchronous call is made from AsyncPack (use a similar function from SyncPack).
     #[error("Synchronous call from AsyncPack (use a similar function from SyncPack)")]
     SyncCallFromAsync,
+    /// - `IoError`: Returns an error from IO, which is wrapped using the from attribute.
     #[error("Error from IO")]
     IoError(#[from] std::io::Error),
 }
+/// The impl block contains a method `convert_sync_send` that takes a QPackError and converts it to a Box<dyn Error + Send + Sync> using the Box::new
 impl QPackError {
     pub fn convert_sync_send(err: QPackError) -> Box<dyn Error + Send + Sync> {
         let boxed: Box<dyn Error + Send + Sync> = Box::new(err);

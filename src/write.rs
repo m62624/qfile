@@ -8,6 +8,13 @@ use futures_lite::AsyncWriteExt;
 use std::error::Error;
 use std::fs;
 use std::io::Write;
+/*
+This Rust code defines a write module containing an auto_write function that can be used to write text to a file. The function takes a modifiable reference to a QFilePath object and a string of text to write.
+
+The function first checks if the user has updated the path, and if so, updates the correct path. Then it checks the current status of the flag, which indicates whether the file is old, new or should be defined automatically.
+
+If the file is old, the function opens the file in add mode and writes text at the end of the file. If the file does not exist, the function creates a new file and writes the text. If the file is auto, the function first checks if the file exists. If it exists, the function sets the old flag and recursively calls itself to write text. If the file does not exist, the function creates a path and recursively calls itself to write text.
+ */
 pub mod write {
     use super::*;
     pub fn auto_write<T: AsRef<str>>(slf: &mut QFilePath, text: T) -> Result<(), QPackError> {

@@ -4,7 +4,7 @@ use crate::init::{
     work_with_elements::{async_file, async_folder_create},
 };
 use crate::paths::get_path::{async_get_path_buf, async_get_path_string};
-use crate::read::async_read;
+use crate::read::read::async_read;
 use crate::write::write::{async_auto_write, async_write_only_new};
 use crate::CodeStatus;
 use crate::{QFilePath, QPackError};
@@ -12,6 +12,9 @@ use async_fs;
 use async_trait::async_trait;
 use std::error::Error;
 use std::path::PathBuf;
+/*
+The prelude_async module is a collection of frequently used items that are imported automatically when the QPack library is used. This module saves the user from having to import each item manually.
+ */
 #[async_trait]
 pub trait QTraitAsync {
     //================================================================

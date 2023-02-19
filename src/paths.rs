@@ -1,5 +1,15 @@
 use super::{PathBuf, QFilePath, QPackError};
 use crate::init::correct_path::*;
+/*
+This module contains two functions to get the path of a file, one returns a PathBuf and the other returns a String.
+
+get_path_buf function:
+
+This function receives a mutable reference to a QFilePath object and returns a Result that contains either a PathBuf or a QPackError.
+First, it checks if the system is Unix or Windows.
+In the case of Unix, it checks if the user path exists and returns either the correct path or the user path. If no correct path exists, it tries to correct it and then returns the user path.
+In the case of Windows, it corrects the path if needed and then returns the correct path. If no correct path exists, it returns the user
+ */
 pub mod get_path {
     use super::*;
     pub fn get_path_buf(slf: &mut QFilePath) -> Result<PathBuf, QPackError> {

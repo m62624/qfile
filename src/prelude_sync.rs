@@ -4,13 +4,16 @@ use crate::init::{
     work_with_elements::{file, folder_create},
 };
 use crate::paths::get_path::{get_path_buf, get_path_string};
-use crate::read::read;
+use crate::read::read::*;
 use crate::write::write::{auto_write, write_only_new};
 use crate::CodeStatus;
 use crate::Directory;
 use crate::{QFilePath, QPackError};
 use std::sync::mpsc::{SendError, Sender};
 use std::{fs, path::PathBuf};
+/*
+The prelude_sync module is a collection of frequently used items that are imported automatically when the QPack library is used. This module saves the user from having to import each item manually.
+ */
 pub trait QTraitSync {
     //================================================================
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError>;
