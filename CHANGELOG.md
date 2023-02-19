@@ -1,4 +1,14 @@
 # Changelog
+## [3.0.0] - 2023.02.19
+### Changed
+* Changed the entire internal structure of the project.
+* Changed documentation (removed unnecessary examples), added more information about how the code works in the source code
+### Added
+* Added asynchronous operations 
+* Added a file search release using the crate [rayon](https://crates.io/crates/rayon)
+* Synchronous operations and asynchronous operations are separated by traits for easy importing 
+    - `QTraitSync` 
+    - `QTraitAsync`
 ## [2.2.3] - 2023.02.02
 ### Fixed
 Return `io::Error` instead of `panic` to catch the error (changes on [crates.io](https://crates.io/crates/qfile)): 
