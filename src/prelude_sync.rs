@@ -20,22 +20,128 @@ pub trait QTraitSync {
     /// The path can be absolute or relative, and can also contain ... symbols to jump to a higher level in the folder hierarchy.
     /// # Example
     /// ```
-    /// use qfile::{QFilePath, QPackError, QTraitSync};
-    /// use std::error::Error;
-    /// fn main() -> Result<(), Box<dyn Error>> {
-    ///     let file = QFilePath::add_path("my_folder/my_file.txt")?;
-    ///     Ok(())
-    /// }
+    /// use qfile::{QFilePath, QTraitSync};
+    ///
+    /// let mut file = QFilePath::add_path("my_folder/my_file.txt")?;
     /// ```
     fn add_path<T: AsRef<str>>(path_file: T) -> Result<QFilePath, QPackError>;
+    /// This method returns a file specified by the QFilePath object
+    /// if you want to use the full `std::fs` feature set,
+    /// using this method, you can get the file
+    /// if it exists, case insensitive (use auto_write to create the file)
+    ///  # Example
+    /// ```
+    /// use std::fs::File;
+    /// use qfile::{QFilePath, QTraitSync};
+    ///
+    /// let mut file = QFilePath::add_path("file.txt")?;
+    /// let file = file.file()?;
+    /// let mut perms = file.metadata()?.permissions();
+    /// perms.set_readonly(true);
+    /// file.set_permissions(perms)?;
+    /// ```
     fn file(&mut self) -> Result<fs::File, QPackError>;
+    /// This method creates a folder and all parent folders in the path, case insensitive
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitSync};
+    ///  
+    /// let mut file = QFilePath::add_path("NewFolder/Folder/Folder")?;
+    /// file.folder_create()?; // ↓ ↓ ↓
+    ///
+    /// ```
+    ///
+    /// ---
+    /// # Result
+    ///
+    /// | Path                  | Unix format                    | Windows  format                     |
+    /// | --------------------- | ------------------------------ | ------------------------------ |
+    /// | The path we specified | `.polYGon/myfolder/new_Folder` | `.polYGon\myfolder\new_Folder` |
+    /// | Real path             | `.Polygon/MyFOLDER`            | `.Polygon\MyFOLDER`            |
+    /// | Result                | `.Polygon/MyFOLDER/new_Folder` | `.Polygon\MyFOLDER\new_Folder` |
+
     fn folder_create(&mut self) -> Result<(), QPackError>;
     //================================================================
+    /// A method to get the correct path (`PathBuf`), if the file exists, is not case-sensitive.
+    /// After the first use, the correct path is saved in QFilePath for reuse as a cache.
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitSync};
+    ///
+    /// //Real path : `.Polygon/MyFOLDER/FIle.txt`
+    /// let mut file = QFilePath::add_path(".polYGon/myfolder/FILE.txt")?;
+    /// println!("{:#?}", file.get_path_buf()?); // ↓ ↓ ↓
+    /// ```
+    ///
+    /// ---
+    /// # Output
+    ///
+    /// |Path|Unix format|Windows format|
+    /// |---|---|---|
+    /// |The path we specified|`.polYGon/myfolder/FILE.txt`|`.polYGon\myfolder\FILE.txxt`|
+    /// |Real path|`.Polygon/MyFOLDER/FIle.txt`|`.Polygon\MyFOLDER\FIle.txt`|
+    /// |Result |`.Polygon/MyFOLDER/FIle.txt`|`.Polygon\MyFOLDER\FIle.txt`|
+    ///
     fn get_path_buf(&mut self) -> Result<PathBuf, QPackError>;
+    /// A method to get the correct path (`String`), if the file exists, is not case-sensitive.
+    /// After the first use, the correct path is saved in QFilePath for reuse as a cache.
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitSync};
+    ///
+    /// //Real path : `.Polygon/MyFOLDER/FIle.txt`
+    /// let mut file = QFilePath::add_path(".polYGon/myfolder/FILE.txt")?;
+    /// println!("{}", file.get_path_string()?); // ↓ ↓ ↓
+    /// ```
+    ///
+    /// ---
+    /// # Output
+    ///
+    /// |Path|Unix format|Windows format|
+    /// |---|---|---|
+    /// |The path we specified|`.polYGon/myfolder/FILE.txt`|`.polYGon\myfolder\FILE.txxt`|
+    /// |Real path|`.Polygon/MyFOLDER/FIle.txt`|`.Polygon\MyFOLDER\FIle.txt`|
+    /// |Result |`.Polygon/MyFOLDER/FIle.txt`|`.Polygon\MyFOLDER\FIle.txt`|
+    ///
     fn get_path_string(&mut self) -> Result<String, QPackError>;
     //================================================================
+    /// Method for reading the contents of a file (`String`), case insensitive
+    ///
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitSync};
+    ///     
+    /// // real path : myFolder/file.txt
+    /// let mut file = QFilePath::add_path("MyFolder/file.TXT")?;
+    /// let text = file.read()?;
+    /// println!("content: {}", text);
+    /// ```
     fn read(&mut self) -> Result<String, QPackError>;
+    /// The method for writing to a file depends on the current context, case insensitive
+    /// * If the file exists - adds new content to the file
+    /// * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitSync};
+    ///
+    /// // real path : myFolder/file.txt
+    /// let mut file = QFilePath::add_path("MyFolder/file.TXT")?;
+    /// file.auto_write("text1 text1 text1")?;
+    /// file.auto_write("text2 text2 text2")?;
+    /// ```
     fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), QPackError>;
+    // The method for writing to a file depends on the current context, case insensitive
+    // * If the file exists - overwrites all the content with the new content
+    // * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitSync};
+    ///
+    /// // real path : myFolder/file.txt
+    /// let mut file = QFilePath::add_path("MyFolder/file.TXT")?;
+    /// file.write_only_new("text1 text1 text1")?;
+    /// file.write_only_new("text2 text2 text2")?;
+    /// ```
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), QPackError>;
 }
 impl QTraitSync for QFilePath {

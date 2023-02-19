@@ -23,31 +23,132 @@ pub trait QTraitAsync {
     /// The path can be absolute or relative, and can also contain characters ... to jump to a higher level in the folder hierarchy. (**Not case-sensitive**)
     /// # Example
     /// ```
-    /// use qfile::{QFilePath, QPackError, QTraitAsync};
-    /// use futures_lite::future;
-    /// use std::error::Error;
-    /// fn main() -> Result<(), Box<dyn Error>> {
-    ///     let result: Result<(), Box<dyn Error>> = future::block_on(async {
-    ///         let file = QFilePath::async_add_path("my_folder/my_file.txt").await?;
-    ///         Ok(())
-    ///     });
-    ///     result
-    /// }
+    /// use qfile::{QFilePath, QTraitAsync};
+    ///
+    /// let file = QFilePath::async_add_path("my_folder/my_file.txt").await?;
     /// ```
     async fn async_add_path<T: AsRef<str> + Send + Sync>(
         path_file: T,
     ) -> Result<Mutex<QFilePath>, QPackError>;
+    /// This method returns a file specified by the QFilePath object
+    /// if you want to use the full `async_fs` feature set,
+    /// using this method, you can get the file
+    /// if it exists, case insensitive (use auto_write to create the file)
+    ///  # Example
+    /// ```
+    /// use async_fs::File;
+    /// use qfile::{QFilePath, QTraitAsync};
+    ///
+    /// let file = QFilePath::async_add_path("file.txt").await?;
+    /// let file = file.lock().await.async_file().await?;
+    /// let mut perms = file.metadata().await?.permissions();
+    /// perms.set_readonly(true);
+    /// file.set_permissions(perms).await?;
+    /// ```
     async fn async_file(&mut self) -> Result<async_fs::File, QPackError>;
+    /// This method creates a folder and all parent folders in the path, case insensitive
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitAsync};
+    ///
+    /// let file = QFilePath::async_add_path(".polYGon/myfolder/new_Folder").await?;
+    /// file.lock().await.async_folder_create().await?; // ↓ ↓ ↓
+    ///
+    /// ```
+    ///
+    /// ---
+    /// # Result
+    ///
+    /// | Path                  | Unix format                    | Windows format                   |
+    /// | --------------------- | ------------------------------ | ------------------------------ |
+    /// | The path we specified | `.polYGon/myfolder/new_Folder` | `.polYGon\myfolder\new_Folder` |
+    /// | Real path             | `.Polygon/MyFOLDER`            | `.Polygon\MyFOLDER`            |
+    /// | Result                | `.Polygon/MyFOLDER/new_Folder` | `.Polygon\MyFOLDER\new_Folder` |
     async fn async_folder_create(&mut self) -> Result<(), QPackError>;
     //================================================================
+    /// A method to get the correct path (`PathBuf`), if the file exists, is not case-sensitive.
+    /// After the first use, the correct path is saved in QFilePath for reuse as a cache.
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitAsync};
+    ///
+    /// //Real path : `.Polygon/MyFOLDER/FIle.txt`
+    /// let mut file = QFilePath::async_add_path(".polYGon/myfolder/FILE.txt")?;
+    /// println!("{:#?}", file.lock().await.get_path_buf().await?); // ↓ ↓ ↓
+    /// ```
+    ///
+    /// ---
+    /// # Output
+    ///
+    /// |Path|Unix format|Windows  format|
+    /// |---|---|---|
+    /// |The path we specified|`.polYGon/myfolder/FILE.txt`|`.polYGon\myfolder\FILE.txxt`|
+    /// |Real path|`.Polygon/MyFOLDER/FIle.txt`|`.Polygon\MyFOLDER\FIle.txt`|
+    /// |Result |`.Polygon/MyFOLDER/FIle.txt`|`.Polygon\MyFOLDER\FIle.txt`|
+    ///
     async fn async_get_path_buf(&mut self) -> Result<PathBuf, QPackError>;
+    /// A method to get the correct path (`String`), if the file exists, is not case-sensitive.
+    /// After the first use, the correct path is saved in QFilePath for reuse as a cache.
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitAsync};
+    ///
+    ///  //Real path : `.Polygon/MyFOLDER/FIle.txt`
+    /// let mut file = QFilePath::async_add_path(".polYGon/myfolder/FILE.txt")?;
+    /// println!("{}", file.lock().await.get_path_string().await?); // ↓ ↓ ↓
+    /// ```
+    ///
+    /// ---
+    /// # Output
+    ///
+    /// |Path|Unix format|Windows  format|
+    /// |---|---|---|
+    /// |The path we specified|`.polYGon/myfolder/FILE.txt`|`.polYGon\myfolder\FILE.txxt`|
+    /// |Real path|`.Polygon/MyFOLDER/FIle.txt`|`.Polygon\MyFOLDER\FIle.txt`|
+    /// |Result |`.Polygon/MyFOLDER/FIle.txt`|`.Polygon\MyFOLDER\FIle.txt`|
+    ///
     async fn async_get_path_string(&mut self) -> Result<String, QPackError>;
     //================================================================
+    /// Method for reading the contents of a file (`String`), case insensitive
+    ///
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitSync};
+    ///     
+    /// // real path : myFolder/file.txt
+    /// let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
+    /// let text = file.lock().await.read().await?;
+    /// println!("content: {}", text);
+    /// ```
     async fn async_read(&mut self) -> Result<String, QPackError>;
+    /// The method for writing to a file depends on the current context, case insensitive
+    /// * If the file exists - adds new content to the file
+    /// * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitAsync};
+    ///
+    /// // real path : myFolder/file.txt
+    /// let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
+    /// file.lock().await.auto_write("text1 text1 text1").await?;
+    /// file.lock().await.auto_write("text2 text2 text2").await?;
+    /// ```
     async fn async_auto_write<T: AsRef<str> + Send + Sync>(
         &mut self,
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
+    // The method for writing to a file depends on the current context, case insensitive
+    // * If the file exists - overwrites all the content with the new content
+    // * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
+    /// # Example
+    /// ```
+    /// use qfile::{QFilePath, QTraitAsync};
+    ///
+    /// // real path : myFolder/file.txt
+    /// let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
+    /// file.lock().await.write_only_new("text1 text1 text1")?;
+    /// file.lock().await.write_only_new("text2 text2 text2")?;
+    /// ```
     async fn async_write_only_new<T: AsRef<str> + Send + Sync>(
         &mut self,
         text: T,
