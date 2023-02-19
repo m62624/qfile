@@ -72,7 +72,7 @@ pub trait QTraitAsync {
     /// use qfile::{QFilePath, QTraitAsync};
     ///
     /// //Real path : `.Polygon/MyFOLDER/FIle.txt`
-    /// let mut file = QFilePath::async_add_path(".polYGon/myfolder/FILE.txt")?;
+    /// let file = QFilePath::async_add_path(".polYGon/myfolder/FILE.txt")?;
     /// println!("{:#?}", file.lock().await.get_path_buf().await?); // ↓ ↓ ↓
     /// ```
     ///
@@ -93,7 +93,7 @@ pub trait QTraitAsync {
     /// use qfile::{QFilePath, QTraitAsync};
     ///
     ///  //Real path : `.Polygon/MyFOLDER/FIle.txt`
-    /// let mut file = QFilePath::async_add_path(".polYGon/myfolder/FILE.txt")?;
+    /// let file = QFilePath::async_add_path(".polYGon/myfolder/FILE.txt")?;
     /// println!("{}", file.lock().await.get_path_string().await?); // ↓ ↓ ↓
     /// ```
     ///
@@ -112,11 +112,11 @@ pub trait QTraitAsync {
     ///
     /// # Example
     /// ```
-    /// use qfile::{QFilePath, QTraitSync};
+    /// use qfile::{QFilePath, QTraitAsync};
     ///     
     /// // real path : myFolder/file.txt
-    /// let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
-    /// let text = file.lock().await.read().await?;
+    /// let file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
+    /// let text = file.lock().await.async_read().await?;
     /// println!("content: {}", text);
     /// ```
     async fn async_read(&mut self) -> Result<String, QPackError>;
@@ -128,7 +128,7 @@ pub trait QTraitAsync {
     /// use qfile::{QFilePath, QTraitAsync};
     ///
     /// // real path : myFolder/file.txt
-    /// let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
+    /// let file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
     /// file.lock().await.auto_write("text1 text1 text1").await?;
     /// file.lock().await.auto_write("text2 text2 text2").await?;
     /// ```
@@ -144,7 +144,7 @@ pub trait QTraitAsync {
     /// use qfile::{QFilePath, QTraitAsync};
     ///
     /// // real path : myFolder/file.txt
-    /// let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
+    /// let file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
     /// file.lock().await.write_only_new("text1 text1 text1")?;
     /// file.lock().await.write_only_new("text2 text2 text2")?;
     /// ```
