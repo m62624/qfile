@@ -42,7 +42,7 @@ It takes in the search location, names of files to search for, excluded director
 The algorithm first filters out the excluded directories, and then iterates through the remaining directories to find all the files that match the specified search criteria. If a match is found, the path of the file is sent to the Sender object.
 
 ```rust
-use qfile::QFilePath;
+use qfile::{QFilePath,Directory};
 use std::sync::mpsc;
 
 let (tx, rx) = mpsc::channel();

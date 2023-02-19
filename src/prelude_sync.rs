@@ -191,6 +191,9 @@ impl QFilePath {
     ///
     /// # Example
     ///```
+    /// use qfile::{Directory, QFilePath};
+    /// use std::sync::mpsc;
+    /// 
     /// QFilePath::find_paths(
     ///     // specifies the directories to search from, where the search should start.
     ///     Directory::ThisPlace(vec!["src", "another_folder", "/home/user/my_project"]),
@@ -204,7 +207,7 @@ impl QFilePath {
     ///     tx,
     /// )?;
     /// for path in rx {
-    ///     println!("{}", path.display().to_string());
+    ///     println!("{}", path.display());
     /// }
     ///```
     pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
