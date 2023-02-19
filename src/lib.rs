@@ -42,9 +42,9 @@ pub use qerror::QPackError;
 use std::path::PathBuf;
 mod prelude_async;
 mod prelude_sync;
+pub use async_mutex::Mutex as AsyncMutex;
 pub use prelude_async::QTraitAsync;
 pub use prelude_sync::QTraitSync;
-
 //Flag: an enum that defines flags for specifying whether to use an existing file
 // or create a new one, or let the crate automatically determine which to use.
 #[derive(Debug, Clone)]
@@ -53,7 +53,7 @@ enum Flag {
     Auto,
     New,
 }
-//  Directory: an enum that defines options for specifying which directories to search for files
+/// Directory: an enumeration defining options for specifying which directories should be searched in the file system files
 #[derive(Debug, Clone)]
 pub enum Directory<T: AsRef<str> + Send + Sync + 'static> {
     ThisPlace(Vec<T>),
