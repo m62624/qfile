@@ -11,7 +11,7 @@ The core function is a helper function that takes a path and a status, checks if
  */
 pub mod constructor {
     use super::*;
-    fn core<T: AsRef<str>>(path_file: T, status: &CodeStatus) -> Result<(), QPackError> {
+    fn core<T: AsRef<str>>(path_file: T) -> Result<(), QPackError> {
         // Check if the path_file is an empty string.
         if path_file.as_ref().to_string().is_empty() {
             return Err(QPackError::PathIsEmpty);
@@ -37,7 +37,7 @@ pub mod constructor {
         path_file: T,
         status: CodeStatus,
     ) -> Result<QFilePath, QPackError> {
-        core(&path_file, &status)?;
+        core(&path_file)?;
         let path_file = PathBuf::from(path_file.as_ref());
         Ok(QFilePath {
             request_items: Default::default(),
@@ -53,7 +53,7 @@ pub mod constructor {
         path_file: T,
         status: CodeStatus,
     ) -> Result<Mutex<QFilePath>, QPackError> {
-        core(&path_file, &status)?;
+        core(&path_file)?;
         let path_file = PathBuf::from(path_file.as_ref());
         Ok(Mutex::new(QFilePath {
             request_items: Default::default(),
