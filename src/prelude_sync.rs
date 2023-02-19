@@ -181,6 +181,32 @@ impl QTraitSync for QFilePath {
     }
 }
 impl QFilePath {
+    // Perhaps there will be an asynchronous version
+    /// This is the method that kicks off the directory search.
+    /// It takes in the search location, names of files to search for, excluded directories, whether or not to follow symbolic links, and a channel to send the results back on.
+    ///
+    /// **It uses the rayon crate to parallelize the search over multiple threads for better performance.**
+    ///
+    /// The algorithm first filters out the excluded directories, and then iterates through the remaining directories to find all the files that match the specified search criteria. If a match is found, the path of the file is sent to the Sender object.
+    ///
+    /// # Example
+    ///```
+    /// QFilePath::find_paths(
+    ///     // specifies the directories to search from, where the search should start.
+    ///     Directory::ThisPlace(vec!["src", "another_folder", "/home/user/my_project"]),
+    ///     // names of items to search in the file system
+    ///     vec!["main.rs", "lib.rs", "photo-1-2.jpg"],
+    ///     // folders to exclude search
+    ///     Some(vec!["src/tests", "another_folder/tmp"]),
+    ///     // follow links
+    ///     false,
+    ///     // Sender channel
+    ///     tx,
+    /// )?;
+    /// for path in rx {
+    ///     println!("{}", path.display().to_string());
+    /// }
+    ///```
     pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
         place: Directory<T>,
         names: Vec<T>,
