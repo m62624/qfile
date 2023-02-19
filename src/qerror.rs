@@ -3,9 +3,8 @@ use std::error::Error;
 use thiserror::Error;
 #[derive(Error, Debug)]
 /// This Rust code defines an error type QPackError for handling QFilePath cases, using the Error trait from the Rust standard library and the Error macro from the thiserror crate.
-/// 
+///
 /// The QPackError type has several variants, each representing a different error condition that can arise while using the QFilePath library:
-
 pub enum QPackError {
     /// - `UnixPathIsIncorrect`: Returns an error if you use a non-unix format for the path.
     #[error("You are using the windows path format for Unix. Use `unix` format for the path:\n> ./folder1/folder2/file.txt\n> ../folder2/file.txt\n> ./file.txt")]

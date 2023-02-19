@@ -11,9 +11,9 @@ use crate::Directory;
 use crate::{QFilePath, QPackError};
 use std::sync::mpsc::{SendError, Sender};
 use std::{fs, path::PathBuf};
-/*
-The prelude_sync module is a collection of frequently used items that are imported automatically when the QPack library is used. This module saves the user from having to import each item manually.
- */
+
+/// The prelude_sync module is a collection of frequently used items that are imported automatically when the QPack library is used. This module saves the user from having to import each item manually.
+
 pub trait QTraitSync {
     /// The add_path constructor from the qfile library allows you to create an object of type QFilePack that represents a file in a given path. (**Not case-sensitive**)
     /// To create the object you must pass the path to the file in string format.
@@ -130,9 +130,9 @@ pub trait QTraitSync {
     /// file.auto_write("text2 text2 text2")?;
     /// ```
     fn auto_write<T: AsRef<str>>(&mut self, text: T) -> Result<(), QPackError>;
-    // The method for writing to a file depends on the current context, case insensitive
-    // * If the file exists - overwrites all the content with the new content
-    // * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
+    /// The method for writing to a file depends on the current context, case insensitive
+    /// * If the file exists - overwrites all the content with the new content
+    /// * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
     /// # Example
     /// ```
     /// use qfile::{QFilePath, QTraitSync};
@@ -193,7 +193,7 @@ impl QFilePath {
     ///```
     /// use qfile::{Directory, QFilePath};
     /// use std::sync::mpsc;
-    /// 
+    ///
     /// QFilePath::find_paths(
     ///     // specifies the directories to search from, where the search should start.
     ///     Directory::ThisPlace(vec!["src", "another_folder", "/home/user/my_project"]),

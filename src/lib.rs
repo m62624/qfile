@@ -1,12 +1,20 @@
 //! # Qfile
 //!
-//!  Crate for accessing a file by path, case insensitive. Automatic detection, create a path with a new file or open an existing file.
+//! The Qfile crate provides functionality for accessing a file by path, case-insensitive, including automatic detection, creation of a path with a new file or opening an existing file. It includes several submodules to handle different aspects of file handling, such as initialization, reading, and writing. The crate also defines some custom errors related to file operations.
+//!
+//! # Async and Sync methods
+//! | Sync | Async |
+//! |---|---|
+//! |[add_path](<trait.QTraitSync.html#tymethod.add_path>)|[async_add_path](<trait.QTraitAsync.html#tymethod.async_add_path>)|
+//! |[file](<trait.QTraitSync.html#tymethod.file>)|[async_file](<trait.QTraitAsync.html#tymethod.async_file>)|
+//! |[folder_create](<trait.QTraitSync.html#tymethod.folder_create>)|[async_folder_create](<trait.QTraitAsync.html#tymethod.async_folder_create>)|
+//! |[get_path_buf](<trait.QTraitSync.html#tymethod.get_path_buf>)|[async_get_path_buf](<trait.QTraitAsync.html#tymethod.async_get_path_buf>)|
+//! |[get_path_string](<trait.QTraitSync.html#tymethod.get_path_string>)|[async_get_path_string](<trait.QTraitAsync.html#tymethod.async_get_path_string>)|
+//! |[read](<trait.QTraitSync.html#tymethod.read>)|[async_read](<trait.QTraitAsync.html#tymethod.async_read>)|
+//! |[auto_write](<trait.QTraitSync.html#tymethod.auto_write>)|[async_auto_write](<trait.QTraitAsync.html#tymethod.async_auto_write>)|
+//! |[write_only_new](<trait.QTraitSync.html#tymethod.write_only_new>)|[async_write_only_new](<trait.QTraitAsync.html#tymethod.async_write_only_new>)|
+//!
 /*
-
-Module Overview
-
-The Qfile crate provides functionality for accessing a file by path, case-insensitive, including automatic detection, creation of a path with a new file or opening an existing file. It includes several submodules to handle different aspects of file handling, such as initialization, reading, and writing. The crate also defines some custom errors related to file operations.
-
 Module Items
 
 - find: a module that defines functions for finding file paths that match a given set of names, with options to exclude certain directories or follow symbolic links.

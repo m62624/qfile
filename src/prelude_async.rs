@@ -13,9 +13,8 @@ use async_mutex::Mutex;
 use async_trait::async_trait;
 use std::error::Error;
 use std::path::PathBuf;
-/*
-The prelude_async module is a collection of frequently used items that are imported automatically when the QPack library is used. This module saves the user from having to import each item manually.
- */
+
+/// The prelude_async module is a collection of frequently used items that are imported automatically when the QPack library is used. This module saves the user from having to import each item manually.
 #[async_trait]
 pub trait QTraitAsync {
     /// The add_path constructor from the qfile library allows to create an object of type Mutex<QFilePack>, asynchronous mutex is used.
@@ -137,9 +136,9 @@ pub trait QTraitAsync {
         &mut self,
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
-    // The method for writing to a file depends on the current context, case insensitive
-    // * If the file exists - overwrites all the content with the new content
-    // * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
+    /// The method for writing to a file depends on the current context, case insensitive
+    /// * If the file exists - overwrites all the content with the new content
+    /// * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
     /// # Example
     /// ```
     /// use qfile::{QFilePath, QTraitAsync};
