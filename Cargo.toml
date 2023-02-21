@@ -1,11 +1,11 @@
 [package]
 name = "qfile"
-version = "3.0.0"
+version = "3.0.1"
 edition = "2021"
 description = "Crate for accessing a file by path, case insensitive. Automatic detection, create a path with a new file or open an existing file"
 repository="https://github.com/m62624/qfile"
-categories = ["filesystem"]
-keywords = ["file","async-io","auto-path", "case-insensitive"]
+categories = ["filesystem","asynchronous"]
+keywords = ["file","async-io","auto-path","search", "find", "case-insensitive"]
 license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
