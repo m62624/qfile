@@ -13,7 +13,7 @@ pub mod alias_context {
 
     use super::*;
     #[derive(Debug)]
-    pub enum Action<'a, T: AsRef<str> + Sync + Send + 'static> {
+    pub enum Action<'a, T: AsRef<str> + Sync + Send> {
         Find(Directory<T>, Vec<T>, Option<Vec<T>>, bool, Sender<PathBuf>),
         Read(&'a mut String),
         Write(T),
@@ -39,7 +39,7 @@ pub mod alias_context {
         }
         Ok(())
     }
-    pub async fn async_action_on_file<'a, T: AsRef<str> + Send + Sync>(
+    pub async fn async_action_on_file<T: AsRef<str> + Send + Sync>(
         slf: &mut QFilePath,
         action: Action<'_, T>,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {

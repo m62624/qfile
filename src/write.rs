@@ -158,7 +158,6 @@ pub mod write {
         }
         Ok(())
     }
-    #[async_recursion]
     pub async fn async_write_only_new<T: AsRef<str> + Send + Sync>(
         slf: &mut QFilePath,
         text: T,

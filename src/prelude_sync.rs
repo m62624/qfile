@@ -1,4 +1,4 @@
-use crate::context_command::alias_context::Action;
+use crate::context_command::alias_context::{action_on_file, Action};
 use crate::find::pathfinder::find_paths;
 use crate::init::{
     constructor::add_path,
@@ -189,7 +189,7 @@ impl QTraitSync for QFilePath {
         &mut self,
         action: Action<T>,
     ) -> Result<(), Box<dyn Error>> {
-        QFilePath::action_on_file(self, action)
+        action_on_file(self, action)
     }
 }
 impl QFilePath {
@@ -222,7 +222,7 @@ impl QFilePath {
     ///     println!("{}", path.display());
     /// }
     ///```
-    pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
+    pub fn find_paths<T: AsRef<str> + Send + Sync>(
         place: Directory<T>,
         names: Vec<T>,
         excluded_dirs: Option<Vec<T>>,

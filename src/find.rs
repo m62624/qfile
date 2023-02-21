@@ -17,7 +17,7 @@ Finally, the find_paths function calls get_paths, get_excluded_dirs, and find_ma
 pub mod pathfinder {
     use super::*;
     // Get all possible paths to search for files, depending on the directory type
-    fn get_paths<T: AsRef<str> + Send + Sync + 'static>(place: Directory<T>) -> Vec<String> {
+    fn get_paths<T: AsRef<str> + Send + Sync>(place: Directory<T>) -> Vec<String> {
         match place {
             Directory::ThisPlace(root_d) => root_d
                 .iter()
@@ -41,7 +41,7 @@ pub mod pathfinder {
         }
     }
     // Get all excluded directories to skip while searching for files
-    fn get_excluded_dirs<E: AsRef<str> + Send + Sync + 'static>(
+    fn get_excluded_dirs<E: AsRef<str> + Send + Sync>(
         excluded_dirs: Option<Vec<E>>,
     ) -> HashSet<String> {
         match excluded_dirs {
@@ -105,7 +105,7 @@ pub mod pathfinder {
 
         Ok(())
     }
-    pub fn find_paths<T: AsRef<str> + Send + Sync + 'static>(
+    pub fn find_paths<T: AsRef<str> + Send + Sync>(
         place: Directory<T>,
         names: Vec<T>,
         excluded_dirs: Option<Vec<T>>,

@@ -21,7 +21,6 @@ Exported Items
 - QTraitSync: a trait for synchronous file operations that defines methods for reading, writing, and manipulating file paths.
  */
 
-mod context_command;
 mod find;
 mod init;
 mod paths;
@@ -30,10 +29,11 @@ mod read;
 mod write;
 pub use qerror::QPackError;
 use std::path::PathBuf;
+mod context_command;
 mod prelude_async;
 mod prelude_sync;
+pub use crate::context_command::alias_context::Action;
 pub use async_mutex::Mutex as AsyncMutex;
-pub use context_command::alias_context::Action;
 pub use prelude_async::QTraitAsync;
 pub use prelude_sync::QTraitSync;
 //Flag: an enum that defines flags for specifying whether to use an existing file
@@ -46,7 +46,7 @@ enum Flag {
 }
 /// Directory: an enumeration defining options for specifying which directories should be searched in the file system files
 #[derive(Debug, Clone)]
-pub enum Directory<T: AsRef<str> + Send + Sync + 'static> {
+pub enum Directory<T: AsRef<str> + Send + Sync> {
     ThisPlace(Vec<T>),
     Everywhere,
 }
