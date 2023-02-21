@@ -1,10 +1,8 @@
 # Changelog
 ## [3.0.1] - 2023.02.20
-### Removed
-* `convert_sync_send` replaced by `fn from` from trait From
 ### Changed
-* changed the lifetime from `static` to `'a' in find_paths
-convert_sync_send
+* changed the lifetime from `static` to `'a` in `find_paths`
+* `convert_sync_send` replaced by `fn from` from trait From
 ## [3.0.0] - 2023.02.19
 ### Changed
 * Changed the entire internal structure of the project.

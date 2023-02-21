@@ -30,7 +30,6 @@ let path4 = "D:\\Folder\\file.txt";
 let path5 = r"D:\Folder\file.txt";
 let path6 = String::from("D:\\Folder\\file.txt");
 ```
-> Methods to read, write, get the right path are case insensitive
 
 ---
 # Paths finder
@@ -65,7 +64,7 @@ for path in rx {
 
 # Writing to a file
 The method for writing to a file depends on the current context, case insensitive
-* If the file exists - overwrites all the content with the new content
+* If the file exists - adds new content to the file
 * If file does not exist - creates files and, if necessary, all parent folders specified in the path. After that writes the new content
 
 ### Example (Sync Code)
@@ -74,8 +73,8 @@ The method for writing to a file depends on the current context, case insensitiv
 
  // real path : myFolder/file.txt
  let mut file = QFilePath::add_path("MyFolder/file.TXT")?;
- file.write_only_new("text1 text1 text1")?;
- file.write_only_new("text2 text2 text2")?;
+ file.auto_write("text1 text1 text1")?;
+ file.auto_write("text2 text2 text2")?;
 ```
 
 ### Example (Async code)
@@ -86,12 +85,9 @@ let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
 file.lock().await.auto_write("text1 text1 text1").await?;
 file.lock().await.auto_write("text2 text2 text2").await?;
 ```
-
-### Unix & Windows
-
  - If the path exists, we work with the file
 
- |                            | Linux                        | Windows                      |
+ |                            | Unix format                       | Windows format                      |
  | -------------------------- | ---------------------------- | ---------------------------- |
  | **The path we specified**: | `folder1/FolDER2/file.TXT`   | `folder1\FolDER2\file.TXT`   |
  | **Real path** :            | `./Folder1/Folder2/file.txt` | `.\Folder1\Folder2\file.txt` |
@@ -99,7 +95,7 @@ file.lock().await.auto_write("text2 text2 text2").await?;
 
  - If the file/path is not found, creates a new path with the file
 
- |                            | Linux                               | Windows                             |
+ |                            | Unix format                               | Windows format                            |
  | -------------------------- | ----------------------------------- | ----------------------------------- |
  | **The path we specified**: | `./main_folder/folder_new/file.txt` | `.\main_folder\folder_new\file.txt` |
  | **Real path** :            | `./Main_Folder`                     | `.\Main_Folder`                     |
@@ -127,8 +123,8 @@ use qfile::{QFilePath, QTraitAsync};
 
 // real path : myFolder/file.txt
 let mut file = QFilePath::async_add_path("MyFolder/file.TXT").await?;
-file.lock().await.auto_write("text1 text1 text1").await?;
-file.lock().await.auto_write("text2 text2 text2").await?;
+let text = file.lock().await.async_read().await?;
+println!("content: {}", text);
 ```
 
 ---
