@@ -116,7 +116,7 @@ pub mod write {
                             .await?;
                     }
                     Err(err) => {
-                        return Err(QPackError::convert_sync_send(QPackError::IoError(err)));
+                        return Err(QPackError::from(QPackError::IoError(err)).into());
                     }
                 };
             }

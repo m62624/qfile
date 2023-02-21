@@ -1,4 +1,3 @@
-use crate::context_command::alias_context::{action_on_file, Action};
 use crate::find::pathfinder::find_paths;
 use crate::init::{
     constructor::add_path,
@@ -10,7 +9,6 @@ use crate::write::write::{auto_write, write_only_new};
 use crate::CodeStatus;
 use crate::Directory;
 use crate::{QFilePath, QPackError};
-use std::error::Error;
 use std::sync::mpsc::{SendError, Sender};
 use std::{fs, path::PathBuf};
 
@@ -145,10 +143,6 @@ pub trait QTraitSync {
     /// file.write_only_new("text2 text2 text2")?;
     /// ```
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), QPackError>;
-    fn action_on_file<T: AsRef<str> + Send + Sync>(
-        &mut self,
-        action: Action<T>,
-    ) -> Result<(), Box<dyn Error>>;
 }
 impl QTraitSync for QFilePath {
     //================================================================
@@ -184,12 +178,6 @@ impl QTraitSync for QFilePath {
     fn write_only_new<T: AsRef<str>>(&mut self, text: T) -> Result<(), QPackError> {
         QFilePath::check_status_code(&self, CodeStatus::SyncStatus)?;
         write_only_new(self, text)
-    }
-    fn action_on_file<T: AsRef<str> + Send + Sync>(
-        &mut self,
-        action: Action<T>,
-    ) -> Result<(), Box<dyn Error>> {
-        action_on_file(self, action)
     }
 }
 impl QFilePath {

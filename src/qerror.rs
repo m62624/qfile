@@ -34,11 +34,28 @@ pub enum QPackError {
     #[error("Error from IO")]
     IoError(#[from] std::io::Error),
 }
-/// The impl block contains a method `convert_sync_send` that takes a QPackError and converts it to a Box<dyn Error + Send + Sync> using the Box::new
-impl QPackError {
-    pub fn convert_sync_send(err: QPackError) -> Box<dyn Error + Send + Sync> {
-        let boxed: Box<dyn Error + Send + Sync> = Box::new(err);
-        boxed
+
+/// Converting from Box<QPackError> to QPackError
+impl From<Box<QPackError>> for QPackError {
+    fn from(value: Box<QPackError>) -> Self {
+        *value
     }
 }
-// impl Fr
+/// Converting from Box<dyn Error + Send + Sync> to QPackError
+impl From<Box<dyn Error + Send + Sync>> for QPackError {
+    fn from(value: Box<dyn std::error::Error + Send + Sync>) -> Self {
+        if let Ok(unpacked_value) = value.downcast::<QPackError>() {
+            return unpacked_value.into();
+        }
+        QPackError::NotQPackError
+    }
+}
+/// Converting from Box<dyn Error + Send + Sync> to Box<QPackError>
+impl From<Box<dyn Error + Send + Sync>> for Box<QPackError> {
+    fn from(value: Box<dyn std::error::Error + Send + Sync>) -> Self {
+        if let Ok(unpacked_value) = value.downcast::<QPackError>() {
+            return unpacked_value.into();
+        }
+        Box::new(QPackError::NotQPackError)
+    }
+}

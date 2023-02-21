@@ -1,5 +1,4 @@
 // use crate::find::pathfinder::find_paths;
-use crate::context_command::alias_context::{async_action_on_file, Action};
 use crate::init::{
     constructor::async_add_path,
     work_with_elements::{async_file, async_folder_create},
@@ -153,10 +152,6 @@ pub trait QTraitAsync {
         &mut self,
         text: T,
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
-    async fn async_action_on_file<T: AsRef<str> + Send + Sync>(
-        &mut self,
-        action: Action<'_, T>,
-    ) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 #[async_trait]
 impl QTraitAsync for QFilePath {
@@ -201,11 +196,5 @@ impl QTraitAsync for QFilePath {
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
         QFilePath::check_status_code(&self, CodeStatus::AsyncStatus)?;
         async_write_only_new(self, text).await
-    }
-    async fn async_action_on_file<T: AsRef<str> + Send + Sync>(
-        &mut self,
-        action: Action<'_, T>,
-    ) -> Result<(), Box<dyn Error + Send + Sync>> {
-        async_action_on_file(self, action).await
     }
 }
