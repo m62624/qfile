@@ -9,7 +9,10 @@ keywords = ["file","async-io","search", "find", "case-insensitive"]
 license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
+home = "0.5.5"
+sys-info = "0.9.1"
 unicase = "2.7.0"
+uuid = {version = "1.5.0", features = ["v4"]}
 
 [dev-dependencies]
 rand="0.8.5"
