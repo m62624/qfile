@@ -1,5 +1,7 @@
 use super::import_libs::*;
 
+const MAX_F64_ERROR: &str = "Attention: Your disk space exceeds the maximum value that can be represented in `f64`. The program may not work correctly in such conditions, or may not work at all";
+
 #[derive(Debug)]
 pub enum WriteSpeed {
     // Килобайт в секунду
@@ -47,6 +49,12 @@ fn check_disk_space(minimal_free: f64) -> Result<f64> {
 
 // Измеряет скорость записи во временную директорию
 pub fn measure_write_speed(percentage_memory: f64) -> Result<(f64, WriteSpeed)> {
+    if percentage_memory > f64::MAX {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            MAX_F64_ERROR,
+        ));
+    }
     // Определяем home директорию
     let home_dir = match home_dir() {
         Some(path) => path,
