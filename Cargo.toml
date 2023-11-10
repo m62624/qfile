@@ -9,16 +9,8 @@ keywords = ["file","async-io","search", "find", "case-insensitive"]
 license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-regex = "1.7.0"
-rayon = "1.6.1"
-lazy_static = "1.4.0"
-thiserror = "1.0.38"
-async-trait = "0.1.62"
-async-recursion = "1.0.2"
-walkdir = "2.3.2"
-async-fs = "1.6.0"
-async-mutex = "1.4.0"
-futures-lite = "1.12.0"
+unicase = "2.7.0"
+
 [dev-dependencies]
 rand="0.8.5"
 [lib]
