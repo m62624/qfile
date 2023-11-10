@@ -48,7 +48,7 @@ fn check_disk_space(minimal_free: f64) -> Result<f64> {
 }
 
 // Измеряет скорость записи во временную директорию
-pub fn measure_write_speed(percentage_memory: f64) -> Result<(f64, WriteSpeed)> {
+pub fn measure_write_speed(percentage_memory: f64) -> Result<WriteSpeed> {
     if percentage_memory > f64::MAX {
         return Err(std::io::Error::new(
             std::io::ErrorKind::Other,
@@ -92,16 +92,13 @@ pub fn measure_write_speed(percentage_memory: f64) -> Result<(f64, WriteSpeed)> 
     // Останавливаем таймер
     let elapsed_time = start_time.elapsed();
     // Вычисляем скорость записи
-    let elapsed_seconds = elapsed_time.as_secs() as f64 + elapsed_time.subsec_nanos() as f64 / 1e9;
     // Скорость записи в килобайтах в секунду
-    let write_speed = (data_size_bytes as f64 / 1024.0) / elapsed_seconds; // KB/s
+    let write_speed = (data_size_bytes as f64 / 1024.0)
+        / (elapsed_time.as_secs() as f64 + elapsed_time.subsec_nanos() as f64 / 1e9); // KB/s
 
     // Удаляем временную директорию
     fs::remove_dir_all(&tmp_dir)?;
 
     // Возвращаем результат
-    Ok((
-        elapsed_seconds,
-        WriteSpeed::from_bytes_per_second(write_speed),
-    ))
+    Ok(WriteSpeed::from_bytes_per_second(write_speed))
 }
