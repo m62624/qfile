@@ -65,12 +65,12 @@ pub struct Memory<STR: AsRef<str>> {
     /// Here we store an object that can store various data about the system
     system_info: System,
     /// Path to the backup location
-    pub path: STR,
+    path: STR,
     /// Information about the free and total space on the disk.
     /// The device on which the memory is defined depends on the path specified by the user
-    pub rom: Option<Rom>,
+    rom: Option<Rom>,
     /// Information about the free and total space in RAM.
-    pub ram_available: DataSizeUnit,
+    ram_available: DataSizeUnit,
 }
 
 impl<STR: AsRef<str>> Memory<STR> {
@@ -130,6 +130,26 @@ impl<STR: AsRef<str>> Memory<STR> {
             })
             .max_by_key(|(_, p)| p.len())
             .map(|(disk, _)| disk)
+    }
+
+    pub fn get_rom(&self) -> Option<&Rom> {
+        self.rom.as_ref()
+    }
+
+    pub fn get_ram_available(&self) -> &DataSizeUnit {
+        &self.ram_available
+    }
+
+    pub fn get_path(&self) -> &STR {
+        &self.path
+    }
+
+    /// Set the path to the backup location
+    /// Automatically updates the information about the free and total space on the disk.
+    /// (hidden call `update_info`).
+    pub fn set_path(&mut self, path: STR) {
+        self.path = path;
+        self.update_info();
     }
 }
 
