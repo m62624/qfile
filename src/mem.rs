@@ -75,18 +75,18 @@ pub struct Memory<STR: AsRef<str>> {
 
 impl<STR: AsRef<str>> Memory<STR> {
     /// Creates a new instance of the structure
-    pub fn new(backup_location_path: STR) -> Self {
+    pub fn new(path_on_disk: STR) -> Self {
         // only RAM and ROM tracking
         let mut system_info =
             System::new_with_specifics(RefreshKind::new().with_memory().with_disks_list());
         Self {
-            rom: Self::locate_the_disk_in_the_path(&mut system_info, &backup_location_path, false)
+            rom: Self::locate_the_disk_in_the_path(&mut system_info, &path_on_disk, false)
                 .map(|disk| Rom {
                     total: DataSizeUnit::into_human_readable(disk.total_space() as f64),
                     free: DataSizeUnit::into_human_readable(disk.available_space() as f64),
                 }),
             ram_available: DataSizeUnit::into_human_readable(system_info.available_memory() as f64),
-            path: backup_location_path,
+            path: path_on_disk,
             system_info,
         }
     }
