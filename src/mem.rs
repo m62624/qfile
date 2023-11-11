@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use sysinfo::RefreshKind;
 
 use super::import_libs::*;
@@ -57,8 +59,8 @@ pub struct Rom {
     pub free: DataSizeUnit,
 }
 
-/// A structure that stores the information needed to determine the `optimal' chunk size
 #[derive(Debug)]
+/// A structure that stores the information needed to determine the `optimal' chunk size
 pub struct Memory<STR: AsRef<str>> {
     /// Here we store an object that can store various data about the system
     system_info: System,
@@ -121,5 +123,41 @@ impl<STR: AsRef<str>> Memory<STR> {
             })
             .max_by_key(|(_, p)| p.len())
             .map(|(disk, _)| disk)
+    }
+}
+
+impl Display for DataSizeUnit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DataSizeUnit::Bytes(_, bytes) => write!(f, "{} bytes", bytes),
+            DataSizeUnit::Kilobytes(kb, _) => write!(f, "{} KB", kb),
+            DataSizeUnit::Megabytes(mb, _) => write!(f, "{} MB", mb),
+            DataSizeUnit::Gigabytes(gb, _) => write!(f, "{} GB", gb),
+            DataSizeUnit::Terabytes(tb, _) => write!(f, "{} TB", tb),
+            DataSizeUnit::Petabytes(pb, _) => write!(f, "{} PB", pb),
+            DataSizeUnit::Exabytes(eb, _) => write!(f, "{} EB", eb),
+        }
+    }
+}
+
+impl Display for Rom {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[total: {}, free: {}]", self.total, self.free,)
+    }
+}
+
+impl<STR: AsRef<str>> Display for Memory<STR> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Free RAM: {}, ROM: {}, Path: {}",
+            self.ram_available,
+            if let Some(rom) = &self.rom {
+                rom.to_string()
+            } else {
+                "None".into()
+            },
+            self.path.as_ref()
+        )
     }
 }
