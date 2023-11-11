@@ -15,7 +15,7 @@ const BYTES_IN_PB: f64 = BYTES_IN_TB * BYTES_IN_KB;
 /// Exabytes in bytes.
 const BYTES_IN_EB: f64 = BYTES_IN_PB * BYTES_IN_KB;
 
-/// Returns the total amount of memory in bytes.
+/// Returns the total amount of memory in bytes (`human_readable`, `bytes`).
 #[derive(Debug, Clone, Copy)]
 pub enum DataSizeUnit {
     Bytes(usize, f64),
@@ -75,53 +75,49 @@ impl<STR: AsRef<str>> Memory<STR> {
     /// Creates a new instance of the structure
     pub fn new(backup_location_path: STR) -> Self {
         // only RAM and ROM tracking
-        let system_info =
+        let mut system_info =
             System::new_with_specifics(RefreshKind::new().with_memory().with_disks_list());
         Self {
-            // If the path is not valid, we will not track ROMs
-            rom: system_info
-                // get all connected disks
-                .disks()
-                .iter()
-                // get each disk's mount point, and compare whether the start
-                // of the path matches the path specified by the user.
-                .filter_map(|disk| {
-                    let temp = disk.mount_point().display().to_string();
-                    backup_location_path
-                        .as_ref()
-                        .starts_with(&temp)
-                        .then(|| (disk, temp))
-                })
-                // problem can occur when one path is a subset of another path
-                // -> `/home/user/file.txt` -- specified path
-                // -> `/` -- diskA/partitionA
-                // -> `/home` -- diskB/partitionB
-                // then after checking for the substring, discarding unnecessary mount points,
-                // compare the longest possible match.
-                .max_by_key(|(_, p)| p.len())
-                .map(|(disk, _)| Rom {
+            rom: Self::locate_the_disk_in_the_path(&mut system_info, &backup_location_path).map(
+                |disk| Rom {
                     total: DataSizeUnit::into_human_readable(disk.total_space() as f64),
                     free: DataSizeUnit::into_human_readable(disk.available_space() as f64),
-                }),
+                },
+            ),
             ram_available: DataSizeUnit::into_human_readable(system_info.available_memory() as f64),
             path: backup_location_path,
             system_info,
         }
     }
 
-    pub fn update_info(&mut self) {
-        self.system_info.refresh_memory();
-        self.system_info.refresh_disks_list();
-    }
-}
+    // pub fn update_info(&mut self) {
+    //     self.system_info.refresh_memory();
+    //     self.system_info.refresh_disks_list();
+    // }
 
-#[test]
-fn test_memory() {
-    use std::thread::sleep;
-    use std::time::Duration;
-    let mut memory = Memory::new("/");
-    println!("{:#?}", memory);
-    sleep(Duration::from_secs(30));
-    memory.update_info();
-    println!("{:#?}", memory);
+    /// Get each disk's mount point, and compare whether the start
+    /// of the path matches the path specified by the user.
+    ///
+    /// ---
+    /// **Problem can occur when one path is a subset of another path**\
+    /// * `/home/user/file.txt` -- specified path\
+    /// * `/` -- diskA / partitionA\
+    /// * `/home` -- diskB / partitionB\
+    /// then after checking for the substring, discarding unnecessary mount points,
+    /// compare the longest possible match.
+    pub fn locate_the_disk_in_the_path<'a>(
+        system_info: &'a mut System,
+        path: &STR,
+    ) -> Option<&'a Disk> {
+        system_info.refresh_disks_list();
+        system_info
+            .disks()
+            .iter()
+            .filter_map(|disk| {
+                let temp = disk.mount_point().display().to_string();
+                path.as_ref().starts_with(&temp).then(|| (disk, temp))
+            })
+            .max_by_key(|(_, p)| p.len())
+            .map(|(disk, _)| disk)
+    }
 }
