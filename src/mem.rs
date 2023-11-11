@@ -5,24 +5,33 @@ const MAX_F64_ERROR: &str = "Attention: Your disk space exceeds the maximum valu
 pub struct MemInfo;
 
 #[derive(Debug)]
-pub enum WriteSpeed {
+pub enum MeasurementUnit {
     // Килобайт в секунду
-    KilobytesPerSecond(f64),
+    Kilobytes(f64),
     // Мегабайт в секунду
-    MegabytesPerSecond(f64),
+    Megabytes(f64),
     // Гигабайт в секунду
-    GigabytesPerSecond(f64),
+    Gigabytes(f64),
 }
 
-impl WriteSpeed {
+impl MeasurementUnit {
     // Конвертирует скорость записи в байтах в секунду в скорость записи в килобайтах, мегабайтах или гигабайтах в секунду
-    fn from_bytes_per_second(bytes_per_second: f64) -> WriteSpeed {
+    pub fn from_bytes_per_second(bytes_per_second: f64) -> MeasurementUnit {
         if bytes_per_second < 1024.0 {
-            WriteSpeed::KilobytesPerSecond(bytes_per_second)
+            MeasurementUnit::Kilobytes(bytes_per_second)
         } else if bytes_per_second < 1024.0 * 1024.0 {
-            WriteSpeed::MegabytesPerSecond(bytes_per_second / 1024.0)
+            MeasurementUnit::Megabytes(bytes_per_second / 1024.0)
         } else {
-            WriteSpeed::GigabytesPerSecond(bytes_per_second / (1024.0 * 1024.0))
+            MeasurementUnit::Gigabytes(bytes_per_second / (1024.0 * 1024.0))
+        }
+    }
+
+    // Конвертирует скорость записи в килобайтах, мегабайтах или гигабайтах в секунду в скорость записи в байтах в секунду
+    pub fn to_bytes_per_second(&self) -> f64 {
+        match self {
+            MeasurementUnit::Kilobytes(value) => value * 1024.0,
+            MeasurementUnit::Megabytes(value) => value * 1024.0 * 1024.0,
+            MeasurementUnit::Gigabytes(value) => value * 1024.0 * 1024.0 * 1024.0,
         }
     }
 }
@@ -51,7 +60,7 @@ impl MemInfo {
     }
 
     // Измеряет скорость записи во временную директорию
-    fn measure_write_speed(percentage_memory: f64) -> Result<WriteSpeed> {
+    pub fn measure_write_speed_rom(percentage_memory: f64) -> Result<MeasurementUnit> {
         if percentage_memory > f64::MAX {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Unsupported,
@@ -103,6 +112,17 @@ impl MemInfo {
         fs::remove_dir_all(&tmp_dir)?;
 
         // Возвращаем результат
-        Ok(WriteSpeed::from_bytes_per_second(write_speed))
+        Ok(MeasurementUnit::from_bytes_per_second(write_speed))
+    }
+
+    pub fn measure_available_ram() -> Result<MeasurementUnit> {
+        if let Ok(mem) = mem_info() {
+            Ok(MeasurementUnit::from_bytes_per_second(mem.avail as f64))
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Failed to get RAM information.",
+            ))
+        }
     }
 }
