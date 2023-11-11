@@ -6,7 +6,6 @@ mod utils;
 use import_libs::*;
 
 mod import_libs {
-    pub use home::home_dir;
     pub use std::fs;
     pub use std::fs::File;
     pub use std::io::{BufReader, Read, Result, Write};
@@ -16,3 +15,5 @@ mod import_libs {
     pub use sysinfo::{Disk, DiskExt, System, SystemExt};
     pub use uuid::Uuid;
 }
+
+use mem::{DataSizeUnit, Memory};
