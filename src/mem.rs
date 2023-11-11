@@ -48,39 +48,58 @@ impl DataSizeUnit {
     }
 }
 
+/// A structure that stores information about the free and total space on the disk
 #[derive(Debug)]
 pub struct Rom {
+    /// Total space on the disk
     pub total: DataSizeUnit,
+    /// Free space on the disk
     pub free: DataSizeUnit,
 }
 
+/// A structure that stores the information needed to determine the `optimal' chunk size
 #[derive(Debug)]
 pub struct Memory<STR: AsRef<str>> {
+    /// Here we store an object that can store various data about the system
     system_info: System,
+    /// Path to the backup location
     pub path: STR,
+    /// Information about the free and total space on the disk.
+    /// The device on which the memory is defined depends on the path specified by the user
     pub rom: Option<Rom>,
+    /// Information about the free and total space in RAM.
     pub ram_available: DataSizeUnit,
 }
 
 impl<STR: AsRef<str>> Memory<STR> {
+    /// Creates a new instance of the structure
     pub fn new(backup_location_path: STR) -> Self {
+        // only RAM and ROM tracking
         let system_info =
             System::new_with_specifics(RefreshKind::new().with_memory().with_disks_list());
         Self {
+            // If the path is not valid, we will not track ROMs
             rom: system_info
+                // get all connected disks
                 .disks()
                 .iter()
-                .find(|disk| {
-                    println!(
-                        "{:#?}, {:#?}",
-                        disk.mount_point().to_path_buf().display().to_string(),
-                        backup_location_path.as_ref().to_string()
-                    );
+                // get each disk's mount point, and compare whether the start
+                // of the path matches the path specified by the user.
+                .filter_map(|disk| {
+                    let temp = disk.mount_point().display().to_string();
                     backup_location_path
                         .as_ref()
-                        .starts_with(&disk.mount_point().to_path_buf().display().to_string())
+                        .starts_with(&temp)
+                        .then(|| (disk, temp))
                 })
-                .map(|disk| Rom {
+                // problem can occur when one path is a subset of another path
+                // -> `/home/user/file.txt` -- specified path
+                // -> `/` -- diskA/partitionA
+                // -> `/home` -- diskB/partitionB
+                // then after checking for the substring, discarding unnecessary mount points,
+                // compare the longest possible match.
+                .max_by_key(|(_, p)| p.len())
+                .map(|(disk, _)| Rom {
                     total: DataSizeUnit::into_human_readable(disk.total_space() as f64),
                     free: DataSizeUnit::into_human_readable(disk.available_space() as f64),
                 }),
@@ -90,32 +109,18 @@ impl<STR: AsRef<str>> Memory<STR> {
         }
     }
 
-    pub fn update_info(&mut self, path: Option<STR>) {
+    pub fn update_info(&mut self) {
         self.system_info.refresh_memory();
         self.system_info.refresh_disks_list();
-        self.rom = self
-            .system_info
-            .disks()
-            .iter()
-            .find(|disk| {
-                disk.mount_point().to_path_buf().display().to_string()
-                    == if let Some(path) = path.as_ref() {
-                        path.as_ref().to_string()
-                    } else {
-                        self.path.as_ref().to_string()
-                    }
-            })
-            .map(|disk| Rom {
-                total: DataSizeUnit::into_human_readable(disk.total_space() as f64),
-                free: DataSizeUnit::into_human_readable(disk.available_space() as f64),
-            });
         self.ram_available =
             DataSizeUnit::into_human_readable(self.system_info.available_memory() as f64);
     }
 }
 
 #[test]
-fn main() {
-    let mem_info = Memory::new("/home/m62624/Проекты/flexible_inspect/");
-    dbg!(mem_info);
+fn test_memory() {
+    let mut memory = Memory::new("/home/m62624/Проекты/flexible_inspect/src/mem.rs");
+    println!("{:#?}", memory);
+    memory.update_info();
+    println!("{:#?}", memory);
 }
