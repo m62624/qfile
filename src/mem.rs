@@ -112,15 +112,16 @@ impl<STR: AsRef<str>> Memory<STR> {
     pub fn update_info(&mut self) {
         self.system_info.refresh_memory();
         self.system_info.refresh_disks_list();
-        self.ram_available =
-            DataSizeUnit::into_human_readable(self.system_info.available_memory() as f64);
     }
 }
 
 #[test]
 fn test_memory() {
-    let mut memory = Memory::new("/home/m62624/Проекты/flexible_inspect/src/mem.rs");
+    use std::thread::sleep;
+    use std::time::Duration;
+    let mut memory = Memory::new("/");
     println!("{:#?}", memory);
+    sleep(Duration::from_secs(30));
     memory.update_info();
     println!("{:#?}", memory);
 }

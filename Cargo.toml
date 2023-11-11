@@ -3,18 +3,19 @@ name = "qfile"
 version = "3.0.1"
 edition = "2021"
 description = "Crate for accessing a file by path, case insensitive. Automatic detection, create a path with a new file or open an existing file"
-repository="https://github.com/m62624/qfile"
-categories = ["filesystem","asynchronous"]
-keywords = ["file","async-io","search", "find", "case-insensitive"]
+repository = "https://github.com/m62624/qfile"
+categories = ["filesystem", "asynchronous"]
+keywords = ["file", "async-io", "search", "find", "case-insensitive"]
 license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
+async-std = { version = "1.12.0", features = ["attributes"] }
 home = "0.5.5"
-sys-info = "0.9.1"
+sysinfo = "0.29.10"
 unicase = "2.7.0"
-uuid = {version = "1.5.0", features = ["v4"]}
+uuid = { version = "1.5.0", features = ["v4"] }
 
 [dev-dependencies]
-rand="0.8.5"
+rand = "0.8.5"
 [lib]
 doctest = false
