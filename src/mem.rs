@@ -91,10 +91,17 @@ impl<STR: AsRef<str>> Memory<STR> {
         }
     }
 
-    // pub fn update_info(&mut self) {
-    //     self.system_info.refresh_memory();
-    //     self.system_info.refresh_disks_list();
-    // }
+    /// Update information about the free and total space on the disk.
+    pub fn update_info(&mut self) {
+        self.system_info.refresh_memory();
+        self.rom = Self::locate_the_disk_in_the_path(&mut self.system_info, &self.path, true)
+            .map(|disk| Rom {
+                total: DataSizeUnit::into_human_readable(disk.total_space() as f64),
+                free: DataSizeUnit::into_human_readable(disk.available_space() as f64),
+            });
+        self.ram_available =
+            DataSizeUnit::into_human_readable(self.system_info.available_memory() as f64);
+    }
 
     /// Get each disk's mount point, and compare whether the start
     /// of the path matches the path specified by the user.
