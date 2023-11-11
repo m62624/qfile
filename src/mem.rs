@@ -78,12 +78,11 @@ impl<STR: AsRef<str>> Memory<STR> {
         let mut system_info =
             System::new_with_specifics(RefreshKind::new().with_memory().with_disks_list());
         Self {
-            rom: Self::locate_the_disk_in_the_path(&mut system_info, &backup_location_path).map(
-                |disk| Rom {
+            rom: Self::locate_the_disk_in_the_path(&mut system_info, &backup_location_path, false)
+                .map(|disk| Rom {
                     total: DataSizeUnit::into_human_readable(disk.total_space() as f64),
                     free: DataSizeUnit::into_human_readable(disk.available_space() as f64),
-                },
-            ),
+                }),
             ram_available: DataSizeUnit::into_human_readable(system_info.available_memory() as f64),
             path: backup_location_path,
             system_info,
@@ -108,8 +107,11 @@ impl<STR: AsRef<str>> Memory<STR> {
     pub fn locate_the_disk_in_the_path<'a>(
         system_info: &'a mut System,
         path: &STR,
+        update_system_info: bool,
     ) -> Option<&'a Disk> {
-        system_info.refresh_disks_list();
+        if update_system_info {
+            system_info.refresh_disks_list();
+        }
         system_info
             .disks()
             .iter()
