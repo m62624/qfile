@@ -21,5 +21,5 @@ impl Timer {
 
 /// Получаем процент от числа (размер данных)
 pub fn percentage_result(bytes: f64, percentage: f64) -> f64 {
-    (bytes / 100 as f64) * percentage
+    (bytes / 100_f64) * percentage
 }

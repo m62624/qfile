@@ -138,7 +138,7 @@ impl<S: AsRef<str>> Memory<S> {
             .iter()
             .filter_map(|disk| {
                 let temp = disk.mount_point().display().to_string();
-                path.as_ref().starts_with(&temp).then(|| (disk, temp))
+                path.as_ref().starts_with(&temp).then_some((disk, temp))
             })
             .max_by_key(|(_, p)| p.len())
             .map(|(disk, _)| disk)

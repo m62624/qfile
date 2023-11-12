@@ -1,5 +1,5 @@
 use super::*;
-use sysinfo::{Disk, DiskExt, System, SystemExt};
+use sysinfo::{SystemExt};
 mod DataSizeUnit_tests {
     use super::*;
 
@@ -156,12 +156,12 @@ mod Memory_tests {
     #[test]
     fn get_path_t_0() {
         let mem = Memory::new(expand_path(String::from("~")));
-        assert!(mem.get_path().len() > 0);
+        assert!(!mem.get_path().is_empty());
     }
 
     #[test]
     fn set_path_t_0() {
-        let new_path = expand_path(format!("{}/{}", "~", Uuid::new_v4().to_string()));
+        let new_path = expand_path(format!("{}/{}", "~", Uuid::new_v4()));
         let mut mem = Memory::new(expand_path(String::from("~")));
         mem.set_path(expand_path(new_path.clone()));
         let correct_path: &String = mem.get_path();
