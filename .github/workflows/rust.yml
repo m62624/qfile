@@ -27,7 +27,7 @@ jobs:
         run: |
           cargo +nightly tarpaulin \
           --engine llvm \
-          --out xml \ 
+          --out xml \
           --output-dir .coverage
       - uses: codecov/codecov-action@v3
         with:
