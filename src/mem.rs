@@ -1,8 +1,6 @@
 use std::fmt::Display;
-
 use sysinfo::RefreshKind;
-
-use super::import_libs::*;
+use sysinfo::{Disk, DiskExt, System, SystemExt};
 
 /// Kilobytes in bytes.
 const BYTES_IN_KB: f64 = 1024.0;
@@ -52,7 +50,7 @@ impl DataSizeUnit {
 
 /// A structure that stores information about the free and total space on the disk
 #[derive(Debug)]
-pub struct Rom {
+struct Rom {
     /// Total space on the disk
     pub total: DataSizeUnit,
     /// Free space on the disk
@@ -80,11 +78,12 @@ impl<S: AsRef<str>> Memory<S> {
         let mut system_info =
             System::new_with_specifics(RefreshKind::new().with_memory().with_disks_list());
         Self {
-            rom: Self::locate_the_disk_in_the_path(&mut system_info, &path_on_disk, false)
-                .map(|disk| Rom {
+            rom: Self::locate_the_disk_in_the_path(&mut system_info, &path_on_disk, false).map(
+                |disk| Rom {
                     total: DataSizeUnit::into_human_readable(disk.total_space() as f64),
                     free: DataSizeUnit::into_human_readable(disk.available_space() as f64),
-                }),
+                },
+            ),
             ram_available: DataSizeUnit::into_human_readable(system_info.available_memory() as f64),
             path: path_on_disk,
             system_info,
@@ -94,11 +93,12 @@ impl<S: AsRef<str>> Memory<S> {
     /// Update information about the free and total space on the disk.
     pub fn update_info(&mut self) {
         self.system_info.refresh_memory();
-        self.rom = Self::locate_the_disk_in_the_path(&mut self.system_info, &self.path, true)
-            .map(|disk| Rom {
+        self.rom = Self::locate_the_disk_in_the_path(&mut self.system_info, &self.path, true).map(
+            |disk| Rom {
                 total: DataSizeUnit::into_human_readable(disk.total_space() as f64),
                 free: DataSizeUnit::into_human_readable(disk.available_space() as f64),
-            });
+            },
+        );
         self.ram_available =
             DataSizeUnit::into_human_readable(self.system_info.available_memory() as f64);
     }

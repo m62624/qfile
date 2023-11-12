@@ -1,4 +1,4 @@
-use super::import_libs::*;
+use std::time::{Duration, Instant};
 
 /// Таймер для замера времени выполнения
 pub struct Timer {
