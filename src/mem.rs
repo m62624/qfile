@@ -61,11 +61,11 @@ pub struct Rom {
 
 #[derive(Debug)]
 /// A structure that stores the information needed to determine the `optimal' chunk size
-pub struct Memory<STR: AsRef<str>> {
+pub struct Memory<S: AsRef<str>> {
     /// Here we store an object that can store various data about the system
     system_info: System,
     /// Path to the backup location
-    path: STR,
+    path: S,
     /// Information about the free and total space on the disk.
     /// The device on which the memory is defined depends on the path specified by the user
     rom: Option<Rom>,
@@ -73,9 +73,9 @@ pub struct Memory<STR: AsRef<str>> {
     ram_available: DataSizeUnit,
 }
 
-impl<STR: AsRef<str>> Memory<STR> {
+impl<S: AsRef<str>> Memory<S> {
     /// Creates a new instance of the structure
-    pub fn new(path_on_disk: STR) -> Self {
+    pub fn new(path_on_disk: S) -> Self {
         // only RAM and ROM tracking
         let mut system_info =
             System::new_with_specifics(RefreshKind::new().with_memory().with_disks_list());
@@ -115,7 +115,7 @@ impl<STR: AsRef<str>> Memory<STR> {
     /// compare the longest possible match.
     pub fn locate_the_disk_in_the_path<'a>(
         system_info: &'a mut System,
-        path: &STR,
+        path: &S,
         update_system_info: bool,
     ) -> Option<&'a Disk> {
         if update_system_info {
@@ -140,14 +140,14 @@ impl<STR: AsRef<str>> Memory<STR> {
         &self.ram_available
     }
 
-    pub fn get_path(&self) -> &STR {
+    pub fn get_path(&self) -> &S {
         &self.path
     }
 
     /// Set the path to the backup location
     /// Automatically updates the information about the free and total space on the disk.
     /// (hidden call `update_info`).
-    pub fn set_path(&mut self, path: STR) {
+    pub fn set_path(&mut self, path: S) {
         self.path = path;
         self.update_info();
     }
@@ -173,7 +173,7 @@ impl Display for Rom {
     }
 }
 
-impl<STR: AsRef<str>> Display for Memory<STR> {
+impl<S: AsRef<str>> Display for Memory<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
