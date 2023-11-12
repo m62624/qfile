@@ -14,7 +14,17 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  rust-tests:
+  unit-tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run tests
+      run: cargo test --verbose
+
+  coverage-tests:
+      if: github.ref == 'refs/heads/main'
       runs-on: ubuntu-latest
       container:
         image: xd009642/tarpaulin:develop-nightly
