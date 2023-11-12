@@ -1,5 +1,6 @@
 use super::*;
-mod DataSizeUnit_test {
+use sysinfo::{Disk, DiskExt, System, SystemExt};
+mod DataSizeUnit_tests {
     use super::*;
 
     /// Check if the memory size is in bytes.
@@ -89,4 +90,83 @@ mod DataSizeUnit_test {
             _ => assert!(false),
         }
     }
+}
+
+mod Memory_tests {
+    use super::*;
+
+    #[test]
+    fn get_rom_t_0() {
+        assert!(Memory::new(expand_path(String::from("~")))
+            .get_rom()
+            .is_some());
+    }
+
+    #[test]
+    fn get_rom_total_t_0() {
+        if let Some(rom) = Memory::new(expand_path(String::from("~"))).get_rom() {
+            let bytes = match rom.get_total() {
+                DataSizeUnit::Bytes(_, b) => b,
+                DataSizeUnit::Kilobytes(_, b) => b,
+                DataSizeUnit::Megabytes(_, b) => b,
+                DataSizeUnit::Gigabytes(_, b) => b,
+                DataSizeUnit::Terabytes(_, b) => b,
+                DataSizeUnit::Petabytes(_, b) => b,
+                DataSizeUnit::Exabytes(_, b) => b,
+            };
+            assert!(*bytes > 0.0);
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
+    fn get_rom_free_t_0() {
+        if let Some(rom) = Memory::new(expand_path(String::from("~"))).get_rom() {
+            let bytes = match rom.get_free() {
+                DataSizeUnit::Bytes(_, b) => b,
+                DataSizeUnit::Kilobytes(_, b) => b,
+                DataSizeUnit::Megabytes(_, b) => b,
+                DataSizeUnit::Gigabytes(_, b) => b,
+                DataSizeUnit::Terabytes(_, b) => b,
+                DataSizeUnit::Petabytes(_, b) => b,
+                DataSizeUnit::Exabytes(_, b) => b,
+            };
+            assert!(*bytes > 0.0);
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
+    fn get_ram_available_t_0() {
+        let mem = Memory::new(expand_path(String::from("~")));
+        let bytes = match mem.get_ram_available() {
+            DataSizeUnit::Bytes(_, b) => b,
+            DataSizeUnit::Kilobytes(_, b) => b,
+            DataSizeUnit::Megabytes(_, b) => b,
+            DataSizeUnit::Gigabytes(_, b) => b,
+            DataSizeUnit::Terabytes(_, b) => b,
+            DataSizeUnit::Petabytes(_, b) => b,
+            DataSizeUnit::Exabytes(_, b) => b,
+        };
+        assert!(*bytes > 0.0);
+    }
+
+    #[test]
+    fn get_path_t_0() {
+        let mem = Memory::new(expand_path(String::from("~")));
+        assert!(mem.get_path().len() > 0);
+    }
+
+    #[test]
+    fn set_path_t_0() {
+        let new_path = expand_path(format!("{}/{}", "~", Uuid::new_v4().to_string()));
+        let mut mem = Memory::new(expand_path(String::from("~")));
+        mem.set_path(expand_path(new_path.clone()));
+        let correct_path: &String = mem.get_path();
+        assert_eq!(correct_path, &new_path);
+    }
+
+    
 }
