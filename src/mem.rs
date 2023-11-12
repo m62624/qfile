@@ -50,11 +50,23 @@ impl DataSizeUnit {
 
 /// A structure that stores information about the free and total space on the disk
 #[derive(Debug)]
-struct Rom {
+pub struct Rom {
     /// Total space on the disk
-    pub total: DataSizeUnit,
+    total: DataSizeUnit,
     /// Free space on the disk
-    pub free: DataSizeUnit,
+    free: DataSizeUnit,
+}
+
+impl Rom {
+    /// Get the total space on the disk
+    pub fn get_total(&self) -> &DataSizeUnit {
+        &self.total
+    }
+
+    /// Get the free space on the disk
+    pub fn get_free(&self) -> &DataSizeUnit {
+        &self.free
+    }
 }
 
 #[derive(Debug)]
@@ -153,6 +165,7 @@ impl<S: AsRef<str>> Memory<S> {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 impl Display for DataSizeUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -167,12 +180,14 @@ impl Display for DataSizeUnit {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 impl Display for Rom {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "[total: {}, free: {}]", self.total, self.free,)
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 impl<S: AsRef<str>> Display for Memory<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
