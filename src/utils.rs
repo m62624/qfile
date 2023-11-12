@@ -20,6 +20,6 @@ impl Timer {
 }
 
 /// Получаем процент от числа (размер данных)
-pub fn percentage_result(kb: f64, percentage: f64) -> f64 {
-    (kb / 100 as f64) * percentage
+pub fn percentage_result(bytes: f64, percentage: f64) -> f64 {
+    (bytes / 100 as f64) * percentage
 }
