@@ -15,6 +15,8 @@ unicase = "2.7.0"
 uuid = { version = "1.5.0", features = ["v4"] }
 
 [dev-dependencies]
+home = "0.5.5"
+alloc_counter = "0.0.4"
 rand = "0.8.5"
 [lib]
 doctest = false
